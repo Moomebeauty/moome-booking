@@ -245,7 +245,7 @@ function show(n){
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
-/* LIFF 綁定 */
+/* LIFF 綁定 + 查會員 */
 (async function(){
   try{
     await liff.init({ liffId: LIFF_ID });
@@ -253,10 +253,37 @@ function show(n){
       const pf = await liff.getProfile();
       st.userId = pf.userId;
       if(pf.displayName) $("rname").value = pf.displayName;
+      // 查會員：舊客自動帶入、跳過註冊
+      lookupMember(st.userId);
+      return;
     }
   }catch(e){ console.log("LIFF:", e); }
   show(0);
 })();
+
+/* 用 JSONP 向 Apps Script 查會員 */
+function lookupMember(userId){
+  if(!SCRIPT_URL || !SCRIPT_URL.startsWith("https")){ show(0); return; }
+  const cbName = "moomeCB_" + Date.now();
+  const timer = setTimeout(()=>{ cleanup(); show(0); }, 6000); // 查太久就當新客
+  function cleanup(){ delete window[cbName]; const s=$(cbName); if(s) s.remove(); clearTimeout(timer); }
+  window[cbName] = function(res){
+    cleanup();
+    if(res && res.found){
+      st.name = res.name; st.phone = res.phone;
+      $("rname").value = res.name; $("rphone").value = res.phone;
+      // 舊客：直接跳到「預約須知」
+      show(1);
+    }else{
+      show(0); // 新客：顯示註冊表單
+    }
+  };
+  const s=document.createElement("script");
+  s.id=cbName;
+  s.src=SCRIPT_URL+"?action=getMember&userId="+encodeURIComponent(userId)+"&callback="+cbName;
+  s.onerror=()=>{ cleanup(); show(0); };
+  document.body.appendChild(s);
+}
 
 /* 步驟 0：註冊 */
 $("p0next").onclick=()=>{
