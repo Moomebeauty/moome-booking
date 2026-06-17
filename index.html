@@ -120,7 +120,7 @@
   <header>
     <div class="brand">沐 蜜</div>
     <div class="moome">Moome</div>
-    <div class="slogan">遇見美好 · 所待皆所願</div>
+    <div class="slogan">遇見美好 · 所得皆所願</div>
   </header>
 
   <div class="steps">
@@ -167,13 +167,11 @@
     <button class="cta" id="p1next" disabled>我同意，繼續預約</button>
   </div>
 
-  <!-- 2 選服務（複選）+ 師傅 -->
+  <!-- 2 選服務（複選）-->
   <div class="panel" id="p2">
     <div class="ptitle">選擇服務</div>
     <div class="psub">可複選多項服務。</div>
     <div id="svcList"></div>
-    <label class="lbl" style="margin-top:18px">選擇師傅</label>
-    <div class="grid2" id="stylists"></div>
     <button class="cta" id="p2next" disabled>下一步</button>
   </div>
 
@@ -196,7 +194,6 @@
       <div class="sumrow"><span class="k">姓名</span><span class="v" id="sName">—</span></div>
       <div class="sumrow"><span class="k">手機</span><span class="v" id="sPhone">—</span></div>
       <div class="sumrow"><span class="k">服務</span><span class="v" id="sSvc">—</span></div>
-      <div class="sumrow"><span class="k">師傅</span><span class="v" id="sStylist">—</span></div>
       <div class="sumrow"><span class="k">時間</span><span class="v" id="sWhen">—</span></div>
       <div class="sumrow"><span class="k">服務總時長</span><span class="v" id="sDur">—</span></div>
       <div class="sumrow"><span class="k">金額</span><span class="v" id="sPrice">—</span></div>
@@ -218,11 +215,11 @@
     </div>
   </div>
 
-  <footer>沐蜜 Moome · 遇見美好 所待皆所願 · 台南永康</footer>
+  <footer>沐蜜 Moome · 遇見美好 所得皆所願 · 台南永康</footer>
 </div>
 
 <script>
-/* ===== 範例資料：服務、師傅、營業時間，改成你自己的即可 ===== */
+/* ===== 範例資料：服務、營業時間，改成你自己的即可 ===== */
 const SERVICES = {
   brow:  { name:"霧眉 / 霧唇訂製", dur:150, price:6800 },
   lash:  { name:"美睫設計",       dur:90,  price:1500 },
@@ -230,11 +227,6 @@ const SERVICES = {
   wax:   { name:"熱蠟除毛",       dur:45,  price:900 },
   body:  { name:"美體舒緩",       dur:90,  price:2400 },
 };
-const STYLISTS = [
-  { id:"mu", name:"沐 老師", desc:"霧眉 · 美睫" },
-  { id:"mi", name:"蜜 老師", desc:"做臉 · 美體" },
-  { id:"all",name:"指定不限", desc:"皆可" },
-];
 const BUSINESS = { open:11, close:20, slotMins:30, closedWeekday:1 };
 const SAMPLE_BOOKED = ["14:00","16:30"];
 const STUDIO = { name:"沐蜜 Moome", location:"台南市永康區（預約後告知詳細地址）" };
@@ -243,7 +235,7 @@ const LIFF_ID = "2010429680-8LmiZhaK";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM4tyeLRXkVlvAFGYx89GBs_PPjsMM27ecjzECpitvtFs4yJq/exec";
 
 const $=id=>document.getElementById(id);
-const st = { userId:null, name:"", phone:"", services:[], stylist:null, date:null, time:null };
+const st = { userId:null, name:"", phone:"", services:[], date:null, time:null };
 
 /* 面板切換 */
 let cur=0;
@@ -277,7 +269,7 @@ $("p0next").onclick=()=>{
 $("agree").onchange=e=>{ $("p1next").disabled=!e.target.checked; };
 $("p1next").onclick=()=>show(2);
 
-/* 步驟 2：服務複選 + 師傅 */
+/* 步驟 2：服務複選 */
 const svcList=$("svcList");
 Object.keys(SERVICES).forEach(key=>{
   const sv=SERVICES[key];
@@ -293,16 +285,7 @@ Object.keys(SERVICES).forEach(key=>{
   };
   svcList.appendChild(d);
 });
-const elStylists=$("stylists");
-STYLISTS.forEach(s=>{
-  const b=document.createElement("button");
-  b.className="opt";
-  b.innerHTML=`<div class="nm">${s.name}</div><div class="mt">${s.desc}</div>`;
-  b.onclick=()=>{ st.stylist=s; [...elStylists.children].forEach(c=>c.classList.remove("sel"));
-    b.classList.add("sel"); checkP2(); };
-  elStylists.appendChild(b);
-});
-function checkP2(){ $("p2next").disabled=!(st.services.length>0 && st.stylist); }
+function checkP2(){ $("p2next").disabled=!(st.services.length>0); }
 $("p2next").onclick=()=>show(3);
 
 /* 步驟 3：時間 */
@@ -340,7 +323,6 @@ function fillSummary(){
   $("sName").textContent=st.name;
   $("sPhone").textContent=st.phone;
   $("sSvc").textContent=svcNames();
-  $("sStylist").textContent=st.stylist.name;
   $("sWhen").textContent=st.date+" "+st.time;
   $("sDur").textContent=totalDur()+" 分鐘";
   $("sPrice").textContent="NT$ "+totalPrice().toLocaleString();
@@ -353,7 +335,7 @@ function gcalLink(){
   const z=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")
     +"T"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0")+"00";
   const title=encodeURIComponent(`${STUDIO.name}｜${svcNames()}`);
-  const det=encodeURIComponent(`客人：${st.name}\n電話：${st.phone}\n服務：${svcNames()}\n師傅：${st.stylist.name}\n金額：NT$ ${totalPrice()}`);
+  const det=encodeURIComponent(`客人：${st.name}\n電話：${st.phone}\n服務：${svcNames()}\n金額：NT$ ${totalPrice()}`);
   const loc=encodeURIComponent(STUDIO.location);
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${z(start)}/${z(end)}&details=${det}&location=${loc}`;
 }
@@ -364,7 +346,7 @@ $("submit").onclick=()=>{
     fetch(SCRIPT_URL,{ method:"POST", mode:"no-cors",
       headers:{"Content-Type":"text/plain;charset=utf-8"},
       body:JSON.stringify({
-        name:st.name, phone:st.phone, service:svcNames(), stylist:st.stylist.name,
+        name:st.name, phone:st.phone, service:svcNames(),
         date:st.date, time:st.time, dur:totalDur(), price:totalPrice(), userId:st.userId||""
       })
     }).catch(()=>{});
