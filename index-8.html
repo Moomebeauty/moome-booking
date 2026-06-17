@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>沐蜜 Moome · 線上預約</title>
+<style>
+  :root{
+    --ink:#4a4038;
+    --taupe:#8c7c6a;
+    --taupe-deep:#6f6151;
+    --cream:#f3ece2;
+    --cream-soft:#faf5ec;
+    --sand:#e6dccb;
+    --line:#ddd0bd;
+    --muted:#9b8d7c;
+    --ok:#7c8a6a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    background:var(--cream);color:var(--ink);line-height:1.75;letter-spacing:.02em;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:480px;margin:0 auto;min-height:100vh;
+    background:var(--cream);position:relative;overflow:hidden}
+  .wrap::before{content:"";position:absolute;left:-30%;top:34%;width:120%;height:70%;
+    background:radial-gradient(60% 50% at 30% 30%, rgba(140,124,106,.10), transparent 70%);
+    pointer-events:none;z-index:0}
+
+  header{position:relative;z-index:1;padding:52px 28px 38px;text-align:center;
+    background:linear-gradient(180deg,#efe6d8 0%,var(--cream) 100%)}
+  .tags{display:flex;justify-content:center;gap:14px;margin-bottom:26px}
+  .tag{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;
+    font-family:"Noto Serif TC",serif;font-size:13px;letter-spacing:.05em}
+  .tag.dark{background:var(--taupe);color:var(--cream-soft);
+    box-shadow:0 10px 26px rgba(111,97,81,.28)}
+  .tag.light{background:var(--cream-soft);color:var(--taupe-deep);
+    border:1px dashed var(--taupe);transform:translateY(8px)}
+  .brand{font-family:"Noto Serif TC",serif;font-size:15px;letter-spacing:.5em;
+    color:var(--taupe-deep);margin-bottom:6px;padding-left:.5em}
+  .moome{font-family:"Brush Script MT","Segoe Script",cursive;font-size:46px;
+    color:var(--ink);line-height:1;margin-bottom:14px}
+  .slogan{font-family:"Noto Serif TC",serif;font-size:14px;color:var(--muted);
+    letter-spacing:.28em;padding-left:.28em}
+  .loc{margin-top:18px;font-size:12.5px;color:var(--muted);letter-spacing:.1em}
+
+  section{position:relative;z-index:1;padding:30px 28px;
+    border-top:1px solid var(--sand)}
+  .eyebrow{display:flex;align-items:baseline;gap:11px;margin-bottom:20px}
+  .eyebrow .no{font-family:"Noto Serif TC",serif;font-size:13px;color:var(--taupe);
+    letter-spacing:.1em;font-style:italic}
+  .eyebrow .t{font-family:"Noto Serif TC",serif;font-size:18px;font-weight:600;
+    letter-spacing:.08em}
+  .eyebrow .line{flex:1;height:1px;background:var(--sand)}
+
+  .grid{display:grid;gap:12px}
+  .grid.two{grid-template-columns:1fr 1fr}
+  .opt{border:1px solid var(--line);background:var(--cream-soft);border-radius:18px;
+    padding:16px 17px;cursor:pointer;transition:.2s ease;text-align:left;
+    display:flex;flex-direction:column;gap:4px;font:inherit;color:inherit}
+  .opt:active{transform:scale(.98)}
+  .opt:hover{border-color:var(--taupe)}
+  .opt.sel{border-color:var(--taupe);background:#ece1d0;
+    box-shadow:0 8px 22px rgba(140,124,106,.20)}
+  .opt .name{font-weight:600;font-size:15.5px}
+  .opt .meta{font-size:12.5px;color:var(--muted)}
+  .opt .price{font-size:13px;color:var(--taupe-deep);font-weight:600;
+    font-family:"Noto Serif TC",serif}
+
+  .field{margin-top:2px}
+  label.lbl{display:block;font-size:13px;color:var(--muted);margin-bottom:8px;
+    letter-spacing:.05em}
+  input,select{width:100%;font:inherit;padding:14px 15px;border:1px solid var(--line);
+    border-radius:14px;background:var(--cream-soft);color:var(--ink)}
+  input:focus,select:focus{outline:none;border-color:var(--taupe);
+    box-shadow:0 0 0 3px rgba(140,124,106,.12)}
+  input::placeholder{color:#c2b5a2}
+
+  .times{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:14px}
+  .slot{padding:12px 0;text-align:center;border:1px solid var(--line);border-radius:12px;
+    background:var(--cream-soft);font-size:14px;cursor:pointer;transition:.15s;
+    font-family:"Noto Serif TC",serif}
+  .slot:hover{border-color:var(--taupe)}
+  .slot.sel{background:var(--taupe);color:var(--cream-soft);border-color:var(--taupe)}
+  .slot.off{opacity:.3;cursor:not-allowed;text-decoration:line-through}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:12px;letter-spacing:.04em}
+
+  .sumcard{background:var(--cream-soft);border:1px solid var(--line);
+    border-radius:20px;padding:6px 20px}
+  .sumrow{display:flex;justify-content:space-between;align-items:center;padding:13px 0;
+    border-bottom:1px dashed var(--sand);font-size:14.5px}
+  .sumrow:last-of-type{border-bottom:none}
+  .sumrow .k{color:var(--muted);letter-spacing:.06em}
+  .sumrow .v{font-weight:600;text-align:right;font-family:"Noto Serif TC",serif}
+
+  .cta{display:block;width:100%;margin-top:20px;padding:17px;border:none;
+    border-radius:16px;background:var(--taupe);color:var(--cream-soft);font:inherit;
+    font-weight:600;font-size:16px;letter-spacing:.2em;cursor:pointer;transition:.2s;
+    padding-left:.2em}
+  .cta:hover{background:var(--taupe-deep)}
+  .cta:disabled{background:var(--sand);color:#fff;cursor:not-allowed}
+
+  .done{display:none;text-align:center;padding:18px 6px 4px}
+  .done.show{display:block;animation:rise .5s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .done .tick{width:58px;height:58px;border-radius:50%;background:var(--ok);
+    display:grid;place-items:center;margin:0 auto 16px;color:#fff;font-size:28px}
+  .done h3{font-family:"Noto Serif TC",serif;font-size:21px;margin-bottom:8px;
+    letter-spacing:.08em}
+  .done p{font-size:13.5px;color:var(--muted);max-width:30ch;margin:0 auto}
+  .gcal{display:inline-flex;align-items:center;gap:9px;margin-top:20px;padding:14px 26px;
+    background:var(--ink);color:var(--cream-soft);border-radius:14px;text-decoration:none;
+    font-weight:600;font-size:14.5px;letter-spacing:.06em}
+  .reline{margin-top:16px;font-size:12.5px;color:var(--muted)}
+
+  footer{position:relative;z-index:1;padding:26px 28px 44px;text-align:center;
+    color:var(--muted);font-size:12px;letter-spacing:.12em;border-top:1px solid var(--sand)}
+  footer .dot{color:var(--taupe)}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="tags">
+      <div class="tag dark">Moome</div>
+      <div class="tag light">沐蜜</div>
+    </div>
+    <div class="brand">沐 蜜</div>
+    <div class="moome">Moome</div>
+    <div class="slogan">遇見美好 · 所待皆所願</div>
+    <div class="loc">台南永康 · 私宅高端訂製美學秘境</div>
+  </header>
+
+  <section>
+    <div class="eyebrow"><span class="no">i</span><span class="t">選擇師傅</span><span class="line"></span></div>
+    <div class="grid two" id="stylists"></div>
+  </section>
+
+  <section>
+    <div class="eyebrow"><span class="no">ii</span><span class="t">選擇服務</span><span class="line"></span></div>
+    <div class="grid" id="services"></div>
+    <p class="hint" id="svcHint">先選師傅，會顯示該位師傅提供的服務。</p>
+  </section>
+
+  <section>
+    <div class="eyebrow"><span class="no">iii</span><span class="t">日期與時段</span><span class="line"></span></div>
+    <div class="field">
+      <label class="lbl" for="date">預約日期</label>
+      <input type="date" id="date" />
+    </div>
+    <div class="times" id="times"></div>
+    <p class="hint">服務時間 11:00–20:00 · 週一靜休 · 劃線時段已預約</p>
+  </section>
+
+  <section>
+    <div class="eyebrow"><span class="no">iv</span><span class="t">聯絡資料</span><span class="line"></span></div>
+    <div class="field" style="margin-bottom:15px">
+      <label class="lbl" for="cname">姓名</label>
+      <input type="text" id="cname" placeholder="您的稱呼" />
+    </div>
+    <div class="field">
+      <label class="lbl" for="cphone">手機</label>
+      <input type="tel" id="cphone" placeholder="09xx-xxx-xxx" />
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow"><span class="no">v</span><span class="t">確認預約</span><span class="line"></span></div>
+    <div class="sumcard">
+      <div class="sumrow"><span class="k">師傅</span><span class="v" id="sStylist">—</span></div>
+      <div class="sumrow"><span class="k">服務</span><span class="v" id="sService">—</span></div>
+      <div class="sumrow"><span class="k">時長</span><span class="v" id="sDur">—</span></div>
+      <div class="sumrow"><span class="k">時間</span><span class="v" id="sWhen">—</span></div>
+      <div class="sumrow"><span class="k">金額</span><span class="v" id="sPrice">—</span></div>
+    </div>
+    <button class="cta" id="submit" disabled>送 出 預 約</button>
+
+    <div class="done" id="done">
+      <div class="tick">✓</div>
+      <h3>預約已送出</h3>
+      <p>將這筆預約加入 Google 日曆，到店前會自動提醒您。</p>
+      <a class="gcal" id="gcal" href="#" target="_blank" rel="noopener">＋ 加入 Google 日曆</a>
+      <p class="reline">需改期或取消，回覆 LINE 訊息即可。</p>
+    </div>
+  </section>
+
+  <footer>沐蜜 Moome <span class="dot">·</span> 遇見美好 所待皆所願 <span class="dot">·</span> 台南永康</footer>
+</div>
+
+<script>
+/* ===== 範例資料：改成你自己的師傅、服務、價格即可 ===== */
+const STYLISTS = [
+  { id:"mu",  name:"沐 老師",  desc:"霧眉 · 美睫", services:["brow","lash","wax_s"] },
+  { id:"mi",  name:"蜜 老師",  desc:"做臉 · 美體", services:["facial","body"] },
+  { id:"all", name:"指定不限",  desc:"全項目可預約", services:["brow","lash","facial","wax_s","body"] },
+];
+const SERVICES = {
+  brow:  { name:"霧眉 / 霧唇訂製", dur:150, price:6800 },
+  lash:  { name:"美睫設計",       dur:90,  price:1500 },
+  facial:{ name:"客製臉部保養",   dur:90,  price:2200 },
+  wax_s: { name:"熱蠟除毛",       dur:45,  price:900 },
+  body:  { name:"美體舒緩",       dur:90,  price:2400 },
+};
+const BUSINESS = { open:11, close:20, slotMins:30, closedWeekday:1 };
+const SAMPLE_BOOKED = ["14:00","16:30"];
+const STUDIO = { name:"沐蜜 Moome", location:"台南市永康區（預約後告知詳細地址）" };
+
+const st = { stylist:null, service:null, date:null, time:null };
+const $=id=>document.getElementById(id);
+
+const elStylists=$("stylists");
+STYLISTS.forEach(s=>{
+  const b=document.createElement("button");
+  b.className="opt";
+  b.innerHTML=`<span class="name">${s.name}</span><span class="meta">${s.desc}</span>`;
+  b.onclick=()=>{ st.stylist=s; st.service=null;
+    [...elStylists.children].forEach(c=>c.classList.remove("sel"));
+    b.classList.add("sel"); renderServices(); refresh(); };
+  elStylists.appendChild(b);
+});
+
+const elServices=$("services"), svcHint=$("svcHint");
+function renderServices(){
+  elServices.innerHTML="";
+  if(!st.stylist){svcHint.style.display="block";return;}
+  svcHint.style.display="none";
+  st.stylist.services.forEach(key=>{
+    const sv=SERVICES[key];
+    const b=document.createElement("button");
+    b.className="opt";
+    b.innerHTML=`<span class="name">${sv.name}</span><span class="meta">約 ${sv.dur} 分鐘</span><span class="price">NT$ ${sv.price.toLocaleString()}</span>`;
+    b.onclick=()=>{ st.service={key,...sv};
+      [...elServices.children].forEach(c=>c.classList.remove("sel"));
+      b.classList.add("sel"); refresh(); };
+    elServices.appendChild(b);
+  });
+}
+
+const elDate=$("date");
+const today=new Date(); today.setHours(0,0,0,0);
+const max=new Date(today); max.setDate(max.getDate()+60);
+const fmt=d=>d.toISOString().split("T")[0];
+elDate.min=fmt(today); elDate.max=fmt(max);
+elDate.onchange=()=>{ st.date=elDate.value; st.time=null; renderTimes(); refresh(); };
+
+const elTimes=$("times");
+function renderTimes(){
+  elTimes.innerHTML="";
+  if(!st.date)return;
+  const d=new Date(st.date+"T00:00:00");
+  if(d.getDay()===BUSINESS.closedWeekday){
+    elTimes.innerHTML=`<p class="hint" style="grid-column:1/-1">本日靜休，請改選其他日期。</p>`;return;
+  }
+  for(let h=BUSINESS.open;h<BUSINESS.close;h++){
+    for(let m=0;m<60;m+=BUSINESS.slotMins){
+      const t=`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
+      const off=SAMPLE_BOOKED.includes(t);
+      const b=document.createElement("div");
+      b.className="slot"+(off?" off":""); b.textContent=t;
+      if(!off)b.onclick=()=>{ st.time=t;
+        [...elTimes.children].forEach(c=>c.classList.remove("sel"));
+        b.classList.add("sel"); refresh(); };
+      elTimes.appendChild(b);
+    }
+  }
+}
+
+function refresh(){
+  $("sStylist").textContent=st.stylist?st.stylist.name:"—";
+  $("sService").textContent=st.service?st.service.name:"—";
+  $("sDur").textContent=st.service?`${st.service.dur} 分鐘`:"—";
+  $("sWhen").textContent=(st.date&&st.time)?`${st.date} ${st.time}`:"—";
+  $("sPrice").textContent=st.service?`NT$ ${st.service.price.toLocaleString()}`:"—";
+  const name=$("cname").value.trim(), phone=$("cphone").value.trim();
+  $("submit").disabled=!(st.stylist&&st.service&&st.date&&st.time&&name&&phone);
+}
+$("cname").oninput=refresh; $("cphone").oninput=refresh;
+
+function gcalLink(){
+  const [h,m]=st.time.split(":").map(Number);
+  const start=new Date(st.date+"T00:00:00"); start.setHours(h,m,0,0);
+  const end=new Date(start.getTime()+st.service.dur*60000);
+  const z=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")
+    +"T"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0")+"00";
+  const name=$("cname").value.trim(), phone=$("cphone").value.trim();
+  const title=encodeURIComponent(`${STUDIO.name}｜${st.service.name}（${st.stylist.name}）`);
+  const det=encodeURIComponent(`客人：${name}\n電話：${phone}\n服務：${st.service.name}\n師傅：${st.stylist.name}\n金額：NT$ ${st.service.price}`);
+  const loc=encodeURIComponent(STUDIO.location);
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}`
+    +`&dates=${z(start)}/${z(end)}&details=${det}&location=${loc}`;
+}
+
+$("submit").onclick=()=>{
+  $("gcal").href=gcalLink();
+  $("done").classList.add("show");
+  $("submit").style.display="none";
+  $("done").scrollIntoView({behavior:"smooth",block:"center"});
+};
+</script>
+</body>
+</html>
