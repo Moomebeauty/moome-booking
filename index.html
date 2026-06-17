@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>沐蜜 Moome · 線上預約</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
   :root{
     --ink:#4a4038;
@@ -208,8 +209,27 @@ const BUSINESS = { open:11, close:20, slotMins:30, closedWeekday:1 };
 const SAMPLE_BOOKED = ["14:00","16:30"];
 const STUDIO = { name:"沐蜜 Moome", location:"台南市永康區（預約後告知詳細地址）" };
 
-const st = { stylist:null, service:null, date:null, time:null };
+const st = { stylist:null, service:null, date:null, time:null, userId:null };
 const $=id=>document.getElementById(id);
+
+/* ===== LIFF：客人從 LINE 進來時自動抓身分 ===== */
+const LIFF_ID = "2010429680-8LmiZhaK";
+(async function initLiff(){
+  try{
+    await liff.init({ liffId: LIFF_ID });
+    if(liff.isLoggedIn()){
+      const profile = await liff.getProfile();
+      st.userId = profile.userId;              // 用來發提醒的客人身分
+      if(profile.displayName){
+        $("cname").value = profile.displayName; // 自動帶入 LINE 名稱
+        refresh();
+      }
+    }
+  }catch(e){
+    // 不是從 LINE 開啟（例如電腦測試）時，網頁照常運作，只是沒有 userId
+    console.log("LIFF 未啟用或非 LINE 環境：", e);
+  }
+})();
 
 const elStylists=$("stylists");
 STYLISTS.forEach(s=>{
@@ -310,7 +330,8 @@ $("submit").onclick=()=>{
         service:st.service.name,
         stylist:st.stylist.name,
         date:st.date, time:st.time,
-        dur:st.service.dur, price:st.service.price
+        dur:st.service.dur, price:st.service.price,
+        userId:st.userId || ""
       })
     }).catch(()=>{});
   }
