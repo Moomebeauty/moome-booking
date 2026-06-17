@@ -293,10 +293,31 @@ function gcalLink(){
     +`&dates=${z(start)}/${z(end)}&details=${det}&location=${loc}`;
 }
 
+/* ↓↓↓ 把這裡換成你部署 Apps Script 後拿到的網址 ↓↓↓ */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM4tyeLRXkVlvAFGYx89GBs_PPjsMM27ecjzECpitvtFs4yJq/exec";
+
 $("submit").onclick=()=>{
+  const btn=$("submit");
+  btn.disabled=true; btn.textContent="送出中…";
+  // 自動寫進店家日曆
+  if(SCRIPT_URL && !SCRIPT_URL.includes("貼上")){
+    fetch(SCRIPT_URL,{
+      method:"POST", mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({
+        name:$("cname").value.trim(),
+        phone:$("cphone").value.trim(),
+        service:st.service.name,
+        stylist:st.stylist.name,
+        date:st.date, time:st.time,
+        dur:st.service.dur, price:st.service.price
+      })
+    }).catch(()=>{});
+  }
+  // 同時提供客人自己加入日曆的按鈕
   $("gcal").href=gcalLink();
   $("done").classList.add("show");
-  $("submit").style.display="none";
+  btn.style.display="none";
   $("done").scrollIntoView({behavior:"smooth",block:"center"});
 };
 </script>
