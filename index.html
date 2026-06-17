@@ -178,11 +178,11 @@
   <!-- 3 選時間 -->
   <div class="panel" id="p3">
     <div class="ptitle">選擇日期與時段</div>
-    <div class="psub">服務時間 11:00–20:00 · 週一靜休</div>
+    <div class="psub">請選擇日期，下方會顯示該日開放的時段</div>
     <label class="lbl" for="date">預約日期</label>
     <input type="date" id="date" />
     <div class="times" id="times"></div>
-    <p class="hint">劃線時段已預約</p>
+    <p class="hint">僅顯示目前開放、且尚未被預約的時段</p>
     <button class="cta" id="p3next" disabled>下一步</button>
   </div>
 
@@ -324,21 +324,33 @@ elDate.min=fmt(today); elDate.max=fmt(max);
 elDate.onchange=()=>{ st.date=elDate.value; st.time=null; renderTimes(); $("p3next").disabled=true; };
 const elTimes=$("times");
 function renderTimes(){
-  elTimes.innerHTML="";
+  elTimes.innerHTML=`<p class="hint" style="grid-column:1/-1">讀取開放時段中…</p>`;
   if(!st.date)return;
-  const d=new Date(st.date+"T00:00:00");
-  if(d.getDay()===BUSINESS.closedWeekday){ elTimes.innerHTML=`<p class="hint" style="grid-column:1/-1">本日靜休，請改選其他日期。</p>`; return; }
-  for(let h=BUSINESS.open;h<BUSINESS.close;h++){
-    for(let m=0;m<60;m+=BUSINESS.slotMins){
-      const t=`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
-      const off=SAMPLE_BOOKED.includes(t);
+  // 向 Apps Script 查這天的開放時段（JSONP）
+  const cbName="slotsCB_"+Date.now();
+  const timer=setTimeout(()=>{ cleanup(); elTimes.innerHTML=`<p class="hint" style="grid-column:1/-1">讀取失敗，請稍後再試。</p>`; },6000);
+  function cleanup(){ delete window[cbName]; const s=document.getElementById(cbName); if(s)s.remove(); clearTimeout(timer); }
+  window[cbName]=function(res){
+    cleanup();
+    elTimes.innerHTML="";
+    const slots=(res&&res.slots)?res.slots:[];
+    if(slots.length===0){
+      elTimes.innerHTML=`<p class="hint" style="grid-column:1/-1">本日無開放時段，請改選其他日期。</p>`;
+      return;
+    }
+    slots.forEach(t=>{
       const b=document.createElement("div");
-      b.className="slot"+(off?" off":""); b.textContent=t;
-      if(!off)b.onclick=()=>{ st.time=t; [...elTimes.children].forEach(c=>c.classList.remove("sel"));
+      b.className="slot"; b.textContent=t;
+      b.onclick=()=>{ st.time=t; [...elTimes.children].forEach(c=>c.classList.remove("sel"));
         b.classList.add("sel"); $("p3next").disabled=false; };
       elTimes.appendChild(b);
-    }
-  }
+    });
+  };
+  const s=document.createElement("script");
+  s.id=cbName;
+  s.src=SCRIPT_URL+"?action=getSlots&date="+encodeURIComponent(st.date)+"&callback="+cbName;
+  s.onerror=()=>{ cleanup(); elTimes.innerHTML=`<p class="hint" style="grid-column:1/-1">讀取失敗，請稍後再試。</p>`; };
+  document.body.appendChild(s);
 }
 $("p3next").onclick=()=>{ fillSummary(); show(4); };
 
