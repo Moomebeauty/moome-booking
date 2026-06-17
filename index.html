@@ -7,338 +7,371 @@
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
   :root{
-    --ink:#4a4038;
-    --taupe:#8c7c6a;
-    --taupe-deep:#6f6151;
-    --cream:#f3ece2;
-    --cream-soft:#faf5ec;
-    --sand:#e6dccb;
-    --line:#ddd0bd;
-    --muted:#9b8d7c;
-    --ok:#7c8a6a;
+    --ink:#4a4038; --taupe:#8c7c6a; --taupe-deep:#6f6151;
+    --cream:#f3ece2; --cream-soft:#faf5ec; --sand:#e6dccb;
+    --line:#ddd0bd; --muted:#9b8d7c; --ok:#7c8a6a; --warn:#b06a4a;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{
-    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
     background:var(--cream);color:var(--ink);line-height:1.75;letter-spacing:.02em;
-    -webkit-font-smoothing:antialiased;
-  }
-  .wrap{max-width:480px;margin:0 auto;min-height:100vh;
-    background:var(--cream);position:relative;overflow:hidden}
+    -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:480px;margin:0 auto;min-height:100vh;background:var(--cream);position:relative;overflow:hidden}
   .wrap::before{content:"";position:absolute;left:-30%;top:34%;width:120%;height:70%;
     background:radial-gradient(60% 50% at 30% 30%, rgba(140,124,106,.10), transparent 70%);
     pointer-events:none;z-index:0}
 
-  header{position:relative;z-index:1;padding:52px 28px 38px;text-align:center;
+  header{position:relative;z-index:1;padding:46px 28px 30px;text-align:center;
     background:linear-gradient(180deg,#efe6d8 0%,var(--cream) 100%)}
-  .tags{display:flex;justify-content:center;gap:14px;margin-bottom:26px}
-  .tag{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;
-    font-family:"Noto Serif TC",serif;font-size:13px;letter-spacing:.05em}
-  .tag.dark{background:var(--taupe);color:var(--cream-soft);
-    box-shadow:0 10px 26px rgba(111,97,81,.28)}
-  .tag.light{background:var(--cream-soft);color:var(--taupe-deep);
-    border:1px dashed var(--taupe);transform:translateY(8px)}
-  .brand{font-family:"Noto Serif TC",serif;font-size:15px;letter-spacing:.5em;
+  .brand{font-family:"Noto Serif TC",serif;font-size:14px;letter-spacing:.5em;
     color:var(--taupe-deep);margin-bottom:6px;padding-left:.5em}
-  .moome{font-family:"Brush Script MT","Segoe Script",cursive;font-size:46px;
-    color:var(--ink);line-height:1;margin-bottom:14px}
-  .slogan{font-family:"Noto Serif TC",serif;font-size:14px;color:var(--muted);
-    letter-spacing:.28em;padding-left:.28em}
-  .loc{margin-top:18px;font-size:12.5px;color:var(--muted);letter-spacing:.1em}
+  .moome{font-family:"Brush Script MT","Segoe Script",cursive;font-size:42px;color:var(--ink);line-height:1;margin-bottom:12px}
+  .slogan{font-family:"Noto Serif TC",serif;font-size:13px;color:var(--muted);letter-spacing:.28em;padding-left:.28em}
 
-  section{position:relative;z-index:1;padding:30px 28px;
-    border-top:1px solid var(--sand)}
-  .eyebrow{display:flex;align-items:baseline;gap:11px;margin-bottom:20px}
-  .eyebrow .no{font-family:"Noto Serif TC",serif;font-size:13px;color:var(--taupe);
-    letter-spacing:.1em;font-style:italic}
-  .eyebrow .t{font-family:"Noto Serif TC",serif;font-size:18px;font-weight:600;
-    letter-spacing:.08em}
-  .eyebrow .line{flex:1;height:1px;background:var(--sand)}
+  /* 進度條 */
+  .steps{display:flex;justify-content:center;gap:8px;padding:18px 28px 0;position:relative;z-index:1}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--sand);transition:.3s}
+  .dot.on{background:var(--taupe);width:22px;border-radius:4px}
 
-  .grid{display:grid;gap:12px}
-  .grid.two{grid-template-columns:1fr 1fr}
-  .opt{border:1px solid var(--line);background:var(--cream-soft);border-radius:18px;
-    padding:16px 17px;cursor:pointer;transition:.2s ease;text-align:left;
-    display:flex;flex-direction:column;gap:4px;font:inherit;color:inherit}
-  .opt:active{transform:scale(.98)}
-  .opt:hover{border-color:var(--taupe)}
-  .opt.sel{border-color:var(--taupe);background:#ece1d0;
-    box-shadow:0 8px 22px rgba(140,124,106,.20)}
-  .opt .name{font-weight:600;font-size:15.5px}
-  .opt .meta{font-size:12.5px;color:var(--muted)}
-  .opt .price{font-size:13px;color:var(--taupe-deep);font-weight:600;
-    font-family:"Noto Serif TC",serif}
+  .panel{position:relative;z-index:1;padding:26px 28px 32px;display:none}
+  .panel.show{display:block;animation:fade .4s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-  .field{margin-top:2px}
-  label.lbl{display:block;font-size:13px;color:var(--muted);margin-bottom:8px;
-    letter-spacing:.05em}
-  input,select{width:100%;font:inherit;padding:14px 15px;border:1px solid var(--line);
-    border-radius:14px;background:var(--cream-soft);color:var(--ink)}
-  input:focus,select:focus{outline:none;border-color:var(--taupe);
-    box-shadow:0 0 0 3px rgba(140,124,106,.12)}
+  .ptitle{font-family:"Noto Serif TC",serif;font-size:20px;font-weight:600;letter-spacing:.06em;margin-bottom:6px}
+  .psub{font-size:13.5px;color:var(--muted);margin-bottom:22px}
+
+  label.lbl{display:block;font-size:13px;color:var(--muted);margin:14px 0 7px;letter-spacing:.05em}
+  input[type=text],input[type=tel],input[type=date]{width:100%;font:inherit;padding:14px 15px;
+    border:1px solid var(--line);border-radius:14px;background:var(--cream-soft);color:var(--ink)}
+  input:focus{outline:none;border-color:var(--taupe);box-shadow:0 0 0 3px rgba(140,124,106,.12)}
   input::placeholder{color:#c2b5a2}
+
+  .cta{display:block;width:100%;margin-top:24px;padding:16px;border:none;border-radius:16px;
+    background:var(--taupe);color:var(--cream-soft);font:inherit;font-weight:600;font-size:16px;
+    letter-spacing:.18em;cursor:pointer;transition:.2s;padding-left:.18em}
+  .cta:hover{background:var(--taupe-deep)}
+  .cta:disabled{background:var(--sand);color:#fff;cursor:not-allowed}
+  .ghost{background:none;border:1px solid var(--line);color:var(--muted);margin-top:12px;
+    padding:13px;border-radius:14px;width:100%;font:inherit;cursor:pointer;font-size:14px}
+
+  /* 預約須知 */
+  .notice{background:var(--cream-soft);border:1px solid var(--line);border-radius:18px;
+    padding:20px 20px;font-size:14px;line-height:2;max-height:46vh;overflow-y:auto}
+  .notice h4{font-family:"Noto Serif TC",serif;font-size:15px;margin:14px 0 6px;color:var(--taupe-deep)}
+  .notice h4:first-child{margin-top:0}
+  .notice .warn{color:var(--warn)}
+  .notice .em{font-weight:600}
+  .agree{display:flex;align-items:flex-start;gap:10px;margin-top:18px;cursor:pointer;font-size:14px}
+  .agree input{width:20px;height:20px;margin-top:3px;accent-color:var(--taupe);flex-shrink:0}
+
+  /* 服務複選 */
+  .svc{border:1px solid var(--line);background:var(--cream-soft);border-radius:16px;
+    padding:15px 16px;margin-bottom:11px;cursor:pointer;transition:.18s;display:flex;
+    align-items:center;gap:13px}
+  .svc:hover{border-color:var(--taupe)}
+  .svc.sel{border-color:var(--taupe);background:#ece1d0;box-shadow:0 6px 18px rgba(140,124,106,.16)}
+  .svc .box{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);flex-shrink:0;
+    display:grid;place-items:center;font-size:14px;color:#fff;transition:.18s}
+  .svc.sel .box{background:var(--taupe);border-color:var(--taupe)}
+  .svc .info{flex:1}
+  .svc .nm{font-weight:600;font-size:15px}
+  .svc .mt{font-size:12.5px;color:var(--muted)}
+  .svc .pr{font-family:"Noto Serif TC",serif;font-size:14px;color:var(--taupe-deep);font-weight:600}
+
+  /* 師傅 */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .opt{border:1px solid var(--line);background:var(--cream-soft);border-radius:16px;padding:15px;
+    cursor:pointer;transition:.18s;text-align:center;font:inherit;color:inherit}
+  .opt:hover{border-color:var(--taupe)}
+  .opt.sel{border-color:var(--taupe);background:#ece1d0}
+  .opt .nm{font-weight:600;font-size:15px}
+  .opt .mt{font-size:12px;color:var(--muted);margin-top:2px}
 
   .times{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:14px}
   .slot{padding:12px 0;text-align:center;border:1px solid var(--line);border-radius:12px;
-    background:var(--cream-soft);font-size:14px;cursor:pointer;transition:.15s;
-    font-family:"Noto Serif TC",serif}
+    background:var(--cream-soft);font-size:14px;cursor:pointer;font-family:"Noto Serif TC",serif;transition:.15s}
   .slot:hover{border-color:var(--taupe)}
   .slot.sel{background:var(--taupe);color:var(--cream-soft);border-color:var(--taupe)}
   .slot.off{opacity:.3;cursor:not-allowed;text-decoration:line-through}
-  .hint{font-size:12.5px;color:var(--muted);margin-top:12px;letter-spacing:.04em}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:12px}
 
-  .sumcard{background:var(--cream-soft);border:1px solid var(--line);
-    border-radius:20px;padding:6px 20px}
-  .sumrow{display:flex;justify-content:space-between;align-items:center;padding:13px 0;
-    border-bottom:1px dashed var(--sand);font-size:14.5px}
-  .sumrow:last-of-type{border-bottom:none}
-  .sumrow .k{color:var(--muted);letter-spacing:.06em}
-  .sumrow .v{font-weight:600;text-align:right;font-family:"Noto Serif TC",serif}
+  .sumcard{background:var(--cream-soft);border:1px solid var(--line);border-radius:18px;padding:6px 20px;margin-bottom:6px}
+  .sumrow{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px dashed var(--sand);font-size:14px}
+  .sumrow:last-child{border-bottom:none}
+  .sumrow .k{color:var(--muted)}
+  .sumrow .v{font-weight:600;text-align:right;font-family:"Noto Serif TC",serif;max-width:60%}
 
-  .cta{display:block;width:100%;margin-top:20px;padding:17px;border:none;
-    border-radius:16px;background:var(--taupe);color:var(--cream-soft);font:inherit;
-    font-weight:600;font-size:16px;letter-spacing:.2em;cursor:pointer;transition:.2s;
-    padding-left:.2em}
-  .cta:hover{background:var(--taupe-deep)}
-  .cta:disabled{background:var(--sand);color:#fff;cursor:not-allowed}
+  .done{text-align:center;padding:10px 6px}
+  .done .tick{width:58px;height:58px;border-radius:50%;background:var(--ok);display:grid;place-items:center;
+    margin:0 auto 16px;color:#fff;font-size:28px}
+  .done h3{font-family:"Noto Serif TC",serif;font-size:21px;margin-bottom:8px}
+  .done p{font-size:13.5px;color:var(--muted)}
+  .paybox{background:var(--cream-soft);border:1px dashed var(--warn);border-radius:16px;padding:16px;margin:18px 0;font-size:13.5px;line-height:1.9;text-align:left}
+  .gcal{display:inline-flex;align-items:center;gap:8px;margin-top:8px;padding:13px 24px;background:var(--ink);
+    color:var(--cream-soft);border-radius:13px;text-decoration:none;font-weight:600;font-size:14px}
 
-  .done{display:none;text-align:center;padding:18px 6px 4px}
-  .done.show{display:block;animation:rise .5s ease}
-  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  .done .tick{width:58px;height:58px;border-radius:50%;background:var(--ok);
-    display:grid;place-items:center;margin:0 auto 16px;color:#fff;font-size:28px}
-  .done h3{font-family:"Noto Serif TC",serif;font-size:21px;margin-bottom:8px;
-    letter-spacing:.08em}
-  .done p{font-size:13.5px;color:var(--muted);max-width:30ch;margin:0 auto}
-  .gcal{display:inline-flex;align-items:center;gap:9px;margin-top:20px;padding:14px 26px;
-    background:var(--ink);color:var(--cream-soft);border-radius:14px;text-decoration:none;
-    font-weight:600;font-size:14.5px;letter-spacing:.06em}
-  .reline{margin-top:16px;font-size:12.5px;color:var(--muted)}
-
-  footer{position:relative;z-index:1;padding:26px 28px 44px;text-align:center;
-    color:var(--muted);font-size:12px;letter-spacing:.12em;border-top:1px solid var(--sand)}
-  footer .dot{color:var(--taupe)}
+  footer{position:relative;z-index:1;padding:24px 28px 40px;text-align:center;color:var(--muted);
+    font-size:12px;letter-spacing:.12em;border-top:1px solid var(--sand)}
   @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="tags">
-      <div class="tag dark">Moome</div>
-      <div class="tag light">沐蜜</div>
-    </div>
     <div class="brand">沐 蜜</div>
     <div class="moome">Moome</div>
     <div class="slogan">遇見美好 · 所待皆所願</div>
-    <div class="loc">台南永康 · 私宅高端訂製美學秘境</div>
   </header>
 
-  <section>
-    <div class="eyebrow"><span class="no">i</span><span class="t">選擇師傅</span><span class="line"></span></div>
-    <div class="grid two" id="stylists"></div>
-  </section>
+  <div class="steps">
+    <div class="dot" id="d0"></div><div class="dot" id="d1"></div>
+    <div class="dot" id="d2"></div><div class="dot" id="d3"></div><div class="dot" id="d4"></div>
+  </div>
 
-  <section>
-    <div class="eyebrow"><span class="no">ii</span><span class="t">選擇服務</span><span class="line"></span></div>
-    <div class="grid" id="services"></div>
-    <p class="hint" id="svcHint">先選師傅，會顯示該位師傅提供的服務。</p>
-  </section>
+  <!-- 0 註冊 / 歡迎 -->
+  <div class="panel" id="p0">
+    <div class="ptitle" id="p0title">建立會員資料</div>
+    <div class="psub" id="p0sub">首次預約請填寫基本資料，下次預約就不用再填囉。</div>
+    <label class="lbl" for="rname">姓名</label>
+    <input type="text" id="rname" placeholder="您的稱呼" />
+    <label class="lbl" for="rphone">手機</label>
+    <input type="tel" id="rphone" placeholder="09xx-xxx-xxx" />
+    <button class="cta" id="p0next">下一步</button>
+  </div>
 
-  <section>
-    <div class="eyebrow"><span class="no">iii</span><span class="t">日期與時段</span><span class="line"></span></div>
-    <div class="field">
-      <label class="lbl" for="date">預約日期</label>
-      <input type="date" id="date" />
+  <!-- 1 預約須知 -->
+  <div class="panel" id="p1">
+    <div class="ptitle">預約須知</div>
+    <div class="psub">為提升服務品質，預約前請詳閱以下內容。</div>
+    <div class="notice">
+      <h4>關於定金</h4>
+      <p class="em">為提升服務品質：</p>
+      <p class="warn">⚠️ 預約後，需先支付 $500 定金</p>
+      <p class="warn">⚠️ 需支付定金後，預約才算完成</p>
+      <p class="warn">🔺 24 小時內未付款，視同取消</p>
+      <h4>為保障雙方權益</h4>
+      <p class="warn">⚠️ 遲到 15 分鐘以上</p>
+      <p class="warn">⚠️ 直接不來者</p>
+      <p class="warn">⚠️ 預約時間 24 小時前，臨時取消或更改</p>
+      <p class="em">☝🏻 以上 ➜ 訂金不退款</p>
+      <p class="warn">🔺 當天預留時間保留 15 分鐘</p>
+      <h4>付款方式</h4>
+      <p>👉🏻 可轉帳（請於官方帳號詢問帳號）</p>
+      <p>👉🏻 私人 Line Pay（請於官方帳號詢問帳號）</p>
+      <h4>溫馨提醒</h4>
+      <p>🏷️ 為要求完美，維護操作品質</p>
+      <p>🏷️ 後續請勿安排緊湊的行程</p>
+      <p>🏷️ 為怕影響操作，禁止孩童與寵物</p>
     </div>
+    <label class="agree"><input type="checkbox" id="agree" /><span>我已詳閱並同意以上預約須知</span></label>
+    <button class="cta" id="p1next" disabled>我同意，繼續預約</button>
+  </div>
+
+  <!-- 2 選服務（複選）+ 師傅 -->
+  <div class="panel" id="p2">
+    <div class="ptitle">選擇服務</div>
+    <div class="psub">可複選多項服務。</div>
+    <div id="svcList"></div>
+    <label class="lbl" style="margin-top:18px">選擇師傅</label>
+    <div class="grid2" id="stylists"></div>
+    <button class="cta" id="p2next" disabled>下一步</button>
+  </div>
+
+  <!-- 3 選時間 -->
+  <div class="panel" id="p3">
+    <div class="ptitle">選擇日期與時段</div>
+    <div class="psub">服務時間 11:00–20:00 · 週一靜休</div>
+    <label class="lbl" for="date">預約日期</label>
+    <input type="date" id="date" />
     <div class="times" id="times"></div>
-    <p class="hint">服務時間 11:00–20:00 · 週一靜休 · 劃線時段已預約</p>
-  </section>
+    <p class="hint">劃線時段已預約</p>
+    <button class="cta" id="p3next" disabled>下一步</button>
+  </div>
 
-  <section>
-    <div class="eyebrow"><span class="no">iv</span><span class="t">聯絡資料</span><span class="line"></span></div>
-    <div class="field" style="margin-bottom:15px">
-      <label class="lbl" for="cname">姓名</label>
-      <input type="text" id="cname" placeholder="您的稱呼" />
-    </div>
-    <div class="field">
-      <label class="lbl" for="cphone">手機</label>
-      <input type="tel" id="cphone" placeholder="09xx-xxx-xxx" />
-    </div>
-  </section>
-
-  <section>
-    <div class="eyebrow"><span class="no">v</span><span class="t">確認預約</span><span class="line"></span></div>
+  <!-- 4 確認 -->
+  <div class="panel" id="p4">
+    <div class="ptitle">確認預約</div>
+    <div class="psub">請確認以下資料正確。</div>
     <div class="sumcard">
+      <div class="sumrow"><span class="k">姓名</span><span class="v" id="sName">—</span></div>
+      <div class="sumrow"><span class="k">手機</span><span class="v" id="sPhone">—</span></div>
+      <div class="sumrow"><span class="k">服務</span><span class="v" id="sSvc">—</span></div>
       <div class="sumrow"><span class="k">師傅</span><span class="v" id="sStylist">—</span></div>
-      <div class="sumrow"><span class="k">服務</span><span class="v" id="sService">—</span></div>
-      <div class="sumrow"><span class="k">時長</span><span class="v" id="sDur">—</span></div>
       <div class="sumrow"><span class="k">時間</span><span class="v" id="sWhen">—</span></div>
+      <div class="sumrow"><span class="k">服務總時長</span><span class="v" id="sDur">—</span></div>
       <div class="sumrow"><span class="k">金額</span><span class="v" id="sPrice">—</span></div>
     </div>
-    <button class="cta" id="submit" disabled>送 出 預 約</button>
+    <button class="cta" id="submit">送出預約</button>
 
-    <div class="done" id="done">
+    <div class="done" id="done" style="display:none">
       <div class="tick">✓</div>
       <h3>預約已送出</h3>
-      <p>將這筆預約加入 Google 日曆，到店前會自動提醒您。</p>
-      <a class="gcal" id="gcal" href="#" target="_blank" rel="noopener">＋ 加入 Google 日曆</a>
-      <p class="reline">需改期或取消，回覆 LINE 訊息即可。</p>
+      <p>請於 24 小時內支付 $500 定金，預約才算完成。</p>
+      <div class="paybox">
+        💰 定金 $500<br>
+        👉🏻 可轉帳（請私訊官方帳號詢問帳號）<br>
+        👉🏻 私人 Line Pay（請私訊官方帳號詢問帳號）<br>
+        🔺 24 小時內未付款視同取消
+      </div>
+      <a class="gcal" id="gcal" href="#" target="_blank" rel="noopener">＋ 加入我的 Google 日曆</a>
+      <p style="margin-top:14px">如需改期或取消，請回覆 LINE 訊息。</p>
     </div>
-  </section>
+  </div>
 
-  <footer>沐蜜 Moome <span class="dot">·</span> 遇見美好 所待皆所願 <span class="dot">·</span> 台南永康</footer>
+  <footer>沐蜜 Moome · 遇見美好 所待皆所願 · 台南永康</footer>
 </div>
 
 <script>
-/* ===== 範例資料：改成你自己的師傅、服務、價格即可 ===== */
-const STYLISTS = [
-  { id:"mu",  name:"沐 老師",  desc:"霧眉 · 美睫", services:["brow","lash","wax_s"] },
-  { id:"mi",  name:"蜜 老師",  desc:"做臉 · 美體", services:["facial","body"] },
-  { id:"all", name:"指定不限",  desc:"全項目可預約", services:["brow","lash","facial","wax_s","body"] },
-];
+/* ===== 範例資料：服務、師傅、營業時間，改成你自己的即可 ===== */
 const SERVICES = {
   brow:  { name:"霧眉 / 霧唇訂製", dur:150, price:6800 },
   lash:  { name:"美睫設計",       dur:90,  price:1500 },
   facial:{ name:"客製臉部保養",   dur:90,  price:2200 },
-  wax_s: { name:"熱蠟除毛",       dur:45,  price:900 },
+  wax:   { name:"熱蠟除毛",       dur:45,  price:900 },
   body:  { name:"美體舒緩",       dur:90,  price:2400 },
 };
+const STYLISTS = [
+  { id:"mu", name:"沐 老師", desc:"霧眉 · 美睫" },
+  { id:"mi", name:"蜜 老師", desc:"做臉 · 美體" },
+  { id:"all",name:"指定不限", desc:"皆可" },
+];
 const BUSINESS = { open:11, close:20, slotMins:30, closedWeekday:1 };
 const SAMPLE_BOOKED = ["14:00","16:30"];
 const STUDIO = { name:"沐蜜 Moome", location:"台南市永康區（預約後告知詳細地址）" };
-
-const st = { stylist:null, service:null, date:null, time:null, userId:null };
-const $=id=>document.getElementById(id);
-
-/* ===== LIFF：客人從 LINE 進來時自動抓身分 ===== */
 const LIFF_ID = "2010429680-8LmiZhaK";
-(async function initLiff(){
+/* 第二階段才會用到的後端網址（會員自動帶入），現在先留空 */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM4tyeLRXkVlvAFGYx89GBs_PPjsMM27ecjzECpitvtFs4yJq/exec";
+
+const $=id=>document.getElementById(id);
+const st = { userId:null, name:"", phone:"", services:[], stylist:null, date:null, time:null };
+
+/* 面板切換 */
+let cur=0;
+function show(n){
+  cur=n;
+  for(let i=0;i<=4;i++){ $("p"+i).classList.toggle("show", i===n); $("d"+i).classList.toggle("on", i===n); }
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* LIFF 綁定 */
+(async function(){
   try{
     await liff.init({ liffId: LIFF_ID });
     if(liff.isLoggedIn()){
-      const profile = await liff.getProfile();
-      st.userId = profile.userId;              // 用來發提醒的客人身分
-      if(profile.displayName){
-        $("cname").value = profile.displayName; // 自動帶入 LINE 名稱
-        refresh();
-      }
+      const pf = await liff.getProfile();
+      st.userId = pf.userId;
+      if(pf.displayName) $("rname").value = pf.displayName;
     }
-  }catch(e){
-    // 不是從 LINE 開啟（例如電腦測試）時，網頁照常運作，只是沒有 userId
-    console.log("LIFF 未啟用或非 LINE 環境：", e);
-  }
+  }catch(e){ console.log("LIFF:", e); }
+  show(0);
 })();
 
+/* 步驟 0：註冊 */
+$("p0next").onclick=()=>{
+  const n=$("rname").value.trim(), p=$("rphone").value.trim();
+  if(!n||!p){ alert("請填寫姓名與手機"); return; }
+  st.name=n; st.phone=p; show(1);
+};
+
+/* 步驟 1：須知 */
+$("agree").onchange=e=>{ $("p1next").disabled=!e.target.checked; };
+$("p1next").onclick=()=>show(2);
+
+/* 步驟 2：服務複選 + 師傅 */
+const svcList=$("svcList");
+Object.keys(SERVICES).forEach(key=>{
+  const sv=SERVICES[key];
+  const d=document.createElement("div");
+  d.className="svc";
+  d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${sv.name}</div>
+    <div class="mt">約 ${sv.dur} 分鐘</div></div><div class="pr">NT$ ${sv.price.toLocaleString()}</div>`;
+  d.onclick=()=>{
+    d.classList.toggle("sel");
+    const i=st.services.indexOf(key);
+    if(i>=0) st.services.splice(i,1); else st.services.push(key);
+    checkP2();
+  };
+  svcList.appendChild(d);
+});
 const elStylists=$("stylists");
 STYLISTS.forEach(s=>{
   const b=document.createElement("button");
   b.className="opt";
-  b.innerHTML=`<span class="name">${s.name}</span><span class="meta">${s.desc}</span>`;
-  b.onclick=()=>{ st.stylist=s; st.service=null;
-    [...elStylists.children].forEach(c=>c.classList.remove("sel"));
-    b.classList.add("sel"); renderServices(); refresh(); };
+  b.innerHTML=`<div class="nm">${s.name}</div><div class="mt">${s.desc}</div>`;
+  b.onclick=()=>{ st.stylist=s; [...elStylists.children].forEach(c=>c.classList.remove("sel"));
+    b.classList.add("sel"); checkP2(); };
   elStylists.appendChild(b);
 });
+function checkP2(){ $("p2next").disabled=!(st.services.length>0 && st.stylist); }
+$("p2next").onclick=()=>show(3);
 
-const elServices=$("services"), svcHint=$("svcHint");
-function renderServices(){
-  elServices.innerHTML="";
-  if(!st.stylist){svcHint.style.display="block";return;}
-  svcHint.style.display="none";
-  st.stylist.services.forEach(key=>{
-    const sv=SERVICES[key];
-    const b=document.createElement("button");
-    b.className="opt";
-    b.innerHTML=`<span class="name">${sv.name}</span><span class="meta">約 ${sv.dur} 分鐘</span><span class="price">NT$ ${sv.price.toLocaleString()}</span>`;
-    b.onclick=()=>{ st.service={key,...sv};
-      [...elServices.children].forEach(c=>c.classList.remove("sel"));
-      b.classList.add("sel"); refresh(); };
-    elServices.appendChild(b);
-  });
-}
-
+/* 步驟 3：時間 */
 const elDate=$("date");
 const today=new Date(); today.setHours(0,0,0,0);
 const max=new Date(today); max.setDate(max.getDate()+60);
 const fmt=d=>d.toISOString().split("T")[0];
 elDate.min=fmt(today); elDate.max=fmt(max);
-elDate.onchange=()=>{ st.date=elDate.value; st.time=null; renderTimes(); refresh(); };
-
+elDate.onchange=()=>{ st.date=elDate.value; st.time=null; renderTimes(); $("p3next").disabled=true; };
 const elTimes=$("times");
 function renderTimes(){
   elTimes.innerHTML="";
   if(!st.date)return;
   const d=new Date(st.date+"T00:00:00");
-  if(d.getDay()===BUSINESS.closedWeekday){
-    elTimes.innerHTML=`<p class="hint" style="grid-column:1/-1">本日靜休，請改選其他日期。</p>`;return;
-  }
+  if(d.getDay()===BUSINESS.closedWeekday){ elTimes.innerHTML=`<p class="hint" style="grid-column:1/-1">本日靜休，請改選其他日期。</p>`; return; }
   for(let h=BUSINESS.open;h<BUSINESS.close;h++){
     for(let m=0;m<60;m+=BUSINESS.slotMins){
       const t=`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
       const off=SAMPLE_BOOKED.includes(t);
       const b=document.createElement("div");
       b.className="slot"+(off?" off":""); b.textContent=t;
-      if(!off)b.onclick=()=>{ st.time=t;
-        [...elTimes.children].forEach(c=>c.classList.remove("sel"));
-        b.classList.add("sel"); refresh(); };
+      if(!off)b.onclick=()=>{ st.time=t; [...elTimes.children].forEach(c=>c.classList.remove("sel"));
+        b.classList.add("sel"); $("p3next").disabled=false; };
       elTimes.appendChild(b);
     }
   }
 }
+$("p3next").onclick=()=>{ fillSummary(); show(4); };
 
-function refresh(){
-  $("sStylist").textContent=st.stylist?st.stylist.name:"—";
-  $("sService").textContent=st.service?st.service.name:"—";
-  $("sDur").textContent=st.service?`${st.service.dur} 分鐘`:"—";
-  $("sWhen").textContent=(st.date&&st.time)?`${st.date} ${st.time}`:"—";
-  $("sPrice").textContent=st.service?`NT$ ${st.service.price.toLocaleString()}`:"—";
-  const name=$("cname").value.trim(), phone=$("cphone").value.trim();
-  $("submit").disabled=!(st.stylist&&st.service&&st.date&&st.time&&name&&phone);
+/* 步驟 4：確認 */
+function totalDur(){ return st.services.reduce((s,k)=>s+SERVICES[k].dur,0); }
+function totalPrice(){ return st.services.reduce((s,k)=>s+SERVICES[k].price,0); }
+function svcNames(){ return st.services.map(k=>SERVICES[k].name).join("、"); }
+function fillSummary(){
+  $("sName").textContent=st.name;
+  $("sPhone").textContent=st.phone;
+  $("sSvc").textContent=svcNames();
+  $("sStylist").textContent=st.stylist.name;
+  $("sWhen").textContent=st.date+" "+st.time;
+  $("sDur").textContent=totalDur()+" 分鐘";
+  $("sPrice").textContent="NT$ "+totalPrice().toLocaleString();
 }
-$("cname").oninput=refresh; $("cphone").oninput=refresh;
 
 function gcalLink(){
   const [h,m]=st.time.split(":").map(Number);
   const start=new Date(st.date+"T00:00:00"); start.setHours(h,m,0,0);
-  const end=new Date(start.getTime()+st.service.dur*60000);
+  const end=new Date(start.getTime()+totalDur()*60000);
   const z=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")
     +"T"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0")+"00";
-  const name=$("cname").value.trim(), phone=$("cphone").value.trim();
-  const title=encodeURIComponent(`${STUDIO.name}｜${st.service.name}（${st.stylist.name}）`);
-  const det=encodeURIComponent(`客人：${name}\n電話：${phone}\n服務：${st.service.name}\n師傅：${st.stylist.name}\n金額：NT$ ${st.service.price}`);
+  const title=encodeURIComponent(`${STUDIO.name}｜${svcNames()}`);
+  const det=encodeURIComponent(`客人：${st.name}\n電話：${st.phone}\n服務：${svcNames()}\n師傅：${st.stylist.name}\n金額：NT$ ${totalPrice()}`);
   const loc=encodeURIComponent(STUDIO.location);
-  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}`
-    +`&dates=${z(start)}/${z(end)}&details=${det}&location=${loc}`;
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${z(start)}/${z(end)}&details=${det}&location=${loc}`;
 }
 
-/* ↓↓↓ 把這裡換成你部署 Apps Script 後拿到的網址 ↓↓↓ */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM4tyeLRXkVlvAFGYx89GBs_PPjsMM27ecjzECpitvtFs4yJq/exec";
-
 $("submit").onclick=()=>{
-  const btn=$("submit");
-  btn.disabled=true; btn.textContent="送出中…";
-  // 自動寫進店家日曆
-  if(SCRIPT_URL && !SCRIPT_URL.includes("貼上")){
-    fetch(SCRIPT_URL,{
-      method:"POST", mode:"no-cors",
+  const btn=$("submit"); btn.disabled=true; btn.textContent="送出中…";
+  if(SCRIPT_URL && SCRIPT_URL.startsWith("https")){
+    fetch(SCRIPT_URL,{ method:"POST", mode:"no-cors",
       headers:{"Content-Type":"text/plain;charset=utf-8"},
       body:JSON.stringify({
-        name:$("cname").value.trim(),
-        phone:$("cphone").value.trim(),
-        service:st.service.name,
-        stylist:st.stylist.name,
-        date:st.date, time:st.time,
-        dur:st.service.dur, price:st.service.price,
-        userId:st.userId || ""
+        name:st.name, phone:st.phone, service:svcNames(), stylist:st.stylist.name,
+        date:st.date, time:st.time, dur:totalDur(), price:totalPrice(), userId:st.userId||""
       })
     }).catch(()=>{});
   }
-  // 同時提供客人自己加入日曆的按鈕
   $("gcal").href=gcalLink();
-  $("done").classList.add("show");
   btn.style.display="none";
+  $("done").style.display="block";
   $("done").scrollIntoView({behavior:"smooth",block:"center"});
 };
 </script>
