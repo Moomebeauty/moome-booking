@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>沐蜜 Moome · 開放時段設定（管理用）</title>
+<style>
+  :root{
+    --ink:#4a4038; --taupe:#8c7c6a; --taupe-deep:#6f6151;
+    --cream:#f3ece2; --cream-soft:#faf5ec; --sand:#e6dccb;
+    --line:#ddd0bd; --muted:#9b8d7c; --ok:#7c8a6a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    background:var(--cream);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:480px;margin:0 auto;min-height:100vh;background:var(--cream)}
+  header{padding:36px 26px 22px;text-align:center;background:linear-gradient(180deg,#efe6d8,var(--cream))}
+  .moome{font-family:"Brush Script MT","Segoe Script",cursive;font-size:34px;line-height:1;margin-bottom:6px}
+  .tag{font-size:13px;color:var(--taupe-deep);letter-spacing:.2em}
+  .sub{font-size:12.5px;color:var(--muted);margin-top:8px}
+
+  section{padding:24px 26px;border-top:1px solid var(--sand)}
+  label.lbl{display:block;font-size:13px;color:var(--muted);margin-bottom:8px}
+  input[type=date]{width:100%;font:inherit;padding:14px 15px;border:1px solid var(--line);
+    border-radius:14px;background:var(--cream-soft);color:var(--ink)}
+  input:focus{outline:none;border-color:var(--taupe)}
+
+  .tip{font-size:12.5px;color:var(--muted);margin:14px 0 10px}
+  .quick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .qbtn{font:inherit;font-size:13px;padding:8px 14px;border:1px solid var(--line);border-radius:20px;
+    background:var(--cream-soft);color:var(--taupe-deep);cursor:pointer}
+  .qbtn:hover{border-color:var(--taupe)}
+
+  .slots{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+  .slot{padding:13px 0;text-align:center;border:1px solid var(--line);border-radius:12px;
+    background:var(--cream-soft);font-size:14px;cursor:pointer;font-family:"Noto Serif TC",serif;transition:.15s}
+  .slot:hover{border-color:var(--taupe)}
+  .slot.on{background:var(--taupe);color:var(--cream-soft);border-color:var(--taupe)}
+
+  .cta{display:block;width:100%;margin-top:22px;padding:16px;border:none;border-radius:16px;
+    background:var(--taupe);color:var(--cream-soft);font:inherit;font-weight:600;font-size:16px;
+    letter-spacing:.15em;cursor:pointer}
+  .cta:hover{background:var(--taupe-deep)}
+  .cta:disabled{background:var(--sand);cursor:not-allowed}
+  .msg{text-align:center;margin-top:14px;font-size:14px;min-height:22px}
+  .msg.ok{color:var(--ok)} .msg.err{color:#b06a4a}
+  .count{font-size:13px;color:var(--muted);text-align:center;margin-top:10px}
+  footer{padding:20px 26px 36px;text-align:center;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="moome">Moome</div>
+    <div class="tag">開放時段設定</div>
+    <div class="sub">這是老師專用頁面，請勿給客人</div>
+  </header>
+
+  <section>
+    <label class="lbl" for="date">選擇日期</label>
+    <input type="date" id="date" />
+    <div class="tip">點亮要開放的時段，再按下方儲存。客人只會看到你開放的時段。</div>
+    <div class="quick">
+      <button class="qbtn" id="qAll">全部開放</button>
+      <button class="qbtn" id="qNone">全部關閉</button>
+      <button class="qbtn" id="qAM">只開上午</button>
+      <button class="qbtn" id="qPM">只開下午</button>
+    </div>
+    <div class="slots" id="slots"></div>
+    <div class="count" id="count"></div>
+    <button class="cta" id="save" disabled>儲存這天的開放時段</button>
+    <div class="msg" id="msg"></div>
+  </section>
+
+  <footer>沐蜜 Moome · 開放時段管理</footer>
+</div>
+
+<script>
+/* 你的 Apps Script 網址（跟預約頁同一個）*/
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM4tyeLRXkVlvAFGYx89GBs_PPjsMM27ecjzECpitvtFs4yJq/exec";
+
+/* 時段：上午10點到晚上9點，每 2 小時一個 */
+const OPEN=10, CLOSE=21, STEP=120;
+const ALL_SLOTS=[];
+for(let total=OPEN*60; total<CLOSE*60; total+=STEP){
+  const h=Math.floor(total/60), m=total%60;
+  ALL_SLOTS.push(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`);
+}
+
+const $=id=>document.getElementById(id);
+let selected=new Set();
+
+const elSlots=$("slots");
+ALL_SLOTS.forEach(t=>{
+  const b=document.createElement("div");
+  b.className="slot"; b.textContent=t; b.dataset.t=t;
+  b.onclick=()=>{ if(selected.has(t))selected.delete(t); else selected.add(t);
+    refresh(); };
+  elSlots.appendChild(b);
+});
+function refresh(){
+  [...elSlots.children].forEach(c=>c.classList.toggle("on", selected.has(c.dataset.t)));
+  $("count").textContent = $("date").value ? `已選 ${selected.size} 個時段` : "請先選日期";
+  $("save").disabled = !$("date").value;
+}
+
+/* 快速按鈕 */
+$("qAll").onclick=()=>{ selected=new Set(ALL_SLOTS); refresh(); };
+$("qNone").onclick=()=>{ selected.clear(); refresh(); };
+$("qAM").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>parseInt(t)<12)); refresh(); };
+$("qPM").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>parseInt(t)>=12)); refresh(); };
+
+/* 選日期 → 讀這天已設定的時段帶入 */
+const elDate=$("date");
+const today=new Date(); today.setHours(0,0,0,0);
+elDate.min=today.toISOString().split("T")[0];
+elDate.onchange=()=>{
+  $("msg").textContent=""; selected.clear(); refresh();
+  if(!elDate.value)return;
+  $("count").textContent="讀取中…";
+  const cb="adminCB_"+Date.now();
+  const timer=setTimeout(()=>{ cleanup(); refresh(); },6000);
+  function cleanup(){ delete window[cb]; const s=$(cb); if(s)s.remove(); clearTimeout(timer); }
+  window[cb]=function(res){ cleanup();
+    if(res&&res.slots){ res.slots.forEach(t=>selected.add(t)); }
+    refresh();
+  };
+  const s=document.createElement("script"); s.id=cb;
+  s.src=SCRIPT_URL+"?action=getSlots&date="+encodeURIComponent(elDate.value)+"&callback="+cb;
+  s.onerror=()=>{ cleanup(); refresh(); };
+  document.body.appendChild(s);
+};
+
+/* 儲存 */
+$("save").onclick=()=>{
+  const btn=$("save"); btn.disabled=true; btn.textContent="儲存中…";
+  $("msg").textContent="";
+  fetch(SCRIPT_URL,{ method:"POST", mode:"no-cors",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify({ action:"saveSlots", date:elDate.value,
+      slots:[...selected].sort() })
+  }).then(()=>{
+    $("msg").className="msg ok"; $("msg").textContent="✓ 已儲存！客人現在看到的就是這些時段。";
+    btn.disabled=false; btn.textContent="儲存這天的開放時段";
+  }).catch(()=>{
+    $("msg").className="msg err"; $("msg").textContent="儲存失敗，請檢查網路後再試。";
+    btn.disabled=false; btn.textContent="儲存這天的開放時段";
+  });
+};
+</script>
+</body>
+</html>
