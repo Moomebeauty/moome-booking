@@ -70,7 +70,7 @@
     border-radius:14px;padding:14px 18px;margin:0 4px 16px}
   .daysel .dnum{font-family:"Noto Serif TC",serif;font-size:22px;font-weight:700;color:var(--ink)}
   .daysel .dwk{font-size:14px;color:var(--taupe-deep);letter-spacing:.1em}
-  .times{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .times{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
   .slot{padding:14px 0;text-align:center;border:1px solid var(--line);border-radius:12px;background:var(--cream-soft);
     font-size:15px;cursor:pointer;font-family:"Noto Serif TC",serif;transition:.15s}
   .slot:hover{border-color:var(--taupe)}
@@ -350,7 +350,8 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM
 const $=id=>document.getElementById(id);
 const st = { userId:null, name:"", phone:"", note:"", services:[], date:null, time:null };
 let monthData = {};      // 當月：日期 -> 可預約時段
-const ALL_TIMES = ["10:00","12:00","14:00","16:00","18:00","20:00"]; // 全部時段，沒開放/已約都顯示「滿」
+// 全部時段：10:00 到 20:30，每 30 分一格（與 admin 一致）。沒開放/已約都顯示「已約」
+const ALL_TIMES = (function(){ const a=[]; for(let t=10*60;t<21*60;t+=30){ const h=Math.floor(t/60),m=t%60; a.push((h<10?"0"+h:h)+":"+(m<10?"0"+m:m)); } return a; })();
 let viewYM = null;       // 目前顯示的年月
 
 /* 面板切換。面板 id 與「邏輯步驟」對應：
