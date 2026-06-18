@@ -103,16 +103,22 @@
   .cat-title{font-family:"Noto Serif TC",serif;font-size:16.5px;font-weight:700;color:var(--cream-soft);letter-spacing:.04em}
   .cat-arrow{color:var(--cream-soft);transition:.2s}
   .cat.open .cat-arrow{transform:rotate(180deg)}
-  .cat-head.locked{background:#d8cdbd;cursor:not-allowed}
-  .cat-head.locked .cat-title{color:#8a7c6a;font-weight:600}
-  .cat-lock{font-size:11.5px;color:var(--warn);background:#f3e4df;padding:3px 9px;border-radius:20px;letter-spacing:.04em}
-  .cat-body{display:none;padding:0 12px 12px}
+  .cat-head.locked{background:#e4dccd;cursor:not-allowed}
+  .cat-head.locked .cat-title{color:#9a8c79;font-weight:600}
+  .cat-locked-wrap{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+  .cat-lock{display:inline-block;font-size:11px;color:#a8806f;background:#f3e8e2;padding:3px 10px;border-radius:20px;letter-spacing:.06em}
+  .cat.open .cat-head{border-bottom-left-radius:0;border-bottom-right-radius:0}
+  .cat-body{display:none;padding:14px 12px 12px}
   .cat.open .cat-body{display:block}
-  .cat-body .svc{margin-bottom:9px}
+  .cat-body .svc{margin-bottom:10px}
   .cat-body .svc:last-child{margin-bottom:2px}
   /* 加購區 */
-  #addonSection{margin-top:8px;border-top:1px dashed var(--sand);padding-top:18px}
-  .addon-head{font-family:"Noto Serif TC",serif;font-size:15px;color:var(--taupe-deep);font-weight:600;margin:0 4px 12px}
+  .addon-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:14px}
+  .addon-total{text-align:center;font-size:13.5px;color:var(--taupe-deep);font-weight:600;background:#ece1d0;border-radius:12px;padding:11px;margin:14px 0 4px}
+  .addon-skip{display:block;width:100%;margin-top:10px;padding:13px;border:1px solid var(--line);border-radius:14px;background:none;color:var(--muted);font:inherit;font-size:14px;cursor:pointer}
+  .addon-skip:hover{border-color:var(--taupe);color:var(--taupe-deep)}
+  #addonModal .modal-body{margin-bottom:4px}
+  #addonModal .svc{margin-bottom:10px}
   .svc.addon{background:#fbf6ee}
   .svc.addon.sel{background:#f0e6d6}
   .svc-total{display:none;text-align:center;font-size:14px;color:var(--taupe-deep);font-weight:600;
@@ -267,12 +273,20 @@
     <div class="ptitle">選擇服務</div>
     <div class="psub">點開類別選擇項目，可跨類複選。</div>
     <div id="svcList"></div>
-    <div id="addonSection" style="display:none">
-      <div class="addon-head">✨ 加購甜甜價（選填）</div>
-      <div id="addonList"></div>
-    </div>
     <div class="svc-total" id="svcTotal"></div>
     <button class="cta" id="p2next" disabled>下一步</button>
+  </div>
+
+  <!-- 加購彈出視窗 -->
+  <div class="modal-mask" id="addonModal" style="display:none">
+    <div class="modal-card">
+      <div class="modal-title">✨ 加購甜甜價</div>
+      <div class="addon-sub">以下為您選的服務專屬加購，可選可不選</div>
+      <div class="modal-body" id="addonList"></div>
+      <div class="addon-total" id="addonTotal"></div>
+      <button class="cta" id="addonConfirm">加入並繼續</button>
+      <button class="addon-skip" id="addonSkip">不加購，直接繼續</button>
+    </div>
   </div>
 
   <!-- 3 須知 + 資料 -->
@@ -572,8 +586,11 @@ function renderServices(){
   CATEGORIES.forEach(cat=>{
     const wrap=document.createElement("div"); wrap.className="cat";
     const head=document.createElement("div"); head.className="cat-head"+(cat.locked?" locked":"");
-    head.innerHTML=`<span class="cat-title">${cat.title}</span>`+
-      (cat.locked?`<span class="cat-lock">${cat.lockText||"暫不開放"}</span>`:`<span class="cat-arrow">▾</span>`);
+    if(cat.locked){
+      head.innerHTML=`<div class="cat-locked-wrap"><span class="cat-title">${cat.title}</span><span class="cat-lock">${cat.lockText||"暫不開放"}</span></div>`;
+    }else{
+      head.innerHTML=`<span class="cat-title">${cat.title}</span><span class="cat-arrow">▾</span>`;
+    }
     wrap.appendChild(head);
     if(!cat.locked){
       const body=document.createElement("div"); body.className="cat-body";
@@ -595,28 +612,11 @@ function renderServices(){
   for(let i=0;i<cats.length;i++){ if(!CATEGORIES[i].locked){ cats[i].classList.add("open"); break; } }
 }
 
-/* 選了主項目後：顯示對應類別的加購、更新合計與按鈕 */
+/* 選了主項目後：清掉不相關加購、更新合計與按鈕 */
 function afterServiceChange(){
-  // 找出已選主項目所屬的類別
   const chosenCats = new Set(st.services.map(k=>ITEM_MAP[k]&&ITEM_MAP[k].catId).filter(Boolean));
-  const addonBox=$("addonList"); addonBox.innerHTML="";
-  let anyAddon=false;
-  CATEGORIES.forEach(cat=>{
-    if(chosenCats.has(cat.id) && cat.addons.length){
-      cat.addons.forEach(ad=>{
-        anyAddon=true;
-        const d=document.createElement("div"); d.className="svc addon"+(st.addons.indexOf(ad.key)>=0?" sel":"");
-        d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${ad.name}</div><div class="mt">+${ADDON_MIN} 分鐘</div></div><div class="pr">NT$ ${ad.price.toLocaleString()}</div>`;
-        d.onclick=()=>{ const i=st.addons.indexOf(ad.key);
-          if(i>=0)st.addons.splice(i,1); else st.addons.push(ad.key);
-          d.classList.toggle("sel"); updateTotal(); };
-        addonBox.appendChild(d);
-      });
-    }
-  });
   // 沒選主項目的類別，其加購要從已選清單移除
   st.addons = st.addons.filter(k=>chosenCats.has(ITEM_MAP[k]&&ITEM_MAP[k].catId));
-  $("addonSection").style.display = anyAddon ? "block" : "none";
   updateTotal();
 }
 function updateTotal(){
@@ -629,8 +629,44 @@ function updateTotal(){
     $("svcTotal").style.display="none";
   }
 }
+
+/* 取得目前該顯示的加購（已選主項目所屬類別的加購）*/
+function availableAddons(){
+  const chosenCats = new Set(st.services.map(k=>ITEM_MAP[k]&&ITEM_MAP[k].catId).filter(Boolean));
+  const list=[];
+  CATEGORIES.forEach(cat=>{ if(chosenCats.has(cat.id)) cat.addons.forEach(ad=>list.push(ad)); });
+  return list;
+}
+
+/* 開啟加購彈窗 */
+function openAddonModal(){
+  const addons=availableAddons();
+  const box=$("addonList"); box.innerHTML="";
+  addons.forEach(ad=>{
+    const d=document.createElement("div"); d.className="svc addon"+(st.addons.indexOf(ad.key)>=0?" sel":"");
+    d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${ad.name}</div><div class="mt">+${ADDON_MIN} 分鐘</div></div><div class="pr">NT$ ${ad.price.toLocaleString()}</div>`;
+    d.onclick=()=>{ const i=st.addons.indexOf(ad.key);
+      if(i>=0)st.addons.splice(i,1); else st.addons.push(ad.key);
+      d.classList.toggle("sel"); refreshAddonTotal(); };
+    box.appendChild(d);
+  });
+  refreshAddonTotal();
+  $("addonModal").style.display="flex";
+}
+function refreshAddonTotal(){
+  const n=st.addons.length;
+  $("addonTotal").innerHTML = n>0 ? `已加購 ${n} 項　合計 NT$ ${totalPrice().toLocaleString()}　約 ${totalDur()} 分鐘` : "尚未加購";
+  $("addonConfirm").textContent = n>0 ? "加入並繼續" : "繼續";
+}
+function gotoCalendar(){ updateTotal(); show(0); if(!viewYM) initMonth(); else loadMonth(); }
+
 renderServices();
-$("p2next").onclick=()=>{ show(0); if(!viewYM) initMonth(); else loadMonth(); };
+$("p2next").onclick=()=>{
+  if(availableAddons().length>0){ openAddonModal(); }   // 有加購 → 跳視窗
+  else { gotoCalendar(); }                               // 沒加購 → 直接進下一步
+};
+$("addonConfirm").onclick=()=>{ $("addonModal").style.display="none"; gotoCalendar(); };
+$("addonSkip").onclick=()=>{ st.addons=[]; $("addonModal").style.display="none"; gotoCalendar(); };
 
 /* 須知 + 資料（手機為選填，方便老師代約）*/
 function checkP3(){ const ok=$("agree").checked && $("cname").value.trim();
