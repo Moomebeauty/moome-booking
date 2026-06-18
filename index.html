@@ -231,6 +231,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM
 const $=id=>document.getElementById(id);
 const st = { userId:null, name:"", phone:"", services:[], date:null, time:null };
 let monthData = {};      // 當月：日期 -> 可預約時段
+const ALL_TIMES = ["10:00","12:00","14:00","16:00","18:00","20:00"]; // 全部時段，沒開放/已約都顯示「滿」
 let viewYM = null;       // 目前顯示的年月
 
 /* 面板切換 */
@@ -308,11 +309,16 @@ function renderCal(){
 function openDay(ds, slots){
   $("dayTitle").textContent = ds + "　可預約時段";
   const el=$("times"); el.innerHTML="";
-  // 顯示所有「該日開放過的時段」，已被約走的劃線（營造滿檔感）
-  // monthData 給的是「還可約」的；要顯示已滿的，另外標記
-  slots.forEach(t=>{
-    const b=document.createElement("div"); b.className="slot"; b.textContent=t;
-    b.onclick=()=>{ st.time=t; [...el.children].forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); $("p1next").disabled=false; };
+  // 顯示全部固定時段：在 slots 裡的可以點，其他（沒開放或已約）顯示「滿」
+  ALL_TIMES.forEach(t=>{
+    const open = slots.indexOf(t) >= 0;
+    const b=document.createElement("div");
+    if(open){
+      b.className="slot"; b.textContent=t;
+      b.onclick=()=>{ st.time=t; [...el.children].forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); $("p1next").disabled=false; };
+    }else{
+      b.className="slot off"; b.innerHTML=`${t}<br><span style="font-size:11px">滿</span>`;
+    }
     el.appendChild(b);
   });
   $("p1next").disabled=true;
