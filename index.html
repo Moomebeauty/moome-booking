@@ -146,6 +146,9 @@
   .notecard .nctitle{font-family:"Noto Serif TC",serif;font-size:15px;color:var(--taupe-deep);margin-bottom:8px}
   .navi{display:inline-block;margin-top:10px;padding:11px 22px;background:var(--ink);color:var(--cream-soft);
     border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;letter-spacing:.05em}
+  .gcal{display:block;margin:6px auto 0;padding:14px 22px;background:var(--taupe);color:var(--cream-soft);
+    border-radius:14px;text-decoration:none;font-size:15px;font-weight:600;letter-spacing:.08em}
+  .gcal:hover{background:var(--taupe-deep)}
   .loading{text-align:center;color:var(--muted);font-size:13.5px;padding:30px 0}
   footer{position:relative;z-index:1;padding:24px 28px 40px;text-align:center;color:var(--muted);font-size:12px;letter-spacing:.12em;border-top:1px solid var(--sand)}
   @media (prefers-reduced-motion:reduce){*{animation:none!important}}
@@ -297,6 +300,7 @@
         <p>‣ 到達後請傳送訊息，工作人員會接待您</p>
         <p>‣ 為要求完美，建議時間不要安排太趕比較好唷 :)</p>
       </div>
+      <a class="gcal" id="gcalBtn" href="#" target="_blank" rel="noopener">＋ 加入我的 Google 日曆</a>
       <a class="navi" id="naviBtn" href="#" target="_blank" rel="noopener">📍 開啟 Google 導航</a>
       <p style="margin-top:14px">如需改期或取消，請回覆 LINE 訊息。</p>
     </div>
@@ -494,9 +498,26 @@ $("submit").onclick=()=>{
   }).catch(()=>{});
   const wd=["日","一","二","三","四","五","六"][new Date(st.date+"T00:00:00").getDay()];
   $("doneDate").textContent="預約日期為："+st.date+"（週"+wd+"）"+st.time;
+  $("gcalBtn").href = buildGcalLink();
   btn.style.display="none"; $("done").style.display="block";
   $("done").scrollIntoView({behavior:"smooth",block:"center"});
 };
+
+/* 建立「加入 Google 日曆」連結 */
+function buildGcalLink(){
+  const [h,m]=st.time.split(":").map(Number);
+  const start=new Date(st.date+"T00:00:00"); start.setHours(h,m,0,0);
+  const end=new Date(start.getTime()+totalDur()*60000);
+  const z=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")
+    +"T"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0")+"00";
+  const title=encodeURIComponent("沐蜜 Moome｜"+svcNames());
+  const det=encodeURIComponent("客人："+st.name+"\n服務："+svcNames()
+    +(st.note?("\n備註："+st.note):"")
+    +"\n\n♡ 請準時到，到達後請傳訊息，工作人員會接待您");
+  const loc=encodeURIComponent("台南市永康區復國一路339-1號（路易莎復國店這棟大樓）");
+  return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+title
+    +"&dates="+z(start)+"/"+z(end)+"&details="+det+"&location="+loc;
+}
 
 /* Google 導航連結 */
 const NAVI_URL = "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("台南市永康區復國一路339-1號");
