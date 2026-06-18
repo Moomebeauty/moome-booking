@@ -121,6 +121,19 @@
   .done h3{font-family:"Noto Serif TC",serif;font-size:21px;margin-bottom:8px}
   .done p{font-size:13.5px;color:var(--muted)}
   .paybox{background:var(--cream-soft);border:1px dashed var(--warn);border-radius:16px;padding:16px;margin:18px 4px;font-size:13.5px;line-height:1.9;text-align:left}
+  .infobar{display:block;width:calc(100% - 48px);margin:14px 24px 0;padding:13px;border:1px solid var(--line);
+    border-radius:14px;background:var(--cream-soft);color:var(--taupe-deep);font:inherit;font-size:14px;
+    font-weight:600;letter-spacing:.06em;cursor:pointer;text-align:center}
+  .infobar:hover{background:#ece1d0;border-color:var(--taupe)}
+  .infoblock{background:var(--cream-soft);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:0 4px 14px;font-size:14px;line-height:1.85}
+  .infoblock .lead{font-size:15px;color:var(--ink);margin-bottom:4px}
+  .infoblock .lead2{font-family:"Noto Serif TC",serif;color:var(--taupe-deep);letter-spacing:.06em;margin-bottom:8px}
+  .infoblock .svc-line{color:var(--muted);font-size:13.5px;letter-spacing:.04em}
+  .infoblock .ibt{font-family:"Noto Serif TC",serif;font-size:15px;font-weight:600;color:var(--taupe-deep);margin-bottom:6px}
+  .notecard{background:var(--cream-soft);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:16px 4px;text-align:left;font-size:13.5px;line-height:1.95}
+  .notecard .nctitle{font-family:"Noto Serif TC",serif;font-size:15px;color:var(--taupe-deep);margin-bottom:8px}
+  .navi{display:inline-block;margin-top:10px;padding:11px 22px;background:var(--ink);color:var(--cream-soft);
+    border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;letter-spacing:.05em}
   .loading{text-align:center;color:var(--muted);font-size:13.5px;padding:30px 0}
   footer{position:relative;z-index:1;padding:24px 28px 40px;text-align:center;color:var(--muted);font-size:12px;letter-spacing:.12em;border-top:1px solid var(--sand)}
   @media (prefers-reduced-motion:reduce){*{animation:none!important}}
@@ -140,6 +153,8 @@
       <div class="slogan">遇見美好 · 所得皆所願</div>
     </div>
   </header>
+
+  <button class="infobar" id="openInfo">🌿 品牌資訊 · 預約前必看</button>
 
   <div class="steps">
     <div class="dot on" id="d0"></div><div class="dot" id="d1"></div>
@@ -231,11 +246,48 @@
     <button class="cta" id="submit">送出預約</button>
     <div class="done" id="done" style="display:none">
       <div class="tick">✓</div>
-      <h3>預約已送出</h3>
-      <p>請於 24 小時內支付 $500 定金，預約才算完成。</p>
+      <h3>預約完成</h3>
+      <p id="doneDate">　</p>
       <div class="paybox">💰 定金 $500<br>👉🏻 可轉帳（請私訊官方帳號詢問帳號）<br>👉🏻 私人 Line Pay（請私訊官方帳號詢問帳號）<br>🔺 24 小時內未付款視同取消</div>
-      <p>如需改期或取消，請回覆 LINE 訊息。</p>
+      <div class="notecard">
+        <div class="nctitle">♡ 請詳閱以下須知</div>
+        <p>‣ 工作室地址：台南市永康區復國一路339-1號（路易莎復國店，這棟大樓）</p>
+        <p>‣ 大樓周圍有許多機車停車格</p>
+        <p>‣ 大樓周圍有少許汽車停車格</p>
+        <p>‣ 請準時到，不要早到、遲到</p>
+        <p>‣ 到達後請傳送訊息，工作人員會迎接您，將您引導至正確位子</p>
+        <p>‣ 為要求完美，建議時間不要安排太趕比較好唷 :)</p>
+      </div>
+      <a class="navi" id="naviBtn" href="#" target="_blank" rel="noopener">📍 開啟 Google 導航</a>
+      <p style="margin-top:14px">如需改期或取消，請回覆 LINE 訊息。</p>
     </div>
+  </div>
+
+  <!-- 5 品牌資訊（獨立頁） -->
+  <div class="panel" id="p5">
+    <div class="ptitle">品牌資訊</div>
+    <div class="infoblock">
+      <p class="lead">藏身在輕奢小宅裡的美學秘境 🤍✨</p>
+      <p class="lead2">遇見美好・所得皆所願 ﹋♡﹌</p>
+      <p class="svc-line">霧眉霧唇 · 美容做臉 · 美體按摩</p>
+    </div>
+    <div class="infoblock">
+      <div class="ibt">📍 工作室地址</div>
+      <p>台南市永康區復國一路339-1號<br>（路易莎復國店，這棟大樓）</p>
+      <a class="navi" id="naviBtn2" href="#" target="_blank" rel="noopener">開啟 Google 導航</a>
+    </div>
+    <div class="infoblock">
+      <div class="ibt">🛵 停車資訊</div>
+      <p>機車：大樓周圍有許多機車停車格</p>
+      <p>汽車：大樓周圍也有汽車停車格可停放，若找不到停車位，可傳訊息詢問是否還有地下室停車格</p>
+    </div>
+    <div class="infoblock">
+      <div class="ibt">♡ 溫馨提醒</div>
+      <p>請準時到，不要早到、遲到</p>
+      <p>到達後請傳送訊息，工作人員會迎接您，引導至正確位子</p>
+      <p>為要求完美，建議時間不要安排太趕比較好唷 :)</p>
+    </div>
+    <button class="cta" id="closeInfo">開始預約 →</button>
   </div>
 
   <footer>沐蜜 Moome · 遇見美好 所得皆所願 · 台南永康</footer>
@@ -250,7 +302,7 @@ const SERVICES = {
   wax:   { name:"熱蠟除毛",       dur:45,  price:900 },
   body:  { name:"美體舒緩",       dur:90,  price:2400 },
 };
-const STUDIO = { name:"沐蜜 Moome", location:"台南市永康區（預約後告知詳細地址）" };
+const STUDIO = { name:"沐蜜 Moome", location:"台南市永康區復國一路339-1號（路易莎復國店這棟大樓）" };
 const LIFF_ID = "2010429680-8LmiZhaK";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM4tyeLRXkVlvAFGYx89GBs_PPjsMM27ecjzECpitvtFs4yJq/exec";
 
@@ -265,7 +317,11 @@ let viewYM = null;       // 目前顯示的年月
    進度點 d0..d4 依邏輯順序亮。*/
 const STEP_OF_PANEL = { 2:0, 0:1, 1:2, 3:3, 4:4 };
 function show(n){
-  for(let i=0;i<=4;i++){ $("p"+i).classList.toggle("show", i===n); }
+  for(let i=0;i<=5;i++){ const el=$("p"+i); if(el) el.classList.toggle("show", i===n); }
+  const stepsBar=document.querySelector(".steps");
+  if(stepsBar) stepsBar.style.display = (n===5) ? "none" : "flex";
+  const infobar=$("openInfo");
+  if(infobar) infobar.style.display = (n===2) ? "block" : "none";
   const step = STEP_OF_PANEL[n];
   for(let i=0;i<=4;i++){ $("d"+i).classList.toggle("on", i===step); }
   window.scrollTo({top:0,behavior:"smooth"});
@@ -399,9 +455,20 @@ $("submit").onclick=()=>{
     body:JSON.stringify({ name:st.name, phone:st.phone, service:svcNames(),
       date:st.date, time:st.time, dur:totalDur(), price:totalPrice(), note:st.note||"", userId:st.userId||"" })
   }).catch(()=>{});
+  const wd=["日","一","二","三","四","五","六"][new Date(st.date+"T00:00:00").getDay()];
+  $("doneDate").textContent="預約日期為："+st.date+"（週"+wd+"）"+st.time;
   btn.style.display="none"; $("done").style.display="block";
   $("done").scrollIntoView({behavior:"smooth",block:"center"});
 };
+
+/* Google 導航連結 */
+const NAVI_URL = "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("台南市永康區復國一路339-1號");
+$("naviBtn").href = NAVI_URL;
+$("naviBtn2").href = NAVI_URL;
+
+/* 品牌資訊頁開關 */
+$("openInfo").onclick=()=>{ $("p5").scrollTop=0; show(5); };
+$("closeInfo").onclick=()=>show(2);
 
 /* 啟動：先讓客人選服務 */
 show(2);
