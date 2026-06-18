@@ -71,6 +71,12 @@
   .daysel .dnum{font-family:"Noto Serif TC",serif;font-size:22px;font-weight:700;color:var(--ink)}
   .daysel .dwk{font-size:14px;color:var(--taupe-deep);letter-spacing:.1em}
   .times{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+  .sec-label{font-size:13px;color:var(--taupe-deep);letter-spacing:.1em;margin:4px 4px 10px;font-weight:600}
+  .sec-label.sec-full{margin-top:22px;color:var(--muted);font-weight:400;font-size:12.5px}
+  .times-full{grid-template-columns:repeat(4,1fr);gap:7px;opacity:.78}
+  .times-full .slot.off{padding:7px 0}
+  .times-full .slot.off .t{font-size:12.5px}
+  .times-full .slot.off .booked{font-size:10px;margin-top:1px}
   .slot{padding:14px 0;text-align:center;border:1px solid var(--line);border-radius:12px;background:var(--cream-soft);
     font-size:15px;cursor:pointer;font-family:"Noto Serif TC",serif;transition:.15s}
   .slot:hover{border-color:var(--taupe)}
@@ -89,6 +95,26 @@
   .svc.sel .box{background:var(--taupe);border-color:var(--taupe)}
   .svc .info{flex:1}.svc .nm{font-weight:600;font-size:15px}.svc .mt{font-size:12.5px;color:var(--muted)}
   .svc .pr{font-family:"Noto Serif TC",serif;font-size:14px;color:var(--taupe-deep);font-weight:600}
+  /* 分類 */
+  .cat{border:1px solid var(--line);border-radius:16px;margin-bottom:12px;overflow:hidden;background:var(--cream-soft)}
+  .cat-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer}
+  .cat-title{font-family:"Noto Serif TC",serif;font-size:16px;font-weight:600;color:var(--ink)}
+  .cat-arrow{color:var(--taupe);transition:.2s}
+  .cat.open .cat-arrow{transform:rotate(180deg)}
+  .cat-head.locked{cursor:not-allowed}
+  .cat-head.locked .cat-title{color:#b7a999}
+  .cat-lock{font-size:11.5px;color:var(--warn);background:#f3e4df;padding:3px 9px;border-radius:20px;letter-spacing:.04em}
+  .cat-body{display:none;padding:0 12px 12px}
+  .cat.open .cat-body{display:block}
+  .cat-body .svc{margin-bottom:9px}
+  .cat-body .svc:last-child{margin-bottom:2px}
+  /* 加購區 */
+  #addonSection{margin-top:8px;border-top:1px dashed var(--sand);padding-top:18px}
+  .addon-head{font-family:"Noto Serif TC",serif;font-size:15px;color:var(--taupe-deep);font-weight:600;margin:0 4px 12px}
+  .svc.addon{background:#fbf6ee}
+  .svc.addon.sel{background:#f0e6d6}
+  .svc-total{display:none;text-align:center;font-size:14px;color:var(--taupe-deep);font-weight:600;
+    background:#ece1d0;border-radius:12px;padding:12px;margin-top:6px}
 
   label.lbl{display:block;font-size:13px;color:var(--muted);margin:14px 4px 7px}
   input[type=text],input[type=tel],textarea{width:100%;font:inherit;padding:14px 15px;border:1px solid var(--line);border-radius:14px;background:var(--cream-soft);color:var(--ink)}
@@ -224,7 +250,12 @@
   <div class="panel" id="p1">
     <div class="ptitle">選擇時段</div>
     <div class="daysel" id="dayTitle">—</div>
-    <div class="times" id="times"></div>
+    <div class="sec-label" id="availLabel">可預約時段</div>
+    <div class="times" id="timesAvail"></div>
+    <div id="fullWrap">
+      <div class="sec-label sec-full">已額滿 / 未開放</div>
+      <div class="times times-full" id="timesFull"></div>
+    </div>
     <button class="backbtn" id="backToCal">‹ 上一步・重新選擇日期</button>
     <button class="cta" id="p1next" disabled>下一步</button>
   </div>
@@ -232,8 +263,13 @@
   <!-- 2 選服務 -->
   <div class="panel" id="p2">
     <div class="ptitle">選擇服務</div>
-    <div class="psub">可複選多項服務。</div>
+    <div class="psub">點開類別選擇項目，可跨類複選。</div>
     <div id="svcList"></div>
+    <div id="addonSection" style="display:none">
+      <div class="addon-head">✨ 加購甜甜價（選填）</div>
+      <div id="addonList"></div>
+    </div>
+    <div class="svc-total" id="svcTotal"></div>
     <button class="cta" id="p2next" disabled>下一步</button>
   </div>
 
@@ -335,20 +371,72 @@
 </div>
 
 <script>
-/* ===== 範例資料：服務改成你自己的 ===== */
-const SERVICES = {
-  brow:  { name:"霧眉 / 霧唇訂製", dur:150, price:6800 },
-  lash:  { name:"美睫設計",       dur:90,  price:1500 },
-  facial:{ name:"客製臉部保養",   dur:90,  price:2200 },
-  wax:   { name:"熱蠟除毛",       dur:45,  price:900 },
-  body:  { name:"美體舒緩",       dur:90,  price:2400 },
-};
+/* ===== 服務分類資料 =====
+   每個類別：title 類別名、locked 是否暫不開放、items 主項目、addons 該類加購
+   主項目 dur=擋日曆分鐘數、durText=顯示文字；加購 addonMin=每項加的分鐘 */
+const CATEGORIES = [
+  {
+    id:"facial", title:"美容做臉・皮膚管理", locked:false,
+    items:[
+      { key:"f1", name:"高效美肌・外泌體課程", price:3980, dur:120, durText:"約 90–120 分鐘" },
+      { key:"f2", name:"透亮水光・藻針課程",   price:3280, dur:120, durText:"約 90–120 分鐘" },
+      { key:"f3", name:"肌膚訂製・安瓶課程",   price:2880, dur:120, durText:"約 90–120 分鐘" },
+      { key:"f4", name:"舒壓撥筋・舒顏SPA",    price:2680, dur:120, durText:"約 90–120 分鐘" },
+      { key:"f5", name:"基礎滑嫩・淨白課程",   price:1880, dur:120, durText:"約 90–120 分鐘" },
+    ],
+    addons:[
+      { key:"fa1", name:"臉部精油按摩", price:680 },
+      { key:"fa2", name:"肩頸精油按摩", price:680 },
+      { key:"fa3", name:"頭部沁涼按摩", price:680 },
+      { key:"fa4", name:"唇部保濕SPA",  price:380 },
+      { key:"fa5", name:"頸部保養",     price:580 },
+    ],
+  },
+  {
+    id:"body", title:"美體按摩・體態調整", locked:false,
+    items:[
+      { key:"b1", name:"除濕肌・被動爆汗SPA", price:3280, dur:120, durText:"約 90–120 分鐘" },
+      { key:"b2", name:"牛奶美背SPA",         price:2880, dur:120, durText:"約 90–120 分鐘" },
+      { key:"b3", name:"孕婦按摩SPA",         price:2480, dur:120, durText:"約 90–120 分鐘" },
+      { key:"b4", name:"體態精修・平衡SPA",   price:2080, dur:120, durText:"約 90–120 分鐘" },
+      { key:"b5", name:"全身精油・按摩SPA",   price:1880, dur:120, durText:"約 90–120 分鐘" },
+    ],
+    addons:[
+      { key:"ba1", name:"暖舒溫罐",  price:980 },
+      { key:"ba2", name:"美胸SPA",   price:980 },
+      { key:"ba3", name:"暖宮肚燭",  price:980 },
+      { key:"ba4", name:"耳燭淨化",  price:880 },
+      { key:"ba5", name:"頭部SPA",   price:680 },
+    ],
+  },
+  {
+    id:"wax", title:"熱蠟除毛・擺脫毛怪", locked:false,
+    items:[
+      { key:"w1", name:"私密處全除", price:1880, dur:90, durText:"約 90 分鐘" },
+      { key:"w2", name:"腋下",       price:580,  dur:90, durText:"約 90 分鐘" },
+      { key:"w3", name:"全腿",       price:1680, dur:90, durText:"約 90 分鐘" },
+      { key:"w4", name:"全手",       price:1280, dur:90, durText:"約 90 分鐘" },
+    ],
+    addons:[],
+  },
+  {
+    id:"brow", title:"懶人必備・霧眉霧唇", locked:true, lockText:"技術升級中・暫不開放預約",
+    items:[], addons:[],
+  },
+];
+const ADDON_MIN = 30; // 每個加購多加的分鐘
+/* 建立 key -> 項目 的快速查表（主項目與加購都收進來）*/
+const ITEM_MAP = {};
+CATEGORIES.forEach(c=>{
+  c.items.forEach(it=>{ ITEM_MAP[it.key]=Object.assign({}, it, {type:"main", catId:c.id}); });
+  c.addons.forEach(ad=>{ ITEM_MAP[ad.key]=Object.assign({}, ad, {type:"addon", catId:c.id, dur:ADDON_MIN}); });
+});
 const STUDIO = { name:"沐蜜 Moome", location:"台南市永康區復國一路339-1號（路易莎復國店這棟大樓）" };
 const LIFF_ID = "2010429680-8LmiZhaK";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM4tyeLRXkVlvAFGYx89GBs_PPjsMM27ecjzECpitvtFs4yJq/exec";
 
 const $=id=>document.getElementById(id);
-const st = { userId:null, name:"", phone:"", note:"", services:[], date:null, time:null };
+const st = { userId:null, name:"", phone:"", note:"", services:[], addons:[], date:null, time:null };
 let monthData = {};      // 當月：日期 -> 可預約時段
 // 全部時段：10:00 到 20:30，每 30 分一格（與 admin 一致）。沒開放/已約都顯示「已約」
 const ALL_TIMES = (function(){ const a=[]; for(let t=10*60;t<21*60;t+=30){ const h=Math.floor(t/60),m=t%60; a.push((h<10?"0"+h:h)+":"+(m<10?"0"+m:m)); } return a; })();
@@ -439,35 +527,107 @@ function openDay(ds, slots){
   const d=new Date(ds+"T00:00:00");
   const wd=["日","一","二","三","四","五","六"][d.getDay()];
   $("dayTitle").innerHTML = `<span class="dnum">${d.getMonth()+1}月${d.getDate()}日</span><span class="dwk">星期${wd}</span>`;
-  const el=$("times"); el.innerHTML="";
-  // 顯示全部固定時段：在 slots 裡的可以點，其他（沒開放或已約）顯示「已約」
-  ALL_TIMES.forEach(t=>{
-    const open = slots.indexOf(t) >= 0;
-    const b=document.createElement("div");
-    if(open){
-      b.className="slot"; b.textContent=t;
-      b.onclick=()=>{ st.time=t; [...el.children].forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); $("p1next").disabled=false; };
-    }else{
-      b.className="slot off"; b.innerHTML=`<span class="t">${t}</span><span class="booked">已約</span>`;
-    }
-    el.appendChild(b);
-  });
+  const avail=$("timesAvail"); avail.innerHTML="";
+  const full=$("timesFull"); full.innerHTML="";
+  const openSlots = ALL_TIMES.filter(t=>slots.indexOf(t)>=0);
+  const fullSlots = ALL_TIMES.filter(t=>slots.indexOf(t)<0);
+
+  // 可預約（放最上面，亮、好點）
+  if(openSlots.length===0){
+    $("availLabel").textContent="本日已約滿，請改選其他日期";
+    avail.style.display="none";
+  }else{
+    $("availLabel").textContent="可預約時段";
+    avail.style.display="grid";
+    openSlots.forEach(t=>{
+      const b=document.createElement("div"); b.className="slot"; b.textContent=t;
+      b.onclick=()=>{ st.time=t; [...avail.children].forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); $("p1next").disabled=false; };
+      avail.appendChild(b);
+    });
+  }
+
+  // 已額滿 / 未開放（放下面，縮小淡化）
+  if(fullSlots.length===0){
+    $("fullWrap").style.display="none";
+  }else{
+    $("fullWrap").style.display="block";
+    fullSlots.forEach(t=>{
+      const b=document.createElement("div"); b.className="slot off";
+      b.innerHTML=`<span class="t">${t}</span><span class="booked">已約</span>`;
+      full.appendChild(b);
+    });
+  }
   $("p1next").disabled=true;
   show(1);
 }
 $("backToCal").onclick=()=>show(0);
 $("p1next").onclick=()=>show(3);
 
-/* 服務複選 */
+/* 服務：分類展開、跨類複選、選了某類主項目就顯示該類加購 */
 const svcList=$("svcList");
-Object.keys(SERVICES).forEach(key=>{
-  const sv=SERVICES[key]; const d=document.createElement("div"); d.className="svc";
-  d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${sv.name}</div><div class="mt">約 ${sv.dur} 分鐘</div></div><div class="pr">NT$ ${sv.price.toLocaleString()}</div>`;
-  d.onclick=()=>{ d.classList.toggle("sel"); const i=st.services.indexOf(key);
-    if(i>=0)st.services.splice(i,1); else st.services.push(key);
-    $("p2next").disabled=!(st.services.length>0); };
-  svcList.appendChild(d);
-});
+function renderServices(){
+  svcList.innerHTML="";
+  CATEGORIES.forEach(cat=>{
+    const wrap=document.createElement("div"); wrap.className="cat";
+    const head=document.createElement("div"); head.className="cat-head"+(cat.locked?" locked":"");
+    head.innerHTML=`<span class="cat-title">${cat.title}</span>`+
+      (cat.locked?`<span class="cat-lock">${cat.lockText||"暫不開放"}</span>`:`<span class="cat-arrow">▾</span>`);
+    wrap.appendChild(head);
+    if(!cat.locked){
+      const body=document.createElement("div"); body.className="cat-body";
+      cat.items.forEach(it=>{
+        const d=document.createElement("div"); d.className="svc"+(st.services.indexOf(it.key)>=0?" sel":"");
+        d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${it.name}</div><div class="mt">${it.durText}</div></div><div class="pr">NT$ ${it.price.toLocaleString()}</div>`;
+        d.onclick=()=>{ const i=st.services.indexOf(it.key);
+          if(i>=0)st.services.splice(i,1); else st.services.push(it.key);
+          d.classList.toggle("sel"); afterServiceChange(); };
+        body.appendChild(d);
+      });
+      head.onclick=()=>{ wrap.classList.toggle("open"); };
+      wrap.appendChild(body);
+    }
+    svcList.appendChild(wrap);
+  });
+  // 預設展開第一個未鎖類別
+  const cats=svcList.querySelectorAll(".cat");
+  for(let i=0;i<cats.length;i++){ if(!CATEGORIES[i].locked){ cats[i].classList.add("open"); break; } }
+}
+
+/* 選了主項目後：顯示對應類別的加購、更新合計與按鈕 */
+function afterServiceChange(){
+  // 找出已選主項目所屬的類別
+  const chosenCats = new Set(st.services.map(k=>ITEM_MAP[k]&&ITEM_MAP[k].catId).filter(Boolean));
+  const addonBox=$("addonList"); addonBox.innerHTML="";
+  let anyAddon=false;
+  CATEGORIES.forEach(cat=>{
+    if(chosenCats.has(cat.id) && cat.addons.length){
+      cat.addons.forEach(ad=>{
+        anyAddon=true;
+        const d=document.createElement("div"); d.className="svc addon"+(st.addons.indexOf(ad.key)>=0?" sel":"");
+        d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${ad.name}</div><div class="mt">+${ADDON_MIN} 分鐘</div></div><div class="pr">NT$ ${ad.price.toLocaleString()}</div>`;
+        d.onclick=()=>{ const i=st.addons.indexOf(ad.key);
+          if(i>=0)st.addons.splice(i,1); else st.addons.push(ad.key);
+          d.classList.toggle("sel"); updateTotal(); };
+        addonBox.appendChild(d);
+      });
+    }
+  });
+  // 沒選主項目的類別，其加購要從已選清單移除
+  st.addons = st.addons.filter(k=>chosenCats.has(ITEM_MAP[k]&&ITEM_MAP[k].catId));
+  $("addonSection").style.display = anyAddon ? "block" : "none";
+  updateTotal();
+}
+function updateTotal(){
+  const dur=totalDur(), price=totalPrice();
+  $("p2next").disabled = !(st.services.length>0);
+  if(st.services.length>0){
+    $("svcTotal").style.display="block";
+    $("svcTotal").innerHTML=`已選 ${st.services.length+st.addons.length} 項　共 NT$ ${price.toLocaleString()}　約 ${dur} 分鐘`;
+  }else{
+    $("svcTotal").style.display="none";
+  }
+}
+renderServices();
 $("p2next").onclick=()=>{ show(0); if(!viewYM) initMonth(); else loadMonth(); };
 
 /* 須知 + 資料（手機為選填，方便老師代約）*/
@@ -477,9 +637,16 @@ $("agree").onchange=checkP3; $("cname").oninput=checkP3; $("cphone").oninput=che
 $("p3next").onclick=()=>{ st.name=$("cname").value.trim(); st.phone=$("cphone").value.trim(); st.note=$("cnote").value.trim(); fillSummary(); show(4); };
 
 /* 確認 */
-function totalDur(){ return st.services.reduce((s,k)=>s+SERVICES[k].dur,0); }
-function totalPrice(){ return st.services.reduce((s,k)=>s+SERVICES[k].price,0); }
-function svcNames(){ return st.services.map(k=>SERVICES[k].name).join("、"); }
+function allKeys(){ return st.services.concat(st.addons); }
+function totalDur(){ return allKeys().reduce((s,k)=>s+(ITEM_MAP[k]?ITEM_MAP[k].dur:0),0); }
+function totalPrice(){ return allKeys().reduce((s,k)=>s+(ITEM_MAP[k]?ITEM_MAP[k].price:0),0); }
+function svcNames(){
+  const main=st.services.map(k=>ITEM_MAP[k]&&ITEM_MAP[k].name).filter(Boolean);
+  const add=st.addons.map(k=>ITEM_MAP[k]&&ITEM_MAP[k].name).filter(Boolean);
+  let s=main.join("、");
+  if(add.length) s+="（加購："+add.join("、")+"）";
+  return s;
+}
 function fillSummary(){
   $("sName").textContent=st.name;
   $("sPhone").textContent=st.phone || "—";
