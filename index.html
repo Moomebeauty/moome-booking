@@ -72,9 +72,16 @@
   .daysel .dwk{font-size:14px;color:var(--taupe-deep);letter-spacing:.1em}
   .times{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
   .sec-label{font-size:13px;color:var(--taupe-deep);letter-spacing:.1em;margin:4px 4px 10px;font-weight:600}
-  .sec-label.sec-full{margin-top:22px;color:var(--muted);font-weight:400;font-size:12.5px}
-  .times-full{grid-template-columns:repeat(4,1fr);gap:7px;opacity:.78}
-  .times-full .slot.off{padding:7px 0}
+  .avail-card{background:#eef0e6;border:1px solid #d3d8c2;border-radius:18px;padding:16px 14px 14px;margin-bottom:8px}
+  .avail-title{color:#6f7d56;margin:0 2px 12px;font-size:14px}
+  .avail-title::before{content:"●";color:#8aa06a;margin-right:7px;font-size:11px;vertical-align:middle}
+  .avail-card .slot{background:#fff;border:1.5px solid #b9c79a;color:#4a4038;font-weight:600}
+  .avail-card .slot:hover{border-color:#8aa06a;box-shadow:0 4px 14px rgba(138,160,106,.2)}
+  .avail-card .slot.sel{background:#8aa06a;color:#fff;border-color:#8aa06a}
+  .full-note{text-align:center;background:#eef0e6;border:1px solid #d3d8c2;border-radius:16px;padding:20px;color:#6f7d56;font-size:14px;margin-bottom:8px}
+  .sec-full{margin-top:22px!important;color:var(--muted);font-weight:400;font-size:12.5px}
+  .times-full{grid-template-columns:repeat(4,1fr);gap:7px;opacity:.6}
+  .times-full .slot.off{padding:7px 0;background:#efe9e2;border-color:#e6ddd2}
   .times-full .slot.off .t{font-size:12.5px}
   .times-full .slot.off .booked{font-size:10px;margin-top:1px}
   .slot{padding:14px 0;text-align:center;border:1px solid var(--line);border-radius:12px;background:var(--cream-soft);
@@ -258,10 +265,13 @@
   <div class="panel" id="p1">
     <div class="ptitle">選擇時段</div>
     <div class="daysel" id="dayTitle">—</div>
-    <div class="sec-label" id="availLabel">可預約時段</div>
-    <div class="times" id="timesAvail"></div>
+    <div class="avail-card" id="availCard">
+      <div class="sec-label avail-title" id="availLabel">可預約時段</div>
+      <div class="times" id="timesAvail"></div>
+    </div>
+    <div class="full-note" id="fullNote" style="display:none">本日已約滿，請改選其他日期 ♡</div>
     <div id="fullWrap">
-      <div class="sec-label sec-full">已額滿 / 未開放</div>
+      <div class="sec-label sec-full">時段已額滿</div>
       <div class="times times-full" id="timesFull"></div>
     </div>
     <button class="backbtn" id="backToCal">‹ 上一步・重新選擇日期</button>
@@ -548,11 +558,13 @@ function openDay(ds, slots){
   const openSlots = ALL_TIMES.filter(t=>slots.indexOf(t)>=0);
   const fullSlots = ALL_TIMES.filter(t=>slots.indexOf(t)<0);
 
-  // 可預約（放最上面，亮、好點）
+  // 可預約（放最上面，醒目綠卡）
   if(openSlots.length===0){
-    $("availLabel").textContent="本日已約滿，請改選其他日期";
-    avail.style.display="none";
+    $("availCard").style.display="none";
+    $("fullNote").style.display="block";
   }else{
+    $("availCard").style.display="block";
+    $("fullNote").style.display="none";
     $("availLabel").textContent="可預約時段";
     avail.style.display="grid";
     openSlots.forEach(t=>{
