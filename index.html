@@ -20,7 +20,10 @@
     background:radial-gradient(60% 50% at 30% 30%, rgba(140,124,106,.08), transparent 70%);pointer-events:none;z-index:0}
 
   header{position:relative;z-index:1;text-align:center;background:var(--cream);overflow:hidden}
+  .logo-wrap{position:relative;line-height:0}
   .logo-banner{display:block;width:100%;height:auto;object-fit:cover}
+  .logo-fade{position:absolute;left:0;right:0;bottom:-1px;height:38%;pointer-events:none;
+    background:linear-gradient(to bottom, rgba(243,236,226,0) 0%, rgba(243,236,226,.55) 55%, var(--cream) 100%)}
   .brand{font-family:"Noto Serif TC",serif;font-size:14px;letter-spacing:.5em;color:var(--taupe-deep);margin-bottom:6px;padding-left:.5em;padding-top:42px}
   .moome{font-family:"Brush Script MT","Segoe Script",cursive;font-size:40px;line-height:1;margin-bottom:10px}
   .slogan{font-family:"Noto Serif TC",serif;font-size:13px;color:var(--muted);letter-spacing:.28em;padding-left:.28em}
@@ -126,8 +129,11 @@
 <body>
 <div class="wrap">
   <header>
-    <img src="logo.jpg" alt="沐蜜 Moome" class="logo-banner"
-         onerror="this.style.display='none';document.getElementById('textLogo').style.display='block';" />
+    <div class="logo-wrap" id="logoWrap">
+      <img src="logo.jpg" alt="沐蜜 Moome" class="logo-banner"
+           onerror="document.getElementById('logoWrap').style.display='none';document.getElementById('textLogo').style.display='block';" />
+      <div class="logo-fade"></div>
+    </div>
     <div id="textLogo" style="display:none">
       <div class="brand">沐 蜜</div>
       <div class="moome">Moome</div>
