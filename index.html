@@ -67,7 +67,10 @@
     font-size:15px;cursor:pointer;font-family:"Noto Serif TC",serif;transition:.15s}
   .slot:hover{border-color:var(--taupe)}
   .slot.sel{background:var(--taupe);color:var(--cream-soft);border-color:var(--taupe)}
-  .slot.off{cursor:not-allowed;background:#efe6dd;border-color:#e6dccb;padding:8px 0;line-height:1.25}
+  .slot.off{cursor:not-allowed;background:#f0e6e4;border-color:#e3cfca;color:#9a6b62;position:relative;padding:10px 0}
+  .slot.off .t{font-size:14px;color:#b09a92;text-decoration:line-through;text-decoration-color:#c89a90}
+  .slot.off .booked{display:block;font-size:11px;letter-spacing:.12em;color:#9c4a3f;margin-top:3px;font-family:"Noto Sans TC",sans-serif}
+  .slot.off .booked::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:#a8453a;margin-right:5px;vertical-align:middle}
 
   /* 服務複選 */
   .svc{border:1px solid var(--line);background:var(--cream-soft);border-radius:16px;padding:15px 16px;margin-bottom:11px;
@@ -318,7 +321,7 @@ function openDay(ds, slots){
       b.className="slot"; b.textContent=t;
       b.onclick=()=>{ st.time=t; [...el.children].forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); $("p1next").disabled=false; };
     }else{
-      b.className="slot off"; b.innerHTML=`<span style="opacity:.55">${t}</span><br><span style="font-size:18px">🈵</span>`;
+      b.className="slot off"; b.innerHTML=`<span class="t">${t}</span><span class="booked">已約</span>`;
     }
     el.appendChild(b);
   });
