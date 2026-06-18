@@ -67,7 +67,7 @@
     font-size:15px;cursor:pointer;font-family:"Noto Serif TC",serif;transition:.15s}
   .slot:hover{border-color:var(--taupe)}
   .slot.sel{background:var(--taupe);color:var(--cream-soft);border-color:var(--taupe)}
-  .slot.off{opacity:.32;cursor:not-allowed;text-decoration:line-through;font-size:13px}
+  .slot.off{cursor:not-allowed;background:#efe6dd;border-color:#e6dccb;padding:8px 0;line-height:1.25}
 
   /* 服務複選 */
   .svc{border:1px solid var(--line);background:var(--cream-soft);border-radius:16px;padding:15px 16px;margin-bottom:11px;
@@ -198,7 +198,8 @@
       <div class="sumrow"><span class="k">姓名</span><span class="v" id="sName">—</span></div>
       <div class="sumrow"><span class="k">手機</span><span class="v" id="sPhone">—</span></div>
       <div class="sumrow"><span class="k">服務</span><span class="v" id="sSvc">—</span></div>
-      <div class="sumrow"><span class="k">時間</span><span class="v" id="sWhen">—</span></div>
+      <div class="sumrow"><span class="k">日期</span><span class="v" id="sDate">—</span></div>
+      <div class="sumrow"><span class="k">時間</span><span class="v" id="sTime">—</span></div>
       <div class="sumrow"><span class="k">服務總時長</span><span class="v" id="sDur">—</span></div>
       <div class="sumrow"><span class="k">金額</span><span class="v" id="sPrice">—</span></div>
     </div>
@@ -317,7 +318,7 @@ function openDay(ds, slots){
       b.className="slot"; b.textContent=t;
       b.onclick=()=>{ st.time=t; [...el.children].forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); $("p1next").disabled=false; };
     }else{
-      b.className="slot off"; b.innerHTML=`${t}<br><span style="font-size:11px">滿</span>`;
+      b.className="slot off"; b.innerHTML=`<span style="opacity:.55">${t}</span><br><span style="font-size:18px">🈵</span>`;
     }
     el.appendChild(b);
   });
@@ -351,7 +352,10 @@ function totalPrice(){ return st.services.reduce((s,k)=>s+SERVICES[k].price,0); 
 function svcNames(){ return st.services.map(k=>SERVICES[k].name).join("、"); }
 function fillSummary(){
   $("sName").textContent=st.name; $("sPhone").textContent=st.phone;
-  $("sSvc").textContent=svcNames(); $("sWhen").textContent=st.date+" "+st.time;
+  $("sSvc").textContent=svcNames();
+  const wd=["日","一","二","三","四","五","六"][new Date(st.date+"T00:00:00").getDay()];
+  $("sDate").textContent=st.date+"（週"+wd+"）";
+  $("sTime").textContent=st.time;
   $("sDur").textContent=totalDur()+" 分鐘"; $("sPrice").textContent="NT$ "+totalPrice().toLocaleString();
 }
 $("submit").onclick=()=>{
