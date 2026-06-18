@@ -62,6 +62,10 @@
 
   /* 時段 */
   .daytitle{font-family:"Noto Serif TC",serif;font-size:16px;margin:6px 4px 12px;font-weight:600}
+  .daysel{display:flex;align-items:baseline;gap:10px;background:var(--cream-soft);border:1px solid var(--line);
+    border-radius:14px;padding:14px 18px;margin:0 4px 16px}
+  .daysel .dnum{font-family:"Noto Serif TC",serif;font-size:22px;font-weight:700;color:var(--ink)}
+  .daysel .dwk{font-size:14px;color:var(--taupe-deep);letter-spacing:.1em}
   .times{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   .slot{padding:14px 0;text-align:center;border:1px solid var(--line);border-radius:12px;background:var(--cream-soft);
     font-size:15px;cursor:pointer;font-family:"Noto Serif TC",serif;transition:.15s}
@@ -103,6 +107,9 @@
     color:var(--cream-soft);font:inherit;font-weight:600;font-size:16px;letter-spacing:.18em;cursor:pointer;transition:.2s;padding-left:.18em}
   .cta:hover{background:var(--taupe-deep)} .cta:disabled{background:var(--sand);color:#fff;cursor:not-allowed}
   .ghost{background:none;border:1px solid var(--line);color:var(--muted);margin-top:10px;padding:13px;border-radius:14px;width:100%;font:inherit;cursor:pointer;font-size:14px}
+  .backbtn{display:block;width:100%;margin-top:18px;padding:14px;border:1.5px solid var(--taupe);border-radius:14px;
+    background:#ece1d0;color:var(--taupe-deep);font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;letter-spacing:.04em}
+  .backbtn:hover{background:#e3d5c0}
 
   .done{text-align:center;padding:10px 6px}
   .done .tick{width:58px;height:58px;border-radius:50%;background:var(--ok);display:grid;place-items:center;margin:0 auto 16px;color:#fff;font-size:28px}
@@ -147,9 +154,9 @@
   <!-- 1 選時段 -->
   <div class="panel" id="p1">
     <div class="ptitle">選擇時段</div>
-    <div class="daytitle" id="dayTitle">—</div>
+    <div class="daysel" id="dayTitle">—</div>
     <div class="times" id="times"></div>
-    <button class="ghost" id="backToCal">‹ 重新選日期</button>
+    <button class="backbtn" id="backToCal">‹ 上一步・重新選擇日期</button>
     <button class="cta" id="p1next" disabled>下一步</button>
   </div>
 
@@ -188,8 +195,8 @@
     <label class="agree"><input type="checkbox" id="agree" /><span>我已詳閱並同意以上預約須知</span></label>
     <label class="lbl" for="cname">姓名</label>
     <input type="text" id="cname" placeholder="您的稱呼" />
-    <label class="lbl" for="cphone">手機</label>
-    <input type="tel" id="cphone" placeholder="09xx-xxx-xxx" />
+    <label class="lbl" for="cphone">手機（選填）</label>
+    <input type="tel" id="cphone" placeholder="09xx-xxx-xxx（可不填）" />
     <button class="cta" id="p3next" disabled>下一步</button>
   </div>
 
@@ -238,9 +245,14 @@ let monthData = {};      // 當月：日期 -> 可預約時段
 const ALL_TIMES = ["10:00","12:00","14:00","16:00","18:00","20:00"]; // 全部時段，沒開放/已約都顯示「滿」
 let viewYM = null;       // 目前顯示的年月
 
-/* 面板切換 */
+/* 面板切換。面板 id 與「邏輯步驟」對應：
+   邏輯順序：服務(p2)→日期(p0)→時段(p1)→須知資料(p3)→確認(p4)
+   進度點 d0..d4 依邏輯順序亮。*/
+const STEP_OF_PANEL = { 2:0, 0:1, 1:2, 3:3, 4:4 };
 function show(n){
-  for(let i=0;i<=4;i++){ $("p"+i).classList.toggle("show", i===n); $("d"+i).classList.toggle("on", i===n); }
+  for(let i=0;i<=4;i++){ $("p"+i).classList.toggle("show", i===n); }
+  const step = STEP_OF_PANEL[n];
+  for(let i=0;i<=4;i++){ $("d"+i).classList.toggle("on", i===step); }
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -311,9 +323,11 @@ function renderCal(){
 
 /* 選某天 → 進時段頁 */
 function openDay(ds, slots){
-  $("dayTitle").textContent = ds + "　可預約時段";
+  const d=new Date(ds+"T00:00:00");
+  const wd=["日","一","二","三","四","五","六"][d.getDay()];
+  $("dayTitle").innerHTML = `<span class="dnum">${d.getMonth()+1}月${d.getDate()}日</span><span class="dwk">星期${wd}</span>`;
   const el=$("times"); el.innerHTML="";
-  // 顯示全部固定時段：在 slots 裡的可以點，其他（沒開放或已約）顯示「滿」
+  // 顯示全部固定時段：在 slots 裡的可以點，其他（沒開放或已約）顯示「已約」
   ALL_TIMES.forEach(t=>{
     const open = slots.indexOf(t) >= 0;
     const b=document.createElement("div");
@@ -329,7 +343,7 @@ function openDay(ds, slots){
   show(1);
 }
 $("backToCal").onclick=()=>show(0);
-$("p1next").onclick=()=>show(2);
+$("p1next").onclick=()=>show(3);
 
 /* 服務複選 */
 const svcList=$("svcList");
@@ -341,10 +355,10 @@ Object.keys(SERVICES).forEach(key=>{
     $("p2next").disabled=!(st.services.length>0); };
   svcList.appendChild(d);
 });
-$("p2next").onclick=()=>show(3);
+$("p2next").onclick=()=>{ show(0); if(!viewYM) initMonth(); else loadMonth(); };
 
-/* 須知 + 資料 */
-function checkP3(){ const ok=$("agree").checked && $("cname").value.trim() && $("cphone").value.trim();
+/* 須知 + 資料（手機為選填，方便老師代約）*/
+function checkP3(){ const ok=$("agree").checked && $("cname").value.trim();
   $("p3next").disabled=!ok; }
 $("agree").onchange=checkP3; $("cname").oninput=checkP3; $("cphone").oninput=checkP3;
 $("p3next").onclick=()=>{ st.name=$("cname").value.trim(); st.phone=$("cphone").value.trim(); fillSummary(); show(4); };
@@ -371,8 +385,8 @@ $("submit").onclick=()=>{
   $("done").scrollIntoView({behavior:"smooth",block:"center"});
 };
 
-/* 啟動 */
-initMonth();
+/* 啟動：先讓客人選服務 */
+show(2);
 </script>
 </body>
 </html>
