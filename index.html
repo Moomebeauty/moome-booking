@@ -87,9 +87,10 @@
   .svc .pr{font-family:"Noto Serif TC",serif;font-size:14px;color:var(--taupe-deep);font-weight:600}
 
   label.lbl{display:block;font-size:13px;color:var(--muted);margin:14px 4px 7px}
-  input[type=text],input[type=tel]{width:100%;font:inherit;padding:14px 15px;border:1px solid var(--line);border-radius:14px;background:var(--cream-soft);color:var(--ink)}
-  input:focus{outline:none;border-color:var(--taupe);box-shadow:0 0 0 3px rgba(140,124,106,.12)}
-  input::placeholder{color:#c2b5a2}
+  input[type=text],input[type=tel],textarea{width:100%;font:inherit;padding:14px 15px;border:1px solid var(--line);border-radius:14px;background:var(--cream-soft);color:var(--ink)}
+  textarea{resize:vertical;line-height:1.6;min-height:84px}
+  input:focus,textarea:focus{outline:none;border-color:var(--taupe);box-shadow:0 0 0 3px rgba(140,124,106,.12)}
+  input::placeholder,textarea::placeholder{color:#c2b5a2}
 
   .notice{background:var(--cream-soft);border:1px solid var(--line);border-radius:18px;padding:18px;font-size:14px;line-height:1.95;max-height:42vh;overflow-y:auto}
   .notice h4{font-family:"Noto Serif TC",serif;font-size:15px;margin:14px 0 4px;color:var(--taupe-deep)}
@@ -196,7 +197,9 @@
     <label class="lbl" for="cname">姓名</label>
     <input type="text" id="cname" placeholder="您的稱呼" />
     <label class="lbl" for="cphone">手機（選填）</label>
-    <input type="tel" id="cphone" placeholder="09xx-xxx-xxx（可不填）" />
+    <input type="tel" id="cphone" placeholder="09xx-xxx-xxx" />
+    <label class="lbl" for="cnote">備註（選填）</label>
+    <textarea id="cnote" rows="3" placeholder="想改善的問題、想約幾位，或想說卻不敢當面說出口的話，都可以寫在這裡 ♡"></textarea>
     <button class="cta" id="p3next" disabled>下一步</button>
   </div>
 
@@ -212,6 +215,7 @@
       <div class="sumrow"><span class="k">時間</span><span class="v" id="sTime">—</span></div>
       <div class="sumrow"><span class="k">服務總時長</span><span class="v" id="sDur">—</span></div>
       <div class="sumrow"><span class="k">金額</span><span class="v" id="sPrice">—</span></div>
+      <div class="sumrow" id="sNoteRow" style="display:none"><span class="k">備註</span><span class="v" id="sNote">—</span></div>
     </div>
     <button class="cta" id="submit">送出預約</button>
     <div class="done" id="done" style="display:none">
@@ -240,7 +244,7 @@ const LIFF_ID = "2010429680-8LmiZhaK";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM4tyeLRXkVlvAFGYx89GBs_PPjsMM27ecjzECpitvtFs4yJq/exec";
 
 const $=id=>document.getElementById(id);
-const st = { userId:null, name:"", phone:"", services:[], date:null, time:null };
+const st = { userId:null, name:"", phone:"", note:"", services:[], date:null, time:null };
 let monthData = {};      // 當月：日期 -> 可預約時段
 const ALL_TIMES = ["10:00","12:00","14:00","16:00","18:00","20:00"]; // 全部時段，沒開放/已約都顯示「滿」
 let viewYM = null;       // 目前顯示的年月
@@ -361,25 +365,28 @@ $("p2next").onclick=()=>{ show(0); if(!viewYM) initMonth(); else loadMonth(); };
 function checkP3(){ const ok=$("agree").checked && $("cname").value.trim();
   $("p3next").disabled=!ok; }
 $("agree").onchange=checkP3; $("cname").oninput=checkP3; $("cphone").oninput=checkP3;
-$("p3next").onclick=()=>{ st.name=$("cname").value.trim(); st.phone=$("cphone").value.trim(); fillSummary(); show(4); };
+$("p3next").onclick=()=>{ st.name=$("cname").value.trim(); st.phone=$("cphone").value.trim(); st.note=$("cnote").value.trim(); fillSummary(); show(4); };
 
 /* 確認 */
 function totalDur(){ return st.services.reduce((s,k)=>s+SERVICES[k].dur,0); }
 function totalPrice(){ return st.services.reduce((s,k)=>s+SERVICES[k].price,0); }
 function svcNames(){ return st.services.map(k=>SERVICES[k].name).join("、"); }
 function fillSummary(){
-  $("sName").textContent=st.name; $("sPhone").textContent=st.phone;
+  $("sName").textContent=st.name;
+  $("sPhone").textContent=st.phone || "—";
   $("sSvc").textContent=svcNames();
   const wd=["日","一","二","三","四","五","六"][new Date(st.date+"T00:00:00").getDay()];
   $("sDate").textContent=st.date+"（週"+wd+"）";
   $("sTime").textContent=st.time;
   $("sDur").textContent=totalDur()+" 分鐘"; $("sPrice").textContent="NT$ "+totalPrice().toLocaleString();
+  if(st.note){ $("sNoteRow").style.display="flex"; $("sNote").textContent=st.note; }
+  else { $("sNoteRow").style.display="none"; }
 }
 $("submit").onclick=()=>{
   const btn=$("submit"); btn.disabled=true; btn.textContent="送出中…";
   fetch(SCRIPT_URL,{ method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"},
     body:JSON.stringify({ name:st.name, phone:st.phone, service:svcNames(),
-      date:st.date, time:st.time, dur:totalDur(), price:totalPrice(), userId:st.userId||"" })
+      date:st.date, time:st.time, dur:totalDur(), price:totalPrice(), note:st.note||"", userId:st.userId||"" })
   }).catch(()=>{});
   btn.style.display="none"; $("done").style.display="block";
   $("done").scrollIntoView({behavior:"smooth",block:"center"});
