@@ -96,13 +96,15 @@
   .svc .info{flex:1}.svc .nm{font-weight:600;font-size:15px}.svc .mt{font-size:12.5px;color:var(--muted)}
   .svc .pr{font-family:"Noto Serif TC",serif;font-size:14px;color:var(--taupe-deep);font-weight:600}
   /* 分類 */
-  .cat{border:1px solid var(--line);border-radius:16px;margin-bottom:12px;overflow:hidden;background:var(--cream-soft)}
-  .cat-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer}
-  .cat-title{font-family:"Noto Serif TC",serif;font-size:16px;font-weight:600;color:var(--ink)}
-  .cat-arrow{color:var(--taupe);transition:.2s}
+  .cat{border:1px solid var(--line);border-radius:16px;margin-bottom:14px;overflow:hidden;background:var(--cream-soft)}
+  .cat-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer;
+    background:var(--taupe);transition:.2s}
+  .cat-head:hover{background:var(--taupe-deep)}
+  .cat-title{font-family:"Noto Serif TC",serif;font-size:16.5px;font-weight:700;color:var(--cream-soft);letter-spacing:.04em}
+  .cat-arrow{color:var(--cream-soft);transition:.2s}
   .cat.open .cat-arrow{transform:rotate(180deg)}
-  .cat-head.locked{cursor:not-allowed}
-  .cat-head.locked .cat-title{color:#b7a999}
+  .cat-head.locked{background:#d8cdbd;cursor:not-allowed}
+  .cat-head.locked .cat-title{color:#8a7c6a;font-weight:600}
   .cat-lock{font-size:11.5px;color:var(--warn);background:#f3e4df;padding:3px 9px;border-radius:20px;letter-spacing:.04em}
   .cat-body{display:none;padding:0 12px 12px}
   .cat.open .cat-body{display:block}
