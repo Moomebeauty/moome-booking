@@ -61,8 +61,9 @@
   /* 國定假日：數字轉紅、底部紅點標示 */
   .cell.holiday{color:#c0584a}
   .cell.holiday.closed{color:#d99b90}
-  .cell.holiday .holi-tag{position:absolute;bottom:2px;left:0;right:0;font-size:7.5px;color:#c0584a;
-    line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
+  .cell.holiday .holi-tag{display:block;font-size:8px;line-height:1.1;color:#c0584a;margin-top:2px;
+    max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+  .cell.holiday.open .holi-tag{color:#c0584a}
   .cell.holiday .tagfree,.cell.holiday .tagfull{display:none}
   .cell{position:relative}
   .legend{display:flex;gap:16px;justify-content:center;margin-top:16px;font-size:12px;color:var(--muted)}
@@ -530,20 +531,43 @@ $("prevMo").onclick=()=>{ const now=new Date(today.getFullYear(),today.getMonth(
   const v=new Date(viewYM.y,viewYM.m-1,1); if(v<now)return; viewYM={y:v.getFullYear(),m:v.getMonth()}; loadMonth(); };
 $("nextMo").onclick=()=>{ const v=new Date(viewYM.y,viewYM.m+1,1); viewYM={y:v.getFullYear(),m:v.getMonth()}; loadMonth(); };
 
+const monthCache = {};   // 快取：ym字串 -> 該月資料，抓過就不再連線
 function loadMonth(){
   $("moLabel").textContent = viewYM.y+" 年 "+(viewYM.m+1)+" 月";
-  $("calGrid").innerHTML=`<div class="loading" style="grid-column:1/-1">讀取中…</div>`;
-  // 上個月按鈕：不能往前於本月
   const atThisMonth = (viewYM.y===today.getFullYear() && viewYM.m===today.getMonth());
   $("prevMo").disabled = atThisMonth;
-  // JSONP 抓整月
+  const ym = ymStr();
+  // 已快取 → 立即顯示，不連線
+  if(monthCache[ym]){ monthData = monthCache[ym]; renderCal(); return; }
+  // 未快取 → 顯示讀取中並抓取
+  $("calGrid").innerHTML=`<div class="loading" style="grid-column:1/-1">讀取中…</div>`;
   const cb="monthCB_"+Date.now();
   const timer=setTimeout(()=>{ cleanup(); monthData={}; renderCal(); },7000);
   function cleanup(){ delete window[cb]; const s=$(cb); if(s)s.remove(); clearTimeout(timer); }
-  window[cb]=function(res){ cleanup(); monthData=(res&&res.month)?res.month:{}; renderCal(); };
+  window[cb]=function(res){ cleanup();
+    monthData=(res&&res.month)?res.month:{};
+    monthCache[ym]=monthData;   // 存快取
+    if(ymStr()===ym) renderCal(); // 只有還停在同一月才繪製
+    prefetchMonth(viewYM.y, viewYM.m+1); // 背景預抓下個月
+  };
   const s=document.createElement("script"); s.id=cb;
-  s.src=SCRIPT_URL+"?action=getMonth&ym="+encodeURIComponent(ymStr())+"&callback="+cb;
+  s.src=SCRIPT_URL+"?action=getMonth&ym="+encodeURIComponent(ym)+"&callback="+cb;
   s.onerror=()=>{ cleanup(); monthData={}; renderCal(); };
+  document.body.appendChild(s);
+}
+/* 背景預抓某月資料存進快取（不影響畫面）*/
+function prefetchMonth(y,m){
+  const d=new Date(y,m,1);
+  const ym=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+  if(monthCache[ym])return;
+  const cb="preCB_"+Date.now();
+  function cleanup(){ delete window[cb]; const s=document.getElementById(cb); if(s)s.remove(); }
+  const timer=setTimeout(cleanup,7000);
+  window[cb]=function(res){ clearTimeout(timer); cleanup();
+    monthCache[ym]=(res&&res.month)?res.month:{}; };
+  const s=document.createElement("script"); s.id=cb;
+  s.src=SCRIPT_URL+"?action=getMonth&ym="+encodeURIComponent(ym)+"&callback="+cb;
+  s.onerror=()=>{ clearTimeout(timer); cleanup(); };
   document.body.appendChild(s);
 }
 
@@ -744,6 +768,8 @@ $("submit").onclick=()=>{
     body:JSON.stringify({ name:st.name, phone:st.phone, service:svcNames(),
       date:st.date, time:st.time, dur:totalDur(), price:totalPrice(), note:st.note||"", userId:st.userId||"" })
   }).catch(()=>{});
+  // 清掉這個月的快取，下次切回會重新抓到最新（被約走的時段會消失）
+  if(st.date){ const ymk=st.date.substring(0,7); delete monthCache[ymk]; }
   const wd=["日","一","二","三","四","五","六"][new Date(st.date+"T00:00:00").getDay()];
   $("doneDate").textContent="預約日期為："+st.date+"（週"+wd+"）"+st.time;
   $("gcalBtn").href = buildGcalLink();
