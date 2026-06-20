@@ -26,6 +26,8 @@
   input:focus{outline:none;border-color:var(--taupe)}
 
   .tip{font-size:12.5px;color:var(--muted);margin:14px 0 10px}
+  .holi-banner{margin-top:12px;padding:11px 14px;border-radius:12px;background:#f5e3de;border:1px solid #e3b9ae;
+    color:#b0563f;font-size:13.5px;font-weight:600;text-align:center}
   .quick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
   .qbtn{font:inherit;font-size:13px;padding:8px 14px;border:1px solid var(--line);border-radius:20px;
     background:var(--cream-soft);color:var(--taupe-deep);cursor:pointer}
@@ -59,6 +61,7 @@
   <section>
     <label class="lbl" for="date">選擇日期</label>
     <input type="date" id="date" />
+    <div class="holi-banner" id="holiBanner" style="display:none"></div>
     <div class="tip">點亮要開放的時段，再按下方儲存。客人只會看到你開放的時段。</div>
     <div class="quick">
       <button class="qbtn" id="qAll">全部開放</button>
@@ -82,6 +85,14 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM
 
 /* 時段：上午10點到晚上9點，每 2 小時一個 */
 const OPEN=10, CLOSE=21, STEP=30;
+/* 台灣國定假日（2026），選到這天會提示 */
+const HOLIDAYS = {
+  "2026-01-01":"元旦","2026-02-14":"小年夜","2026-02-15":"除夕",
+  "2026-02-16":"春節","2026-02-17":"春節","2026-02-18":"春節",
+  "2026-02-28":"和平紀念日","2026-04-04":"兒童節","2026-04-05":"清明節",
+  "2026-04-06":"清明連假","2026-05-01":"勞動節","2026-06-19":"端午節",
+  "2026-09-25":"中秋節","2026-10-10":"國慶日",
+};
 const ALL_SLOTS=[];
 for(let total=OPEN*60; total<CLOSE*60; total+=STEP){
   const h=Math.floor(total/60), m=total%60;
@@ -119,6 +130,12 @@ elDate.min=today.toISOString().split("T")[0];
 elDate.onchange=()=>{
   $("msg").textContent=""; selected.clear(); refresh();
   if(!elDate.value)return;
+  // 假日提示
+  const holi=HOLIDAYS[elDate.value];
+  const wd=["日","一","二","三","四","五","六"][new Date(elDate.value+"T00:00:00").getDay()];
+  const banner=$("holiBanner");
+  if(holi){ banner.style.display="block"; banner.textContent="🎌 "+elDate.value+"（週"+wd+"）是 "+holi+" — 國定假日"; }
+  else { banner.style.display="none"; }
   $("count").textContent="讀取中…";
   const cb="adminCB_"+Date.now();
   const timer=setTimeout(()=>{ cleanup(); refresh(); },6000);
