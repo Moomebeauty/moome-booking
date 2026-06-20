@@ -199,7 +199,7 @@
   .gcal{display:block;margin:6px auto 0;padding:14px 22px;background:var(--taupe);color:var(--cream-soft);
     border-radius:14px;text-decoration:none;font-size:15px;font-weight:600;letter-spacing:.08em}
   .gcal:hover{background:var(--taupe-deep)}
-  .loading{text-align:center;color:var(--muted);font-size:13.5px;padding:30px 0}
+  .loading{text-align:center;color:var(--taupe-deep);font-size:14px;padding:34px 16px;line-height:1.7;letter-spacing:.03em}
   footer{position:relative;z-index:1;padding:24px 28px 40px;text-align:center;color:var(--muted);font-size:12px;letter-spacing:.12em;border-top:1px solid var(--sand)}
   @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
@@ -256,7 +256,7 @@
   <!-- 0 選日期（月曆） -->
   <div class="panel show" id="p0">
     <div class="ptitle">選擇預約日期</div>
-    <div class="psub">亮起來的日子可預約，灰色為已滿或休息。</div>
+    <div class="psub">亮起來的日子可預約，灰色為已滿。</div>
     <div class="cal-head">
       <button class="navbtn" id="prevMo">‹</button>
       <div class="mo" id="moLabel">—</div>
@@ -266,7 +266,7 @@
     <div class="grid" id="calGrid"></div>
     <div class="legend">
       <span><i class="lg open"></i>可預約</span>
-      <span><i class="lg full"></i>已滿 / 休息</span>
+      <span><i class="lg full"></i>已滿</span>
       <span><i class="lg holi"></i>國定假日</span>
     </div>
   </div>
@@ -540,7 +540,7 @@ function loadMonth(){
   // 已快取 → 立即顯示，不連線
   if(monthCache[ym]){ monthData = monthCache[ym]; renderCal(); return; }
   // 未快取 → 顯示讀取中並抓取
-  $("calGrid").innerHTML=`<div class="loading" style="grid-column:1/-1">讀取中…</div>`;
+  $("calGrid").innerHTML=`<div class="loading" style="grid-column:1/-1">🌿 正在為您查看空檔時段，請稍候一下下～</div>`;
   const cb="monthCB_"+Date.now();
   const timer=setTimeout(()=>{ cleanup(); monthData={}; renderCal(); },7000);
   function cleanup(){ delete window[cb]; const s=$(cb); if(s)s.remove(); clearTimeout(timer); }
