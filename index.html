@@ -58,11 +58,19 @@
   .cell.closed{color:#cdc1b0;cursor:default}
   .cell.sel{background:var(--taupe);border-color:var(--taupe);color:var(--cream-soft)}
   .cell.sel .tagfree{color:var(--cream-soft)}
+  /* 國定假日：數字轉紅、底部紅點標示 */
+  .cell.holiday{color:#c0584a}
+  .cell.holiday.closed{color:#d99b90}
+  .cell.holiday .holi-tag{position:absolute;bottom:2px;left:0;right:0;font-size:7.5px;color:#c0584a;
+    line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
+  .cell.holiday .tagfree,.cell.holiday .tagfull{display:none}
+  .cell{position:relative}
   .legend{display:flex;gap:16px;justify-content:center;margin-top:16px;font-size:12px;color:var(--muted)}
   .legend span{display:inline-flex;align-items:center;gap:5px}
   .lg{width:12px;height:12px;border-radius:4px;display:inline-block}
   .lg.open{background:var(--cream-soft);border:1px solid var(--taupe)}
   .lg.full{background:#efe6dd}
+  .lg.holi{background:#f5d9d2;border:1px solid #c0584a}
 
   /* 時段 */
   .daytitle{font-family:"Noto Serif TC",serif;font-size:16px;margin:6px 4px 12px;font-weight:600}
@@ -253,11 +261,12 @@
       <div class="mo" id="moLabel">—</div>
       <button class="navbtn" id="nextMo">›</button>
     </div>
-    <div class="week"><div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div></div>
+    <div class="week"><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div></div>
     <div class="grid" id="calGrid"></div>
     <div class="legend">
       <span><i class="lg open"></i>可預約</span>
       <span><i class="lg full"></i>已滿 / 休息</span>
+      <span><i class="lg holi"></i>國定假日</span>
     </div>
   </div>
 
@@ -451,6 +460,23 @@ const CATEGORIES = [
   },
 ];
 const ADDON_MIN = 30; // 每個加購多加的分鐘
+/* 台灣國定假日（紅字標示用，2026）。日期格式 yyyy-MM-dd */
+const HOLIDAYS = {
+  "2026-01-01":"元旦",
+  "2026-02-14":"小年夜",
+  "2026-02-15":"除夕",
+  "2026-02-16":"春節",
+  "2026-02-17":"春節",
+  "2026-02-18":"春節",
+  "2026-02-28":"和平紀念日",
+  "2026-04-04":"兒童節",
+  "2026-04-05":"清明節",
+  "2026-04-06":"清明連假",
+  "2026-05-01":"勞動節",
+  "2026-06-19":"端午節",
+  "2026-09-25":"中秋節",
+  "2026-10-10":"國慶日",
+};
 /* 建立 key -> 項目 的快速查表（主項目與加購都收進來）*/
 const ITEM_MAP = {};
 CATEGORIES.forEach(c=>{
@@ -524,7 +550,8 @@ function loadMonth(){
 function renderCal(){
   const grid=$("calGrid"); grid.innerHTML="";
   const first=new Date(viewYM.y,viewYM.m,1);
-  const startDay=first.getDay();
+  // 週一為第一欄：週日(0)要排到第7格，所以位移 (getDay()+6)%7
+  const startDay=(first.getDay()+6)%7;
   const daysInMonth=new Date(viewYM.y,viewYM.m+1,0).getDate();
   for(let i=0;i<startDay;i++){ const c=document.createElement("div"); c.className="cell empty"; grid.appendChild(c); }
   for(let d=1;d<=daysInMonth;d++){
@@ -533,8 +560,8 @@ function renderCal(){
     const c=document.createElement("div");
     const slots=monthData[ds]||[];
     const isPast = dateObj < today;
+    const holiday = HOLIDAYS[ds]; // 國定假日名稱（若有）
     if(isPast || !(ds in monthData) || slots.length===0){
-      // 過去、沒開放、或已滿 → 顯示已預約/休息
       if(ds in monthData && slots.length===0){
         c.className="cell full"; c.innerHTML=`${d}<span class="tagfull">已滿</span>`;
       }else{
@@ -544,6 +571,9 @@ function renderCal(){
       c.className="cell open"; c.innerHTML=`${d}<span class="tagfree">可約</span>`;
       c.onclick=()=>{ st.date=ds; st.time=null; openDay(ds, slots); };
     }
+    if(holiday){ c.classList.add("holiday"); c.title=holiday;
+      const tag=document.createElement("span"); tag.className="holi-tag"; tag.textContent=holiday;
+      c.appendChild(tag); }
     grid.appendChild(c);
   }
 }
