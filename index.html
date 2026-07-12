@@ -136,6 +136,15 @@
   #addonModal .modal-body{margin-bottom:4px}
   #addonModal .svc{margin-bottom:10px}
   .svc.addon{background:#fbf6ee}
+  .svc.combo{background:#f7efe0;border-color:#dcc9a4}
+  .svc.combo.sel{background:#eddcbd;border-color:#c9ab77}
+  .svc.combo .nm{color:#8a6d3f}
+  /* VIP 方案：金色尊榮、不可勾選 */
+  .svc.vip{background:linear-gradient(135deg,#f3e6cd 0%,#e8d4ae 100%);border:1.5px solid #c9a961;cursor:pointer}
+  .svc.vip:hover{border-color:#b08d45;box-shadow:0 4px 16px rgba(201,169,97,.28)}
+  .svc.vip .nm{color:#7a5f2c;font-weight:700}
+  .svc.vip .mt{color:#96793f;font-size:12px}
+  .svc.vip .vip-pr{color:#7a5f2c;font-weight:700;font-size:13px;white-space:nowrap}
   .svc.addon.sel{background:#f0e6d6}
   .svc-total{display:none;text-align:center;font-size:14px;color:var(--taupe-deep);font-weight:600;
     background:#ece1d0;border-radius:12px;padding:12px;margin-top:6px}
@@ -448,10 +457,19 @@ const CATEGORIES = [
   {
     id:"wax", title:"熱蠟除毛・擺脫毛怪", locked:false,
     items:[
-      { key:"w1", name:"私密處全除", price:1880, dur:90, durText:"約 90 分鐘" },
-      { key:"w2", name:"腋下",       price:580,  dur:90, durText:"約 90 分鐘" },
-      { key:"w3", name:"全腿",       price:1680, dur:90, durText:"約 90 分鐘" },
-      { key:"w4", name:"全手",       price:1280, dur:90, durText:"約 90 分鐘" },
+      { key:"w1",  name:"私密處全除",          price:1880, dur:120, durText:"" },
+      { key:"w2",  name:"全腿（含腳趾頭）",     price:1680, dur:120, durText:"" },
+      { key:"w3",  name:"小腿（含膝蓋、腳趾）", price:1480, dur:120, durText:"" },
+      { key:"w4",  name:"全手（含手指頭）",     price:1280, dur:120, durText:"" },
+      { key:"w5",  name:"腋下全除",            price:580,  dur:120, durText:"" },
+      { key:"w6",  name:"男生落腮鬍全除",       price:1280, dur:120, durText:"" },
+      { key:"w7",  name:"男生上唇鬍／下巴鬍",   price:880,  dur:120, durText:"" },
+      { key:"w8",  name:"修眉（質感眉型）",     price:580,  dur:120, durText:"" },
+      { key:"w9",  name:"女生小鬍子",          price:380,  dur:120, durText:"" },
+      { combo:true, key:"w10", name:"🎁 私密處＋腋下（組合價・省180）",           price:2280, dur:120, durText:"原價 2460" },
+      { combo:true, key:"w11", name:"🎁 私密處＋腋下＋小腿（組合價・省460）",      price:3480, dur:120, durText:"原價 3940" },
+      { combo:true, key:"w12", name:"🎁 私密處＋腋下＋全手＋全腿（最划算・省540）", price:4880, dur:120, durText:"原價 5420" },
+      { vip:true, key:"w13", name:"👑 除毛全身吃到飽・VIP 方案", price:0, dur:120, durText:"限已儲值 VIP 客人預約 · 尚未儲值請私訊老師" },
     ],
     addons:[],
   },
@@ -661,8 +679,12 @@ function renderServices(){
     if(!cat.locked){
       const body=document.createElement("div"); body.className="cat-body";
       cat.items.forEach(it=>{
-        const d=document.createElement("div"); d.className="svc"+(st.services.indexOf(it.key)>=0?" sel":"");
-        d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${it.name}</div><div class="mt">${it.durText}</div></div><div class="pr">NT$ ${it.price.toLocaleString()}</div>`;
+        const d=document.createElement("div");
+        d.className="svc"+(it.combo?" combo":"")+(it.vip?" vip":"")+(st.services.indexOf(it.key)>=0?" sel":"");
+        const mtHtml = it.durText ? `<div class="mt">${it.durText}</div>` : "";
+        // VIP 已儲值方案：可勾選預約，金額顯示「已儲值」
+        const prHtml = it.vip ? `<span class="vip-pr">已儲值方案</span>` : `NT$ ${it.price.toLocaleString()}`;
+        d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${it.name}</div>${mtHtml}</div><div class="pr">${prHtml}</div>`;
         d.onclick=()=>{ const i=st.services.indexOf(it.key);
           if(i>=0)st.services.splice(i,1); else st.services.push(it.key);
           d.classList.toggle("sel"); afterServiceChange(); };
@@ -690,7 +712,11 @@ function updateTotal(){
   $("p2next").disabled = !(st.services.length>0);
   if(st.services.length>0){
     $("svcTotal").style.display="block";
-    $("svcTotal").innerHTML=`已選 ${st.services.length+st.addons.length} 項　共 NT$ ${price.toLocaleString()}　約 ${dur} 分鐘`;
+    const hasVip = st.services.some(k=>ITEM_MAP[k]&&ITEM_MAP[k].vip);
+    const priceTxt = hasVip
+      ? (price>0 ? `NT$ ${price.toLocaleString()}　＋ VIP 已儲值方案` : `VIP 已儲值方案`)
+      : `共 NT$ ${price.toLocaleString()}`;
+    $("svcTotal").innerHTML=`已選 ${st.services.length+st.addons.length} 項　${priceTxt}`;
   }else{
     $("svcTotal").style.display="none";
   }
