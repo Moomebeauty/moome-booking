@@ -110,7 +110,10 @@
   .svc .box{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);flex-shrink:0;display:grid;place-items:center;font-size:14px;color:#fff;transition:.18s}
   .svc.sel .box{background:var(--taupe);border-color:var(--taupe)}
   .svc .info{flex:1}.svc .nm{font-weight:600;font-size:15px}.svc .mt{font-size:12.5px;color:var(--muted)}
-  .svc .pr{font-family:"Noto Serif TC",serif;font-size:14px;color:var(--taupe-deep);font-weight:600}
+  .svc .sub-nm{font-size:13px;color:var(--taupe-deep);margin-top:2px;font-weight:500}
+  .svc.combo .sub-nm{color:#9a7b4a}
+  .svc.vip .sub-nm{color:#8a6c33;font-weight:600}
+  .svc .pr{font-family:"Noto Serif TC",serif;font-size:14px;color:var(--taupe-deep);font-weight:600;white-space:nowrap;flex-shrink:0}
   /* 分類 */
   .cat{border:1px solid var(--line);border-radius:16px;margin-bottom:14px;overflow:hidden;background:var(--cream-soft)}
   .cat-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer;
@@ -466,10 +469,10 @@ const CATEGORIES = [
       { key:"w7",  name:"男生上唇鬍／下巴鬍",   price:880,  dur:120, durText:"" },
       { key:"w8",  name:"修眉（質感眉型）",     price:580,  dur:120, durText:"" },
       { key:"w9",  name:"女生小鬍子",          price:380,  dur:120, durText:"" },
-      { combo:true, key:"w10", name:"🎁 私密處＋腋下（組合價・省180）",           price:2280, dur:120, durText:"原價 2460" },
-      { combo:true, key:"w11", name:"🎁 私密處＋腋下＋小腿（組合價・省460）",      price:3480, dur:120, durText:"原價 3940" },
-      { combo:true, key:"w12", name:"🎁 私密處＋腋下＋全手＋全腿（最划算・省540）", price:4880, dur:120, durText:"原價 5420" },
-      { vip:true, key:"w13", name:"👑 除毛全身吃到飽・VIP 方案", price:0, dur:120, durText:"限已儲值 VIP 客人預約 · 尚未儲值請私訊老師" },
+      { combo:true, key:"w10", name:"🎁 私密處＋腋下",            sub:"（組合價・省180）", price:2280, dur:120, durText:"原價 2460" },
+      { combo:true, key:"w11", name:"🎁 私密處＋腋下＋小腿",       sub:"（組合價・省460）", price:3480, dur:120, durText:"原價 3940" },
+      { combo:true, key:"w12", name:"🎁 私密處＋腋下＋全手＋全腿", sub:"（最划算・省540）", price:4880, dur:120, durText:"原價 5420" },
+      { vip:true, key:"w13", name:"👑 除毛全身吃到飽", sub:"（VIP 方案）", price:0, dur:120, durText:"限已儲值 VIP 客人預約，尚未儲值請私訊老師" },
     ],
     addons:[],
   },
@@ -682,9 +685,10 @@ function renderServices(){
         const d=document.createElement("div");
         d.className="svc"+(it.combo?" combo":"")+(it.vip?" vip":"")+(st.services.indexOf(it.key)>=0?" sel":"");
         const mtHtml = it.durText ? `<div class="mt">${it.durText}</div>` : "";
+        const subHtml = it.sub ? `<div class="sub-nm">${it.sub}</div>` : "";
         // VIP 已儲值方案：可勾選預約，金額顯示「已儲值」
         const prHtml = it.vip ? `<span class="vip-pr">已儲值方案</span>` : `NT$ ${it.price.toLocaleString()}`;
-        d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${it.name}</div>${mtHtml}</div><div class="pr">${prHtml}</div>`;
+        d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${it.name}</div>${subHtml}${mtHtml}</div><div class="pr">${prHtml}</div>`;
         d.onclick=()=>{ const i=st.services.indexOf(it.key);
           if(i>=0)st.services.splice(i,1); else st.services.push(it.key);
           d.classList.toggle("sel"); afterServiceChange(); };
