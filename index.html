@@ -604,10 +604,11 @@ function renderCal(){
     const ds=fmtDate(dateObj);
     const c=document.createElement("div");
     const slots=monthData[ds]||[];
-    const isPast = dateObj < today;
+    const isPast = dateObj <= today;   // 今天（含）以前都不可預約，最早只能約明天
     const holiday = HOLIDAYS[ds]; // 國定假日名稱（若有）
     if(isPast || !(ds in monthData) || slots.length===0){
-      if(ds in monthData && slots.length===0){
+      // 今天（含）以前若原本有開放時段 → 顯示「已滿」；沒開放過 → 單純灰掉
+      if(ds in monthData && (slots.length===0 || isPast)){
         c.className="cell full"; c.innerHTML=`${d}<span class="tagfull">已滿</span>`;
       }else{
         c.className="cell closed"; c.textContent=d;
