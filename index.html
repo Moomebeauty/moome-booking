@@ -513,7 +513,7 @@ const $=id=>document.getElementById(id);
 const st = { userId:null, name:"", phone:"", note:"", services:[], addons:[], date:null, time:null };
 let monthData = {};      // 當月：日期 -> 可預約時段
 // 全部時段：10:00 到 20:30，每 30 分一格（與 admin 一致）。沒開放/已約都顯示「已約」
-const ALL_TIMES = (function(){ const a=[]; for(let t=10*60;t<21*60;t+=30){ const h=Math.floor(t/60),m=t%60; a.push((h<10?"0"+h:h)+":"+(m<10?"0"+m:m)); } return a; })();
+const ALL_TIMES = (function(){ const a=[]; for(let t=8*60;t<=20*60;t+=30){ const h=Math.floor(t/60),m=t%60; a.push((h<10?"0"+h:h)+":"+(m<10?"0"+m:m)); } return a; })();
 let viewYM = null;       // 目前顯示的年月
 
 /* 面板切換。面板 id 與「邏輯步驟」對應：
