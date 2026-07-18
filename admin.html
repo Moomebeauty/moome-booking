@@ -84,7 +84,7 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM4tyeLRXkVlvAFGYx89GBs_PPjsMM27ecjzECpitvtFs4yJq/exec";
 
 /* 時段：上午10點到晚上9點，每 2 小時一個 */
-const OPEN=10, CLOSE=21, STEP=30;
+const OPEN=8, CLOSE=20, STEP=30;   // 08:00 ~ 20:00（最晚接到晚上8點）
 /* 台灣國定假日（2026），選到這天會提示 */
 const HOLIDAYS = {
   "2026-01-01":"元旦","2026-02-14":"小年夜","2026-02-15":"除夕",
@@ -94,7 +94,7 @@ const HOLIDAYS = {
   "2026-09-25":"中秋節","2026-10-10":"國慶日",
 };
 const ALL_SLOTS=[];
-for(let total=OPEN*60; total<CLOSE*60; total+=STEP){
+for(let total=OPEN*60; total<=CLOSE*60; total+=STEP){
   const h=Math.floor(total/60), m=total%60;
   ALL_SLOTS.push(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`);
 }
