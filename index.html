@@ -109,6 +109,12 @@
   .svc.sel{border-color:var(--taupe);background:#ece1d0}
   .svc .box{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);flex-shrink:0;display:grid;place-items:center;font-size:14px;color:#fff;transition:.18s}
   .svc.sel .box{background:var(--taupe);border-color:var(--taupe)}
+  .ppl-pick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px}
+  .ppl{border:1.5px solid var(--line);background:var(--cream-soft);border-radius:13px;padding:12px 4px;
+    text-align:center;cursor:pointer;font-weight:600;font-size:14.5px;color:var(--ink);transition:.18s}
+  .ppl:hover{border-color:var(--taupe)}
+  .ppl.sel{background:var(--taupe);border-color:var(--taupe);color:var(--cream-soft)}
+  .ppl-note{font-size:12px;color:var(--warn);margin:6px 2px 0;line-height:1.5}
   .svc .info{flex:1}.svc .nm{font-weight:600;font-size:15px}.svc .mt{font-size:12.5px;color:var(--muted)}
   .svc .sub-nm{font-size:13px;color:var(--taupe-deep);margin-top:2px;font-weight:500}
   .svc.combo .sub-nm{color:#9a7b4a}
@@ -346,12 +352,20 @@
       <p>🏷️ 為怕影響操作，禁止孩童與寵物</p>
     </div>
     <label class="agree"><input type="checkbox" id="agree" /><span>我已詳閱並同意以上預約須知</span></label>
+    <label class="lbl">預約人數</label>
+    <div class="ppl-pick" id="pplPick">
+      <div class="ppl sel" data-n="1">1 位</div>
+      <div class="ppl" data-n="2">2 位</div>
+      <div class="ppl" data-n="3">3 位</div>
+      <div class="ppl" data-n="4">4 位</div>
+    </div>
+    <div class="ppl-note" id="pplNote"></div>
     <label class="lbl" for="cname">姓名</label>
     <input type="text" id="cname" placeholder="您的稱呼" />
     <label class="lbl" for="cphone">手機（選填）</label>
     <input type="tel" id="cphone" placeholder="09xx-xxx-xxx" />
     <label class="lbl" for="cnote">備註（選填）</label>
-    <textarea id="cnote" rows="3" placeholder="想改善的問題、想約幾位，或想說卻不敢當面說出口的話，都可以寫在這裡 ♡"></textarea>
+    <textarea id="cnote" rows="3" placeholder="想改善的問題，或想說卻不敢當面說出口的話，都可以寫在這裡 ♡"></textarea>
     <button class="cta" id="p3next" disabled>下一步</button>
   </div>
 
@@ -510,7 +524,7 @@ const LIFF_ID = "2010510050-Tufkoisw";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM4tyeLRXkVlvAFGYx89GBs_PPjsMM27ecjzECpitvtFs4yJq/exec";
 
 const $=id=>document.getElementById(id);
-const st = { userId:null, name:"", phone:"", note:"", services:[], addons:[], date:null, time:null };
+const st = { userId:null, name:"", phone:"", note:"", services:[], addons:[], date:null, time:null, people:1 };
 let monthData = {};      // 當月：日期 -> 可預約時段
 // 全部時段：10:00 到 20:30，每 30 分一格（與 admin 一致）。沒開放/已約都顯示「已約」
 const ALL_TIMES = (function(){ const a=[]; for(let t=8*60;t<=20*60;t+=30){ const h=Math.floor(t/60),m=t%60; a.push((h<10?"0"+h:h)+":"+(m<10?"0"+m:m)); } return a; })();
@@ -766,6 +780,17 @@ $("addonConfirm").onclick=()=>{ $("addonModal").style.display="none"; gotoCalend
 $("addonSkip").onclick=()=>{ st.addons=[]; $("addonModal").style.display="none"; gotoCalendar(); };
 
 /* 須知 + 資料（手機為選填，方便老師代約）*/
+/* 預約人數：兩位為接續服務，時間與金額加倍 */
+[].forEach.call(document.querySelectorAll("#pplPick .ppl"), function(el){
+  el.onclick=function(){
+    document.querySelectorAll("#pplPick .ppl").forEach(function(x){ x.classList.remove("sel"); });
+    el.classList.add("sel");
+    st.people = Number(el.getAttribute("data-n")) || 1;
+    $("pplNote").textContent = st.people>1
+      ? "※ " + st.people + " 位為接續服務（一位做完再換下一位），所需時間與金額為 " + st.people + " 倍"
+      : "";
+  };
+});
 function checkP3(){ const ok=$("agree").checked && $("cname").value.trim();
   $("p3next").disabled=!ok; }
 $("agree").onchange=checkP3; $("cname").oninput=checkP3; $("cphone").oninput=checkP3;
@@ -773,8 +798,8 @@ $("p3next").onclick=()=>{ st.name=$("cname").value.trim(); st.phone=$("cphone").
 
 /* 確認 */
 function allKeys(){ return st.services.concat(st.addons); }
-function totalDur(){ return allKeys().reduce((s,k)=>s+(ITEM_MAP[k]?ITEM_MAP[k].dur:0),0); }
-function totalPrice(){ return allKeys().reduce((s,k)=>s+(ITEM_MAP[k]?ITEM_MAP[k].price:0),0); }
+function totalDur(){ return allKeys().reduce((s,k)=>s+(ITEM_MAP[k]?ITEM_MAP[k].dur:0),0) * (st.people||1); }
+function totalPrice(){ return allKeys().reduce((s,k)=>s+(ITEM_MAP[k]?ITEM_MAP[k].price:0),0) * (st.people||1); }
 function svcNames(){
   const main=st.services.map(k=>ITEM_MAP[k]&&ITEM_MAP[k].name).filter(Boolean);
   const add=st.addons.map(k=>ITEM_MAP[k]&&ITEM_MAP[k].name).filter(Boolean);
@@ -785,7 +810,7 @@ function svcNames(){
 function fillSummary(){
   $("sName").textContent=st.name;
   $("sPhone").textContent=st.phone || "—";
-  $("sSvc").textContent=svcNames();
+  $("sSvc").textContent = svcNames() + (st.people>1 ? "（" + st.people + " 位）" : "");
   const wd=["日","一","二","三","四","五","六"][new Date(st.date+"T00:00:00").getDay()];
   $("sDate").textContent=st.date+"（週"+wd+"）";
   $("sTime").textContent=st.time;
@@ -796,7 +821,9 @@ function fillSummary(){
 $("submit").onclick=()=>{
   const btn=$("submit"); btn.disabled=true; btn.textContent="送出中…";
   fetch(SCRIPT_URL,{ method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({ name:st.name, phone:st.phone, service:svcNames(),
+    body:JSON.stringify({ name:st.name, phone:st.phone,
+      service:svcNames() + (st.people>1 ? "（" + st.people + " 位）" : ""),
+      people:st.people||1,
       date:st.date, time:st.time, dur:totalDur(), price:totalPrice(), note:st.note||"", userId:st.userId||"" })
   }).catch(()=>{});
   // 清掉這個月的快取，下次切回會重新抓到最新（被約走的時段會消失）
