@@ -3,868 +3,169 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>沐蜜 Moome · 線上預約</title>
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<title>沐蜜 Moome · 開放時段設定（管理用）</title>
 <style>
   :root{
     --ink:#4a4038; --taupe:#8c7c6a; --taupe-deep:#6f6151;
     --cream:#f3ece2; --cream-soft:#faf5ec; --sand:#e6dccb;
-    --line:#ddd0bd; --muted:#9b8d7c; --ok:#7c8a6a; --warn:#b06a4a;
+    --line:#ddd0bd; --muted:#9b8d7c; --ok:#7c8a6a;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
   body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
-    background:var(--cream);color:var(--ink);line-height:1.75;letter-spacing:.02em;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:480px;margin:0 auto;min-height:100vh;background:var(--cream);position:relative;overflow:hidden}
-  .wrap::before{content:"";position:absolute;left:-30%;top:40%;width:120%;height:60%;
-    background:radial-gradient(60% 50% at 30% 30%, rgba(140,124,106,.08), transparent 70%);pointer-events:none;z-index:0}
+    background:var(--cream);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:480px;margin:0 auto;min-height:100vh;background:var(--cream)}
+  header{padding:36px 26px 22px;text-align:center;background:linear-gradient(180deg,#efe6d8,var(--cream))}
+  .moome{font-family:"Brush Script MT","Segoe Script",cursive;font-size:34px;line-height:1;margin-bottom:6px}
+  .tag{font-size:13px;color:var(--taupe-deep);letter-spacing:.2em}
+  .sub{font-size:12.5px;color:var(--muted);margin-top:8px}
 
-  header{position:relative;z-index:1;text-align:center;background:var(--cream);overflow:hidden}
-  .logo-wrap{position:relative;line-height:0}
-  .logo-banner{display:block;width:100%;height:auto;object-fit:cover}
-  .logo-fade{position:absolute;left:0;right:0;bottom:-1px;height:38%;pointer-events:none;
-    background:linear-gradient(to bottom, rgba(243,236,226,0) 0%, rgba(243,236,226,.55) 55%, var(--cream) 100%)}
-  .brand{font-family:"Noto Serif TC",serif;font-size:14px;letter-spacing:.5em;color:var(--taupe-deep);margin-bottom:6px;padding-left:.5em;padding-top:42px}
-  .moome{font-family:"Brush Script MT","Segoe Script",cursive;font-size:40px;line-height:1;margin-bottom:10px}
-  .slogan{font-family:"Noto Serif TC",serif;font-size:13px;color:var(--muted);letter-spacing:.28em;padding-left:.28em}
+  section{padding:24px 26px;border-top:1px solid var(--sand)}
+  label.lbl{display:block;font-size:13px;color:var(--muted);margin-bottom:8px}
+  input[type=date]{width:100%;font:inherit;padding:14px 15px;border:1px solid var(--line);
+    border-radius:14px;background:var(--cream-soft);color:var(--ink)}
+  input:focus{outline:none;border-color:var(--taupe)}
 
-  .steps{display:flex;justify-content:center;gap:8px;padding:16px 28px 0;position:relative;z-index:1}
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--sand);transition:.3s}
-  .dot.on{background:var(--taupe);width:22px;border-radius:4px}
+  .tip{font-size:12.5px;color:var(--muted);margin:14px 0 10px}
+  .holi-banner{margin-top:12px;padding:11px 14px;border-radius:12px;background:#f5e3de;border:1px solid #e3b9ae;
+    color:#b0563f;font-size:13.5px;font-weight:600;text-align:center}
+  .quick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .qbtn{font:inherit;font-size:13px;padding:8px 14px;border:1px solid var(--line);border-radius:20px;
+    background:var(--cream-soft);color:var(--taupe-deep);cursor:pointer}
+  .qbtn:hover{border-color:var(--taupe)}
 
-  .panel{position:relative;z-index:1;padding:24px 24px 32px;display:none}
-  .panel.show{display:block;animation:fade .35s ease}
-  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  .ptitle{font-family:"Noto Serif TC",serif;font-size:20px;font-weight:600;letter-spacing:.06em;margin-bottom:6px;padding:0 4px}
-  .psub{font-size:13.5px;color:var(--muted);margin-bottom:18px;padding:0 4px}
-
-  /* 月曆 */
-  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:0 4px}
-  .cal-head .mo{font-family:"Noto Serif TC",serif;font-size:17px;font-weight:600}
-  .navbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--cream-soft);
-    color:var(--taupe-deep);font-size:16px;cursor:pointer}
-  .navbtn:disabled{opacity:.3;cursor:not-allowed}
-  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
-  .week div{text-align:center;font-size:12px;color:var(--muted);padding:4px 0}
-  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-  .cell{aspect-ratio:1/1;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    font-size:15px;border:1px solid transparent;position:relative}
-  .cell.empty{visibility:hidden}
-  .cell.open{background:var(--cream-soft);border-color:var(--taupe);color:var(--ink);cursor:pointer;font-weight:600}
-  .cell.open:hover{background:#ece1d0}
-  .cell.open .tagfree{font-size:9px;color:var(--ok);margin-top:1px}
-  .cell.full{background:#efe6dd;color:#c2b5a2;cursor:not-allowed}
-  .cell.full .tagfull{font-size:9px;color:var(--warn);margin-top:1px}
-  .cell.closed{color:#cdc1b0;cursor:default}
-  .cell.sel{background:var(--taupe);border-color:var(--taupe);color:var(--cream-soft)}
-  .cell.sel .tagfree{color:var(--cream-soft)}
-  /* 國定假日：數字轉紅、底部紅點標示 */
-  .cell.holiday{color:#c0584a}
-  .cell.holiday.closed{color:#d99b90}
-  .cell.holiday .holi-tag{display:block;font-size:8px;line-height:1.1;color:#c0584a;margin-top:2px;
-    max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
-  .cell.holiday.open .holi-tag{color:#c0584a}
-  .cell.holiday .tagfree,.cell.holiday .tagfull{display:none}
-  .cell{position:relative}
-  .legend{display:flex;gap:16px;justify-content:center;margin-top:16px;font-size:12px;color:var(--muted)}
-  .legend span{display:inline-flex;align-items:center;gap:5px}
-  .lg{width:12px;height:12px;border-radius:4px;display:inline-block}
-  .lg.open{background:var(--cream-soft);border:1px solid var(--taupe)}
-  .lg.full{background:#efe6dd}
-  .lg.holi{background:#f5d9d2;border:1px solid #c0584a}
-
-  /* 時段 */
-  .daytitle{font-family:"Noto Serif TC",serif;font-size:16px;margin:6px 4px 12px;font-weight:600}
-  .daysel{display:flex;align-items:baseline;gap:10px;background:var(--cream-soft);border:1px solid var(--line);
-    border-radius:14px;padding:14px 18px;margin:0 4px 16px}
-  .daysel .dnum{font-family:"Noto Serif TC",serif;font-size:22px;font-weight:700;color:var(--ink)}
-  .daysel .dwk{font-size:14px;color:var(--taupe-deep);letter-spacing:.1em}
-  .times{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
-  .sec-label{font-size:13px;color:var(--taupe-deep);letter-spacing:.1em;margin:4px 4px 10px;font-weight:600}
-  .avail-card{background:#eef0e6;border:1px solid #d3d8c2;border-radius:18px;padding:16px 14px 14px;margin-bottom:8px}
-  .avail-title{color:#6f7d56;margin:0 2px 12px;font-size:14px}
-  .avail-title::before{content:"●";color:#8aa06a;margin-right:7px;font-size:11px;vertical-align:middle}
-  .avail-card .slot{background:#fff;border:1.5px solid #b9c79a;color:#4a4038;font-weight:600}
-  .avail-card .slot:hover{border-color:#8aa06a;box-shadow:0 4px 14px rgba(138,160,106,.2)}
-  .avail-card .slot.sel{background:#8aa06a;color:#fff;border-color:#8aa06a}
-  .full-note{text-align:center;background:#eef0e6;border:1px solid #d3d8c2;border-radius:16px;padding:20px;color:#6f7d56;font-size:14px;margin-bottom:8px}
-  .sec-full{margin-top:22px!important;color:var(--muted);font-weight:400;font-size:12.5px}
-  .times-full{grid-template-columns:repeat(4,1fr);gap:7px;opacity:.6}
-  .times-full .slot.off{padding:7px 0;background:#efe9e2;border-color:#e6ddd2}
-  .times-full .slot.off .t{font-size:12.5px}
-  .times-full .slot.off .booked{font-size:10px;margin-top:1px}
-  .slot{padding:14px 0;text-align:center;border:1px solid var(--line);border-radius:12px;background:var(--cream-soft);
-    font-size:15px;cursor:pointer;font-family:"Noto Serif TC",serif;transition:.15s}
+  .slots{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+  .slot{padding:13px 0;text-align:center;border:1px solid var(--line);border-radius:12px;
+    background:var(--cream-soft);font-size:14px;cursor:pointer;font-family:"Noto Serif TC",serif;transition:.15s}
   .slot:hover{border-color:var(--taupe)}
-  .slot.sel{background:var(--taupe);color:var(--cream-soft);border-color:var(--taupe)}
-  .slot.off{cursor:not-allowed;background:#f0e6e4;border-color:#e3cfca;color:#9a6b62;position:relative;padding:10px 0}
-  .slot.off .t{font-size:14px;color:#b09a92;text-decoration:line-through;text-decoration-color:#c89a90}
-  .slot.off .booked{display:block;font-size:11px;letter-spacing:.12em;color:#9c4a3f;margin-top:3px;font-family:"Noto Sans TC",sans-serif}
-  .slot.off .booked::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:#a8453a;margin-right:5px;vertical-align:middle}
+  .slot.on{background:var(--taupe);color:var(--cream-soft);border-color:var(--taupe)}
 
-  /* 服務複選 */
-  .svc{border:1px solid var(--line);background:var(--cream-soft);border-radius:16px;padding:15px 16px;margin-bottom:11px;
-    cursor:pointer;transition:.18s;display:flex;align-items:center;gap:13px}
-  .svc:hover{border-color:var(--taupe)}
-  .svc.sel{border-color:var(--taupe);background:#ece1d0}
-  .svc .box{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);flex-shrink:0;display:grid;place-items:center;font-size:14px;color:#fff;transition:.18s}
-  .svc.sel .box{background:var(--taupe);border-color:var(--taupe)}
-  .ppl-pick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px}
-  .ppl{border:1.5px solid var(--line);background:var(--cream-soft);border-radius:13px;padding:12px 4px;
-    text-align:center;cursor:pointer;font-weight:600;font-size:14.5px;color:var(--ink);transition:.18s}
-  .ppl:hover{border-color:var(--taupe)}
-  .ppl.sel{background:var(--taupe);border-color:var(--taupe);color:var(--cream-soft)}
-  .ppl-note{font-size:12px;color:var(--warn);margin:6px 2px 0;line-height:1.5}
-  .svc .info{flex:1}.svc .nm{font-weight:600;font-size:15px}.svc .mt{font-size:12.5px;color:var(--muted)}
-  .svc .sub-nm{font-size:13px;color:var(--taupe-deep);margin-top:2px;font-weight:500}
-  .svc.combo .sub-nm{color:#9a7b4a}
-  .svc.vip .sub-nm{color:#8a6c33;font-weight:600}
-  .svc .pr{font-family:"Noto Serif TC",serif;font-size:14px;color:var(--taupe-deep);font-weight:600;white-space:nowrap;flex-shrink:0}
-  /* 分類 */
-  .cat{border:1px solid var(--line);border-radius:16px;margin-bottom:14px;overflow:hidden;background:var(--cream-soft)}
-  .cat-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer;
-    background:var(--taupe);transition:.2s}
-  .cat-head:hover{background:var(--taupe-deep)}
-  .cat-title{font-family:"Noto Serif TC",serif;font-size:16.5px;font-weight:700;color:var(--cream-soft);letter-spacing:.04em}
-  .cat-arrow{color:var(--cream-soft);transition:.2s}
-  .cat.open .cat-arrow{transform:rotate(180deg)}
-  .cat-head.locked{background:#e4dccd;cursor:not-allowed}
-  .cat-head.locked .cat-title{color:#9a8c79;font-weight:600}
-  .cat-locked-wrap{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
-  .cat-lock{display:inline-block;font-size:11px;color:#a8806f;background:#f3e8e2;padding:3px 10px;border-radius:20px;letter-spacing:.06em}
-  .cat.open .cat-head{border-bottom-left-radius:0;border-bottom-right-radius:0}
-  .cat-body{display:none;padding:14px 12px 12px}
-  .cat.open .cat-body{display:block}
-  .cat-body .svc{margin-bottom:10px}
-  .cat-body .svc:last-child{margin-bottom:2px}
-  /* 加購區 */
-  .addon-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:14px}
-  .addon-total{text-align:center;font-size:13.5px;color:var(--taupe-deep);font-weight:600;background:#ece1d0;border-radius:12px;padding:11px;margin:14px 0 4px}
-  .addon-skip{display:block;width:100%;margin-top:10px;padding:13px;border:1px solid var(--line);border-radius:14px;background:none;color:var(--muted);font:inherit;font-size:14px;cursor:pointer}
-  .addon-skip:hover{border-color:var(--taupe);color:var(--taupe-deep)}
-  #addonModal .modal-body{margin-bottom:4px}
-  #addonModal .svc{margin-bottom:10px}
-  .svc.addon{background:#fbf6ee}
-  .svc.combo{background:#f7efe0;border-color:#dcc9a4}
-  .svc.combo.sel{background:#eddcbd;border-color:#c9ab77}
-  .svc.combo .nm{color:#8a6d3f}
-  /* VIP 方案：金色尊榮、不可勾選 */
-  .svc.vip{background:linear-gradient(135deg,#f3e6cd 0%,#e8d4ae 100%);border:1.5px solid #c9a961;cursor:pointer}
-  .svc.vip:hover{border-color:#b08d45;box-shadow:0 4px 16px rgba(201,169,97,.28)}
-  .svc.vip .nm{color:#7a5f2c;font-weight:700}
-  .svc.vip .mt{color:#96793f;font-size:12px}
-  .svc.vip .vip-pr{color:#7a5f2c;font-weight:700;font-size:13px;white-space:nowrap}
-  .svc.addon.sel{background:#f0e6d6}
-  .svc-total{display:none;text-align:center;font-size:14px;color:var(--taupe-deep);font-weight:600;
-    background:#ece1d0;border-radius:12px;padding:12px;margin-top:6px}
-
-  label.lbl{display:block;font-size:13px;color:var(--muted);margin:14px 4px 7px}
-  input[type=text],input[type=tel],textarea{width:100%;font:inherit;padding:14px 15px;border:1px solid var(--line);border-radius:14px;background:var(--cream-soft);color:var(--ink)}
-  textarea{resize:vertical;line-height:1.6;min-height:84px}
-  input:focus,textarea:focus{outline:none;border-color:var(--taupe);box-shadow:0 0 0 3px rgba(140,124,106,.12)}
-  input::placeholder,textarea::placeholder{color:#c2b5a2}
-
-  .notice{background:var(--cream-soft);border:1px solid var(--line);border-radius:18px;padding:18px;font-size:14px;line-height:1.95;max-height:42vh;overflow-y:auto}
-  .modal-mask{position:fixed;inset:0;z-index:50;background:rgba(74,64,56,.45);backdrop-filter:blur(3px);
-    display:flex;align-items:center;justify-content:center;padding:20px}
-  .modal-card{background:var(--cream);border-radius:22px;max-width:420px;width:100%;max-height:86vh;
-    display:flex;flex-direction:column;padding:24px 22px;box-shadow:0 20px 60px rgba(74,64,56,.3)}
-  .modal-title{font-family:"Noto Serif TC",serif;font-size:20px;font-weight:600;text-align:center;
-    letter-spacing:.08em;margin-bottom:14px;color:var(--ink)}
-  .modal-body{overflow-y:auto;font-size:14px;line-height:1.95;padding-right:4px}
-  .modal-body .mh{font-family:"Noto Serif TC",serif;font-size:15px;color:var(--taupe-deep);font-weight:600;margin:14px 0 4px}
-  .modal-body .mh:first-child{margin-top:0}
-  .modal-body .mw{color:var(--warn)}
-  .modal-body .mem{font-weight:600;color:var(--ink);margin:4px 0}
-  .modal-card .cta{margin-top:16px;flex-shrink:0}
-  .notice h4{font-family:"Noto Serif TC",serif;font-size:15px;margin:14px 0 4px;color:var(--taupe-deep)}
-  .notice h4:first-child{margin-top:0}
-  .notice .warn{color:var(--warn)} .notice .em{font-weight:600}
-  .agree{display:flex;align-items:flex-start;gap:10px;margin-top:16px;cursor:pointer;font-size:14px;padding:0 4px}
-  .agree input{width:20px;height:20px;margin-top:3px;accent-color:var(--taupe);flex-shrink:0}
-
-  .sumcard{background:var(--cream-soft);border:1px solid var(--line);border-radius:18px;padding:6px 20px;margin:0 4px}
-  .sumrow{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px dashed var(--sand);font-size:14px}
-  .sumrow:last-child{border-bottom:none}
-  .sumrow .k{color:var(--muted)} .sumrow .v{font-weight:600;text-align:right;font-family:"Noto Serif TC",serif;max-width:60%}
-
-  .cta{display:block;width:100%;margin-top:22px;padding:16px;border:none;border-radius:16px;background:var(--taupe);
-    color:var(--cream-soft);font:inherit;font-weight:600;font-size:16px;letter-spacing:.18em;cursor:pointer;transition:.2s;padding-left:.18em}
-  .cta:hover{background:var(--taupe-deep)} .cta:disabled{background:var(--sand);color:#fff;cursor:not-allowed}
-  .ghost{background:none;border:1px solid var(--line);color:var(--muted);margin-top:10px;padding:13px;border-radius:14px;width:100%;font:inherit;cursor:pointer;font-size:14px}
-  .backbtn{display:block;width:100%;margin-top:18px;padding:14px;border:1.5px solid var(--taupe);border-radius:14px;
-    background:#ece1d0;color:var(--taupe-deep);font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;letter-spacing:.04em}
-  .backbtn:hover{background:#e3d5c0}
-
-  .done{text-align:center;padding:10px 6px}
-  .done .tick{width:58px;height:58px;border-radius:50%;background:var(--ok);display:grid;place-items:center;margin:0 auto 16px;color:#fff;font-size:28px}
-  .done h3{font-family:"Noto Serif TC",serif;font-size:21px;margin-bottom:8px}
-  .done p{font-size:13.5px;color:var(--muted)}
-  .paybox{background:var(--cream-soft);border:1px dashed var(--warn);border-radius:16px;padding:16px;margin:18px 4px;font-size:13.5px;line-height:1.9;text-align:left}
-  .infobar{display:block;width:calc(100% - 48px);margin:14px 24px 0;padding:13px;border:1px solid var(--line);
-    border-radius:14px;background:var(--cream-soft);color:var(--taupe-deep);font:inherit;font-size:14px;
-    font-weight:600;letter-spacing:.06em;cursor:pointer;text-align:center}
-  .infobar:hover{background:#ece1d0;border-color:var(--taupe)}
-  .infoblock{background:var(--cream-soft);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:0 4px 14px;font-size:14px;line-height:1.85}
-  .infoblock .lead{font-size:15px;color:var(--ink);margin-bottom:4px}
-  .infoblock .lead2{font-family:"Noto Serif TC",serif;color:var(--taupe-deep);letter-spacing:.06em;margin-bottom:8px}
-  .infoblock .svc-line{color:var(--muted);font-size:13.5px;letter-spacing:.04em}
-  .infoblock .ibt{font-family:"Noto Serif TC",serif;font-size:15px;font-weight:600;color:var(--taupe-deep);margin-bottom:6px}
-  .notecard{background:var(--cream-soft);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:16px 4px;text-align:left;font-size:13.5px;line-height:1.95}
-  .notecard .nctitle{font-family:"Noto Serif TC",serif;font-size:15px;color:var(--taupe-deep);margin-bottom:8px}
-  .navi{display:inline-block;margin-top:10px;padding:11px 22px;background:var(--ink);color:var(--cream-soft);
-    border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;letter-spacing:.05em}
-  .gcal{display:block;margin:6px auto 0;padding:14px 22px;background:var(--taupe);color:var(--cream-soft);
-    border-radius:14px;text-decoration:none;font-size:15px;font-weight:600;letter-spacing:.08em}
-  .gcal:hover{background:var(--taupe-deep)}
-  .loading{text-align:center;color:var(--taupe-deep);font-size:14px;padding:34px 16px;line-height:1.7;letter-spacing:.03em}
-  footer{position:relative;z-index:1;padding:24px 28px 40px;text-align:center;color:var(--muted);font-size:12px;letter-spacing:.12em;border-top:1px solid var(--sand)}
-  @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+  .cta{display:block;width:100%;margin-top:22px;padding:16px;border:none;border-radius:16px;
+    background:var(--taupe);color:var(--cream-soft);font:inherit;font-weight:600;font-size:16px;
+    letter-spacing:.15em;cursor:pointer}
+  .cta:hover{background:var(--taupe-deep)}
+  .cta:disabled{background:var(--sand);cursor:not-allowed}
+  .msg{text-align:center;margin-top:14px;font-size:14px;min-height:22px}
+  .msg.ok{color:var(--ok)} .msg.err{color:#b06a4a}
+  .count{font-size:13px;color:var(--muted);text-align:center;margin-top:10px}
+  footer{padding:20px 26px 36px;text-align:center;color:var(--muted);font-size:12px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <!-- 進場須知彈窗 -->
-  <div class="modal-mask" id="noticeModal">
-    <div class="modal-card">
-      <div class="modal-title">預約注意事項</div>
-      <div class="modal-body">
-        <p class="mh">為提升服務品質</p>
-        <p class="mw">⚠️ 預約後，需先支付 $500 定金</p>
-        <p class="mw">⚠️ 需支付定金後，預約才算完成</p>
-        <p class="mw">🔺 24 小時內未付款，視同取消</p>
-        <p class="mh">為保障雙方權益</p>
-        <p class="mw">⚠️ 遲到 15 分鐘以上</p>
-        <p class="mw">⚠️ 直接不來者</p>
-        <p class="mw">⚠️ 預約時間 24 小時前，臨時取消或更改</p>
-        <p class="mem">☝🏻 以上 ➜ 訂金不退款</p>
-        <p class="mw">🔺 當天預留時間保留 15 分鐘</p>
-        <p class="mh">付款方式</p>
-        <p>👉🏻 可轉帳（官方詢問帳號）</p>
-        <p>👉🏻 私人 Line Pay（官方詢問帳號）</p>
-        <p class="mh">溫馨提醒</p>
-        <p>🏷️ 為要求完美，維護操作品質</p>
-        <p>🏷️ 後續請勿安排緊湊的行程</p>
-        <p>🏷️ 為怕影響操作，禁止孩童與寵物</p>
-      </div>
-      <button class="cta" id="noticeAgree">我已詳閱並同意，開始預約</button>
-    </div>
-  </div>
-
   <header>
-    <div class="logo-wrap" id="logoWrap">
-      <img src="logo.jpg" alt="沐蜜 Moome" class="logo-banner"
-           onerror="document.getElementById('logoWrap').style.display='none';document.getElementById('textLogo').style.display='block';" />
-      <div class="logo-fade"></div>
-    </div>
-    <div id="textLogo" style="display:none">
-      <div class="brand">沐 蜜</div>
-      <div class="moome">Moome</div>
-      <div class="slogan">遇見美好 · 所得皆所願</div>
-    </div>
+    <div class="moome">Moome</div>
+    <div class="tag">開放時段設定</div>
+    <div class="sub">這是老師專用頁面，請勿給客人</div>
   </header>
 
-  <button class="infobar" id="openInfo">🌿 工作室 · 交通資訊</button>
+  <section>
+    <label class="lbl" for="date">選擇日期</label>
+    <input type="date" id="date" />
+    <div class="holi-banner" id="holiBanner" style="display:none"></div>
+    <div class="tip">點亮要開放的時段，再按下方儲存。客人只會看到你開放的時段。</div>
+    <div class="quick">
+      <button class="qbtn" id="qAll">全部開放</button>
+      <button class="qbtn" id="qHour">只開整點</button>
+      <button class="qbtn" id="qNone">全部關閉</button>
+      <button class="qbtn" id="qAM">只開上午</button>
+      <button class="qbtn" id="qPM">只開下午</button>
+    </div>
+    <div class="slots" id="slots"></div>
+    <div class="count" id="count"></div>
+    <button class="cta" id="save" disabled>儲存這天的開放時段</button>
+    <div class="msg" id="msg"></div>
+  </section>
 
-  <div class="steps">
-    <div class="dot on" id="d0"></div><div class="dot" id="d1"></div>
-    <div class="dot" id="d2"></div><div class="dot" id="d3"></div><div class="dot" id="d4"></div>
-  </div>
-
-  <!-- 0 選日期（月曆） -->
-  <div class="panel show" id="p0">
-    <div class="ptitle">選擇預約日期</div>
-    <div class="psub">亮起來的日子可預約，灰色為已滿。</div>
-    <div class="cal-head">
-      <button class="navbtn" id="prevMo">‹</button>
-      <div class="mo" id="moLabel">—</div>
-      <button class="navbtn" id="nextMo">›</button>
-    </div>
-    <div class="week"><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div></div>
-    <div class="grid" id="calGrid"></div>
-    <div class="legend">
-      <span><i class="lg open"></i>可預約</span>
-      <span><i class="lg full"></i>已滿</span>
-      <span><i class="lg holi"></i>國定假日</span>
-    </div>
-  </div>
-
-  <!-- 1 選時段 -->
-  <div class="panel" id="p1">
-    <div class="ptitle">選擇時段</div>
-    <div class="daysel" id="dayTitle">—</div>
-    <div class="avail-card" id="availCard">
-      <div class="sec-label avail-title" id="availLabel">可預約時段</div>
-      <div class="times" id="timesAvail"></div>
-    </div>
-    <div class="full-note" id="fullNote" style="display:none">本日已約滿，請改選其他日期 ♡</div>
-    <div id="fullWrap">
-      <div class="sec-label sec-full">時段已額滿</div>
-      <div class="times times-full" id="timesFull"></div>
-    </div>
-    <button class="backbtn" id="backToCal">‹ 上一步・重新選擇日期</button>
-    <button class="cta" id="p1next" disabled>下一步</button>
-  </div>
-
-  <!-- 2 選服務 -->
-  <div class="panel" id="p2">
-    <div class="ptitle">選擇服務</div>
-    <div class="psub">點開類別選擇項目，可跨類複選。</div>
-    <div id="svcList"></div>
-    <div class="svc-total" id="svcTotal"></div>
-    <button class="cta" id="p2next" disabled>下一步</button>
-  </div>
-
-  <!-- 加購彈出視窗 -->
-  <div class="modal-mask" id="addonModal" style="display:none">
-    <div class="modal-card">
-      <div class="modal-title">✨ 加購甜甜價</div>
-      <div class="addon-sub">以下為您選的服務專屬加購，可選可不選</div>
-      <div class="modal-body" id="addonList"></div>
-      <div class="addon-total" id="addonTotal"></div>
-      <button class="cta" id="addonConfirm">加入並繼續</button>
-      <button class="addon-skip" id="addonSkip">不加購，直接繼續</button>
-    </div>
-  </div>
-
-  <!-- 3 須知 + 資料 -->
-  <div class="panel" id="p3">
-    <div class="ptitle">預約須知</div>
-    <div class="psub">預約前請詳閱以下內容。</div>
-    <div class="notice">
-      <h4>關於定金</h4>
-      <p class="em">為提升服務品質：</p>
-      <p class="warn">⚠️ 預約後，需先支付 $500 定金</p>
-      <p class="warn">⚠️ 需支付定金後，預約才算完成</p>
-      <p class="warn">🔺 24 小時內未付款，視同取消</p>
-      <h4>為保障雙方權益</h4>
-      <p class="warn">⚠️ 遲到 15 分鐘以上</p>
-      <p class="warn">⚠️ 直接不來者</p>
-      <p class="warn">⚠️ 預約時間 24 小時前，臨時取消或更改</p>
-      <p class="em">☝🏻 以上 ➜ 訂金不退款</p>
-      <p class="warn">🔺 當天預留時間保留 15 分鐘</p>
-      <h4>付款方式</h4>
-      <p>👉🏻 可轉帳（請於官方帳號詢問帳號）</p>
-      <p>👉🏻 私人 Line Pay（請於官方帳號詢問帳號）</p>
-      <h4>溫馨提醒</h4>
-      <p>🏷️ 為要求完美，維護操作品質</p>
-      <p>🏷️ 後續請勿安排緊湊的行程</p>
-      <p>🏷️ 為怕影響操作，禁止孩童與寵物</p>
-    </div>
-    <label class="agree"><input type="checkbox" id="agree" /><span>我已詳閱並同意以上預約須知</span></label>
-    <label class="lbl">預約人數</label>
-    <div class="ppl-pick" id="pplPick">
-      <div class="ppl sel" data-n="1">1 位</div>
-      <div class="ppl" data-n="2">2 位</div>
-      <div class="ppl" data-n="3">3 位</div>
-      <div class="ppl" data-n="4">4 位</div>
-    </div>
-    <div class="ppl-note" id="pplNote"></div>
-    <label class="lbl" for="cname">姓名</label>
-    <input type="text" id="cname" placeholder="您的稱呼" />
-    <label class="lbl" for="cphone">手機（選填）</label>
-    <input type="tel" id="cphone" placeholder="09xx-xxx-xxx" />
-    <label class="lbl" for="cnote">備註（選填）</label>
-    <textarea id="cnote" rows="3" placeholder="想改善的問題，或想說卻不敢當面說出口的話，都可以寫在這裡 ♡"></textarea>
-    <button class="cta" id="p3next" disabled>下一步</button>
-  </div>
-
-  <!-- 4 確認 -->
-  <div class="panel" id="p4">
-    <div class="ptitle">確認預約</div>
-    <div class="psub">請確認以下資料正確。</div>
-    <div class="sumcard">
-      <div class="sumrow"><span class="k">姓名</span><span class="v" id="sName">—</span></div>
-      <div class="sumrow"><span class="k">手機</span><span class="v" id="sPhone">—</span></div>
-      <div class="sumrow"><span class="k">服務</span><span class="v" id="sSvc">—</span></div>
-      <div class="sumrow"><span class="k">日期</span><span class="v" id="sDate">—</span></div>
-      <div class="sumrow"><span class="k">時間</span><span class="v" id="sTime">—</span></div>
-      <div class="sumrow"><span class="k">服務總時長</span><span class="v" id="sDur">—</span></div>
-      <div class="sumrow"><span class="k">金額</span><span class="v" id="sPrice">—</span></div>
-      <div class="sumrow" id="sNoteRow" style="display:none"><span class="k">備註</span><span class="v" id="sNote">—</span></div>
-    </div>
-    <button class="cta" id="submit">送出預約</button>
-    <div class="done" id="done" style="display:none">
-      <div class="tick">✓</div>
-      <h3>預約完成</h3>
-      <p id="doneDate">　</p>
-      <div class="paybox">💰 定金 $500<br>👉🏻 可轉帳（請私訊官方帳號詢問帳號）<br>👉🏻 私人 Line Pay（請私訊官方帳號詢問帳號）<br>🔺 24 小時內未付款視同取消</div>
-      <div class="notecard">
-        <div class="nctitle">♡ 請詳閱以下須知</div>
-        <p>‣ 工作室地址：台南市永康區復國一路339-1號（路易莎復國店，這棟大樓）</p>
-        <p>‣ 大樓周圍有許多機車停車格</p>
-        <p>‣ 大樓周圍有少許汽車停車格</p>
-        <p>‣ 請準時到，不要早到、遲到</p>
-        <p>‣ 到達後請傳送訊息，工作人員會接待您</p>
-        <p>‣ 為要求完美，建議時間不要安排太趕比較好唷 :)</p>
-      </div>
-      <a class="gcal" id="gcalBtn" href="#" target="_blank" rel="noopener">＋ 加入我的 Google 日曆</a>
-      <a class="navi" id="naviBtn" href="#" target="_blank" rel="noopener">📍 開啟 Google 導航</a>
-      <p style="margin-top:14px">如需改期或取消，請回覆 LINE 訊息。</p>
-    </div>
-  </div>
-
-  <!-- 5 工作室・交通資訊（獨立頁） -->
-  <div class="panel" id="p5">
-    <div class="ptitle">工作室</div>
-    <div class="infoblock">
-      <p class="lead">藏身在輕奢小宅裡的美學秘境 🪞✨</p>
-    </div>
-    <div class="infoblock">
-      <div class="ibt">📍 工作室地址</div>
-      <p>台南市永康區復國一路339-1號<br>（路易莎復國店，這棟大樓）</p>
-      <a class="navi" id="naviBtn2" href="#" target="_blank" rel="noopener">開啟 Google 導航</a>
-    </div>
-    <div class="infoblock">
-      <div class="ibt">🚗 停車資訊</div>
-      <p>機車：大樓周圍有許多機車停車格</p>
-      <p>汽車：大樓周圍也有汽車停車格可停放，若找不到停車位，可回傳訊息詢問是否還有地下室停車格</p>
-    </div>
-    <div class="infoblock">
-      <div class="ibt">❤️ 溫馨提醒</div>
-      <p>請準時到，不要早到、遲到</p>
-      <p>到達後請傳送訊息，工作人員會接待您</p>
-      <p>為要求完美，建議時間不要安排太趕比較好唷 ♡</p>
-    </div>
-    <button class="cta" id="closeInfo">開始預約 →</button>
-  </div>
-
-  <footer>By 于蜜老師</footer>
+  <footer>沐蜜 Moome · 開放時段管理</footer>
 </div>
 
 <script>
-/* ===== 服務分類資料 =====
-   每個類別：title 類別名、locked 是否暫不開放、items 主項目、addons 該類加購
-   主項目 dur=擋日曆分鐘數、durText=顯示文字；加購 addonMin=每項加的分鐘 */
-const CATEGORIES = [
-  {
-    id:"facial", title:"美容做臉・皮膚管理", locked:false,
-    items:[
-      { key:"f1", name:"高效美肌・外泌體課程", price:3980, dur:120, durText:"約 90–120 分鐘" },
-      { key:"f2", name:"透亮水光・藻針課程",   price:3280, dur:120, durText:"約 90–120 分鐘" },
-      { key:"f3", name:"肌膚訂製・安瓶課程",   price:2880, dur:120, durText:"約 90–120 分鐘" },
-      { key:"f4", name:"舒壓撥筋・舒顏SPA",    price:2680, dur:120, durText:"約 90–120 分鐘" },
-      { key:"f5", name:"基礎滑嫩・淨白課程",   price:1880, dur:120, durText:"約 90–120 分鐘" },
-    ],
-    addons:[
-      { key:"fa1", name:"臉部精油按摩", price:680 },
-      { key:"fa2", name:"肩頸精油按摩", price:680 },
-      { key:"fa3", name:"頭部沁涼按摩", price:680 },
-      { key:"fa4", name:"唇部保濕SPA",  price:380 },
-      { key:"fa5", name:"頸部保養",     price:580 },
-    ],
-  },
-  {
-    id:"body", title:"美體按摩・體態調整", locked:false,
-    items:[
-      { key:"b1", name:"除濕肌・被動爆汗SPA", price:3280, dur:120, durText:"約 90–120 分鐘" },
-      { key:"b2", name:"牛奶美背SPA",         price:2880, dur:120, durText:"約 90–120 分鐘" },
-      { key:"b3", name:"孕婦按摩SPA",         price:2480, dur:120, durText:"約 90–120 分鐘" },
-      { key:"b4", name:"體態精修・平衡SPA",   price:2080, dur:120, durText:"約 90–120 分鐘" },
-      { key:"b5", name:"全身精油・按摩SPA",   price:1880, dur:120, durText:"約 90–120 分鐘" },
-    ],
-    addons:[
-      { key:"ba1", name:"暖舒溫罐",  price:980 },
-      { key:"ba2", name:"美胸SPA",   price:980 },
-      { key:"ba3", name:"暖宮肚燭",  price:980 },
-      { key:"ba4", name:"耳燭淨化",  price:880 },
-      { key:"ba5", name:"頭部SPA",   price:680 },
-    ],
-  },
-  {
-    id:"wax", title:"熱蠟除毛・擺脫毛怪", locked:false,
-    items:[
-      { key:"w1",  name:"私密處全除",          price:1880, dur:120, durText:"" },
-      { key:"w2",  name:"全腿（含腳趾頭）",     price:1680, dur:120, durText:"" },
-      { key:"w3",  name:"小腿（含膝蓋、腳趾）", price:1480, dur:120, durText:"" },
-      { key:"w4",  name:"全手（含手指頭）",     price:1280, dur:120, durText:"" },
-      { key:"w5",  name:"腋下全除",            price:580,  dur:120, durText:"" },
-      { key:"w6",  name:"男生落腮鬍全除",       price:1280, dur:120, durText:"" },
-      { key:"w7",  name:"男生上唇鬍／下巴鬍",   price:880,  dur:120, durText:"" },
-      { key:"w8",  name:"修眉（質感眉型）",     price:580,  dur:120, durText:"" },
-      { key:"w9",  name:"女生小鬍子",          price:380,  dur:120, durText:"" },
-      { combo:true, key:"w10", name:"🎁 私密處＋腋下",            sub:"（組合價・省180）", price:2280, dur:120, durText:"原價 2460" },
-      { combo:true, key:"w11", name:"🎁 私密處＋腋下＋小腿",       sub:"（組合價・省460）", price:3480, dur:120, durText:"原價 3940" },
-      { combo:true, key:"w12", name:"🎁 私密處＋腋下＋全手＋全腿", sub:"（最划算・省540）", price:4880, dur:120, durText:"原價 5420" },
-      { vip:true, key:"w13", name:"👑 除毛全身吃到飽", sub:"（VIP 方案）", price:0, dur:120, durText:"限已儲值 VIP 客人預約，尚未儲值請私訊老師" },
-    ],
-    addons:[],
-  },
-  {
-    id:"brow", title:"懶人必備・霧眉霧唇", locked:true, lockText:"技術升級中・暫不開放預約",
-    items:[], addons:[],
-  },
-];
-const ADDON_MIN = 30; // 每個加購多加的分鐘
-/* 台灣國定假日（紅字標示用，2026）。日期格式 yyyy-MM-dd */
-const HOLIDAYS = {
-  "2026-01-01":"元旦",
-  "2026-02-14":"小年夜",
-  "2026-02-15":"除夕",
-  "2026-02-16":"春節",
-  "2026-02-17":"春節",
-  "2026-02-18":"春節",
-  "2026-02-28":"和平紀念日",
-  "2026-04-04":"兒童節",
-  "2026-04-05":"清明節",
-  "2026-04-06":"清明連假",
-  "2026-05-01":"勞動節",
-  "2026-06-19":"端午節",
-  "2026-09-25":"中秋節",
-  "2026-10-10":"國慶日",
-};
-/* 建立 key -> 項目 的快速查表（主項目與加購都收進來）*/
-const ITEM_MAP = {};
-CATEGORIES.forEach(c=>{
-  c.items.forEach(it=>{ ITEM_MAP[it.key]=Object.assign({}, it, {type:"main", catId:c.id}); });
-  c.addons.forEach(ad=>{ ITEM_MAP[ad.key]=Object.assign({}, ad, {type:"addon", catId:c.id, dur:ADDON_MIN}); });
-});
-const STUDIO = { name:"沐蜜 Moome", location:"台南市永康區復國一路339-1號（路易莎復國店這棟大樓）" };
-const LIFF_ID = "2010510050-Tufkoisw";
+/* 你的 Apps Script 網址（跟預約頁同一個）*/
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM4tyeLRXkVlvAFGYx89GBs_PPjsMM27ecjzECpitvtFs4yJq/exec";
 
-const $=id=>document.getElementById(id);
-const st = { userId:null, name:"", phone:"", note:"", services:[], addons:[], date:null, time:null, people:1 };
-let monthData = {};      // 當月：日期 -> 可預約時段
-// 全部時段：10:00 到 20:30，每 30 分一格（與 admin 一致）。沒開放/已約都顯示「已約」
-const ALL_TIMES = (function(){ const a=[]; for(let t=8*60;t<=20*60;t+=30){ const h=Math.floor(t/60),m=t%60; a.push((h<10?"0"+h:h)+":"+(m<10?"0"+m:m)); } return a; })();
-let viewYM = null;       // 目前顯示的年月
-
-/* 面板切換。面板 id 與「邏輯步驟」對應：
-   邏輯順序：服務(p2)→日期(p0)→時段(p1)→須知資料(p3)→確認(p4)
-   進度點 d0..d4 依邏輯順序亮。*/
-const STEP_OF_PANEL = { 2:0, 0:1, 1:2, 3:3, 4:4 };
-function show(n){
-  for(let i=0;i<=5;i++){ const el=$("p"+i); if(el) el.classList.toggle("show", i===n); }
-  const stepsBar=document.querySelector(".steps");
-  if(stepsBar) stepsBar.style.display = (n===5) ? "none" : "flex";
-  const infobar=$("openInfo");
-  if(infobar) infobar.style.display = (n===2) ? "block" : "none";
-  const step = STEP_OF_PANEL[n];
-  for(let i=0;i<=4;i++){ $("d"+i).classList.toggle("on", i===step); }
-  window.scrollTo({top:0,behavior:"smooth"});
+/* 時段：上午10點到晚上9點，每 2 小時一個 */
+const OPEN=8, CLOSE=20, STEP=30;   // 08:00 ~ 20:00（最晚接到晚上8點）
+/* 台灣國定假日（2026），選到這天會提示 */
+const HOLIDAYS = {
+  "2026-01-01":"元旦","2026-02-14":"小年夜","2026-02-15":"除夕",
+  "2026-02-16":"春節","2026-02-17":"春節","2026-02-18":"春節",
+  "2026-02-28":"和平紀念日","2026-04-04":"兒童節","2026-04-05":"清明節",
+  "2026-04-06":"清明連假","2026-05-01":"勞動節","2026-06-19":"端午節",
+  "2026-09-25":"中秋節","2026-10-10":"國慶日",
+};
+const ALL_SLOTS=[];
+for(let total=OPEN*60; total<=CLOSE*60; total+=STEP){
+  const h=Math.floor(total/60), m=total%60;
+  ALL_SLOTS.push(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`);
 }
 
-/* LIFF：背景安靜初始化，不擋畫面（消除停頓）*/
-liff.init({ liffId: LIFF_ID }).then(()=>{
-  if(liff.isLoggedIn()){
-    liff.getProfile().then(pf=>{
-      st.userId = pf.userId;
-      if(pf.displayName && !$("cname").value) $("cname").value = pf.displayName;
-    }).catch(()=>{});
-  }
-}).catch(()=>{});
+const $=id=>document.getElementById(id);
+let selected=new Set();
 
-/* 月曆 */
+const elSlots=$("slots");
+ALL_SLOTS.forEach(t=>{
+  const b=document.createElement("div");
+  b.className="slot"; b.textContent=t; b.dataset.t=t;
+  b.onclick=()=>{ if(selected.has(t))selected.delete(t); else selected.add(t);
+    refresh(); };
+  elSlots.appendChild(b);
+});
+function refresh(){
+  [...elSlots.children].forEach(c=>c.classList.toggle("on", selected.has(c.dataset.t)));
+  $("count").textContent = $("date").value ? `已選 ${selected.size} 個時段` : "請先選日期";
+  $("save").disabled = !$("date").value;
+}
+
+/* 快速按鈕 */
+$("qAll").onclick=()=>{ selected=new Set(ALL_SLOTS); refresh(); };
+$("qHour").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>t.endsWith(":00"))); refresh(); };
+$("qNone").onclick=()=>{ selected.clear(); refresh(); };
+$("qAM").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>parseInt(t)<12)); refresh(); };
+$("qPM").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>parseInt(t)>=12)); refresh(); };
+
+/* 選日期 → 讀這天已設定的時段帶入 */
+const elDate=$("date");
 const today=new Date(); today.setHours(0,0,0,0);
-function todayStr(){ return fmtDate(today); }
-function fmtDate(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function initMonth(){ viewYM = {y:today.getFullYear(), m:today.getMonth()}; loadMonth(); }
-
-function ymStr(){ return viewYM.y+"-"+String(viewYM.m+1).padStart(2,"0"); }
-$("prevMo").onclick=()=>{ const now=new Date(today.getFullYear(),today.getMonth(),1);
-  const v=new Date(viewYM.y,viewYM.m-1,1); if(v<now)return; viewYM={y:v.getFullYear(),m:v.getMonth()}; loadMonth(); };
-$("nextMo").onclick=()=>{ const v=new Date(viewYM.y,viewYM.m+1,1); viewYM={y:v.getFullYear(),m:v.getMonth()}; loadMonth(); };
-
-const monthCache = {};   // 快取：ym字串 -> 該月資料，抓過就不再連線
-function loadMonth(){
-  $("moLabel").textContent = viewYM.y+" 年 "+(viewYM.m+1)+" 月";
-  const atThisMonth = (viewYM.y===today.getFullYear() && viewYM.m===today.getMonth());
-  $("prevMo").disabled = atThisMonth;
-  const ym = ymStr();
-  // 已快取 → 立即顯示，不連線
-  if(monthCache[ym]){ monthData = monthCache[ym]; renderCal(); return; }
-  // 未快取 → 顯示讀取中並抓取
-  $("calGrid").innerHTML=`<div class="loading" style="grid-column:1/-1">🌿 正在為您查看空檔時段，請稍候一下下～</div>`;
-  const cb="monthCB_"+Date.now();
-  const timer=setTimeout(()=>{ cleanup(); monthData={}; renderCal(); },7000);
+elDate.min=today.toISOString().split("T")[0];
+elDate.onchange=()=>{
+  $("msg").textContent=""; selected.clear(); refresh();
+  if(!elDate.value)return;
+  // 假日提示
+  const holi=HOLIDAYS[elDate.value];
+  const wd=["日","一","二","三","四","五","六"][new Date(elDate.value+"T00:00:00").getDay()];
+  const banner=$("holiBanner");
+  if(holi){ banner.style.display="block"; banner.textContent="🎌 "+elDate.value+"（週"+wd+"）是 "+holi+" — 國定假日"; }
+  else { banner.style.display="none"; }
+  $("count").textContent="讀取中…";
+  const cb="adminCB_"+Date.now();
+  const timer=setTimeout(()=>{ cleanup(); refresh(); },6000);
   function cleanup(){ delete window[cb]; const s=$(cb); if(s)s.remove(); clearTimeout(timer); }
   window[cb]=function(res){ cleanup();
-    monthData=(res&&res.month)?res.month:{};
-    monthCache[ym]=monthData;   // 存快取
-    if(ymStr()===ym) renderCal(); // 只有還停在同一月才繪製
-    prefetchMonth(viewYM.y, viewYM.m+1); // 背景預抓下個月
+    if(res&&res.slots){ res.slots.forEach(t=>selected.add(t)); }
+    refresh();
   };
   const s=document.createElement("script"); s.id=cb;
-  s.src=SCRIPT_URL+"?action=getMonth&ym="+encodeURIComponent(ym)+"&callback="+cb;
-  s.onerror=()=>{ cleanup(); monthData={}; renderCal(); };
+  s.src=SCRIPT_URL+"?action=getSlots&date="+encodeURIComponent(elDate.value)+"&callback="+cb;
+  s.onerror=()=>{ cleanup(); refresh(); };
   document.body.appendChild(s);
-}
-/* 背景預抓某月資料存進快取（不影響畫面）*/
-function prefetchMonth(y,m){
-  const d=new Date(y,m,1);
-  const ym=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
-  if(monthCache[ym])return;
-  const cb="preCB_"+Date.now();
-  function cleanup(){ delete window[cb]; const s=document.getElementById(cb); if(s)s.remove(); }
-  const timer=setTimeout(cleanup,7000);
-  window[cb]=function(res){ clearTimeout(timer); cleanup();
-    monthCache[ym]=(res&&res.month)?res.month:{}; };
-  const s=document.createElement("script"); s.id=cb;
-  s.src=SCRIPT_URL+"?action=getMonth&ym="+encodeURIComponent(ym)+"&callback="+cb;
-  s.onerror=()=>{ clearTimeout(timer); cleanup(); };
-  document.body.appendChild(s);
-}
-
-function renderCal(){
-  const grid=$("calGrid"); grid.innerHTML="";
-  const first=new Date(viewYM.y,viewYM.m,1);
-  // 週一為第一欄：週日(0)要排到第7格，所以位移 (getDay()+6)%7
-  const startDay=(first.getDay()+6)%7;
-  const daysInMonth=new Date(viewYM.y,viewYM.m+1,0).getDate();
-  for(let i=0;i<startDay;i++){ const c=document.createElement("div"); c.className="cell empty"; grid.appendChild(c); }
-  for(let d=1;d<=daysInMonth;d++){
-    const dateObj=new Date(viewYM.y,viewYM.m,d);
-    const ds=fmtDate(dateObj);
-    const c=document.createElement("div");
-    const slots=monthData[ds]||[];
-    const isPast = dateObj <= today;   // 今天（含）以前都不可預約，最早只能約明天
-    const holiday = HOLIDAYS[ds]; // 國定假日名稱（若有）
-    if(isPast || !(ds in monthData) || slots.length===0){
-      // 今天（含）以前若原本有開放時段 → 顯示「已滿」；沒開放過 → 單純灰掉
-      if(ds in monthData && (slots.length===0 || isPast)){
-        c.className="cell full"; c.innerHTML=`${d}<span class="tagfull">已滿</span>`;
-      }else{
-        c.className="cell closed"; c.textContent=d;
-      }
-    }else{
-      c.className="cell open"; c.innerHTML=`${d}<span class="tagfree">可約</span>`;
-      c.onclick=()=>{ st.date=ds; st.time=null; openDay(ds, slots); };
-    }
-    if(holiday){ c.classList.add("holiday"); c.title=holiday;
-      const tag=document.createElement("span"); tag.className="holi-tag"; tag.textContent=holiday;
-      c.appendChild(tag); }
-    grid.appendChild(c);
-  }
-}
-
-/* 選某天 → 進時段頁 */
-function openDay(ds, slots){
-  const d=new Date(ds+"T00:00:00");
-  const wd=["日","一","二","三","四","五","六"][d.getDay()];
-  $("dayTitle").innerHTML = `<span class="dnum">${d.getMonth()+1}月${d.getDate()}日</span><span class="dwk">星期${wd}</span>`;
-  const avail=$("timesAvail"); avail.innerHTML="";
-  const full=$("timesFull"); full.innerHTML="";
-  const openSlots = ALL_TIMES.filter(t=>slots.indexOf(t)>=0);
-  const fullSlots = ALL_TIMES.filter(t=>slots.indexOf(t)<0);
-
-  // 可預約（放最上面，醒目綠卡）
-  if(openSlots.length===0){
-    $("availCard").style.display="none";
-    $("fullNote").style.display="block";
-  }else{
-    $("availCard").style.display="block";
-    $("fullNote").style.display="none";
-    $("availLabel").textContent="可預約時段";
-    avail.style.display="grid";
-    openSlots.forEach(t=>{
-      const b=document.createElement("div"); b.className="slot"; b.textContent=t;
-      b.onclick=()=>{ st.time=t; [...avail.children].forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); $("p1next").disabled=false; };
-      avail.appendChild(b);
-    });
-  }
-
-  // 已額滿 / 未開放（放下面，縮小淡化）
-  if(fullSlots.length===0){
-    $("fullWrap").style.display="none";
-  }else{
-    $("fullWrap").style.display="block";
-    fullSlots.forEach(t=>{
-      const b=document.createElement("div"); b.className="slot off";
-      b.innerHTML=`<span class="t">${t}</span><span class="booked">已約</span>`;
-      full.appendChild(b);
-    });
-  }
-  $("p1next").disabled=true;
-  show(1);
-}
-$("backToCal").onclick=()=>show(0);
-$("p1next").onclick=()=>show(3);
-
-/* 服務：分類展開、跨類複選、選了某類主項目就顯示該類加購 */
-const svcList=$("svcList");
-function renderServices(){
-  svcList.innerHTML="";
-  CATEGORIES.forEach(cat=>{
-    const wrap=document.createElement("div"); wrap.className="cat";
-    const head=document.createElement("div"); head.className="cat-head"+(cat.locked?" locked":"");
-    if(cat.locked){
-      head.innerHTML=`<div class="cat-locked-wrap"><span class="cat-title">${cat.title}</span><span class="cat-lock">${cat.lockText||"暫不開放"}</span></div>`;
-    }else{
-      head.innerHTML=`<span class="cat-title">${cat.title}</span><span class="cat-arrow">▾</span>`;
-    }
-    wrap.appendChild(head);
-    if(!cat.locked){
-      const body=document.createElement("div"); body.className="cat-body";
-      cat.items.forEach(it=>{
-        const d=document.createElement("div");
-        d.className="svc"+(it.combo?" combo":"")+(it.vip?" vip":"")+(st.services.indexOf(it.key)>=0?" sel":"");
-        const mtHtml = it.durText ? `<div class="mt">${it.durText}</div>` : "";
-        const subHtml = it.sub ? `<div class="sub-nm">${it.sub}</div>` : "";
-        // VIP 已儲值方案：可勾選預約，金額顯示「已儲值」
-        const prHtml = it.vip ? `<span class="vip-pr">已儲值方案</span>` : `NT$ ${it.price.toLocaleString()}`;
-        d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${it.name}</div>${subHtml}${mtHtml}</div><div class="pr">${prHtml}</div>`;
-        d.onclick=()=>{ const i=st.services.indexOf(it.key);
-          if(i>=0)st.services.splice(i,1); else st.services.push(it.key);
-          d.classList.toggle("sel"); afterServiceChange(); };
-        body.appendChild(d);
-      });
-      head.onclick=()=>{ wrap.classList.toggle("open"); };
-      wrap.appendChild(body);
-    }
-    svcList.appendChild(wrap);
-  });
-  // 預設展開第一個未鎖類別
-  const cats=svcList.querySelectorAll(".cat");
-  for(let i=0;i<cats.length;i++){ if(!CATEGORIES[i].locked){ cats[i].classList.add("open"); break; } }
-}
-
-/* 選了主項目後：清掉不相關加購、更新合計與按鈕 */
-function afterServiceChange(){
-  const chosenCats = new Set(st.services.map(k=>ITEM_MAP[k]&&ITEM_MAP[k].catId).filter(Boolean));
-  // 沒選主項目的類別，其加購要從已選清單移除
-  st.addons = st.addons.filter(k=>chosenCats.has(ITEM_MAP[k]&&ITEM_MAP[k].catId));
-  updateTotal();
-}
-function updateTotal(){
-  const dur=totalDur(), price=totalPrice();
-  $("p2next").disabled = !(st.services.length>0);
-  if(st.services.length>0){
-    $("svcTotal").style.display="block";
-    const hasVip = st.services.some(k=>ITEM_MAP[k]&&ITEM_MAP[k].vip);
-    const priceTxt = hasVip
-      ? (price>0 ? `NT$ ${price.toLocaleString()}　＋ VIP 已儲值方案` : `VIP 已儲值方案`)
-      : `共 NT$ ${price.toLocaleString()}`;
-    $("svcTotal").innerHTML=`已選 ${st.services.length+st.addons.length} 項　${priceTxt}`;
-  }else{
-    $("svcTotal").style.display="none";
-  }
-}
-
-/* 取得目前該顯示的加購（已選主項目所屬類別的加購）*/
-function availableAddons(){
-  const chosenCats = new Set(st.services.map(k=>ITEM_MAP[k]&&ITEM_MAP[k].catId).filter(Boolean));
-  const list=[];
-  CATEGORIES.forEach(cat=>{ if(chosenCats.has(cat.id)) cat.addons.forEach(ad=>list.push(ad)); });
-  return list;
-}
-
-/* 開啟加購彈窗 */
-function openAddonModal(){
-  const addons=availableAddons();
-  const box=$("addonList"); box.innerHTML="";
-  addons.forEach(ad=>{
-    const d=document.createElement("div"); d.className="svc addon"+(st.addons.indexOf(ad.key)>=0?" sel":"");
-    d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${ad.name}</div><div class="mt">+${ADDON_MIN} 分鐘</div></div><div class="pr">NT$ ${ad.price.toLocaleString()}</div>`;
-    d.onclick=()=>{ const i=st.addons.indexOf(ad.key);
-      if(i>=0)st.addons.splice(i,1); else st.addons.push(ad.key);
-      d.classList.toggle("sel"); refreshAddonTotal(); };
-    box.appendChild(d);
-  });
-  refreshAddonTotal();
-  $("addonModal").style.display="flex";
-}
-function refreshAddonTotal(){
-  const n=st.addons.length;
-  $("addonTotal").innerHTML = n>0 ? `已加購 ${n} 項　合計 NT$ ${totalPrice().toLocaleString()}　約 ${totalDur()} 分鐘` : "尚未加購";
-  $("addonConfirm").textContent = n>0 ? "加入並繼續" : "繼續";
-}
-function gotoCalendar(){ updateTotal(); show(0); if(!viewYM) initMonth(); else loadMonth(); }
-
-renderServices();
-$("p2next").onclick=()=>{
-  if(availableAddons().length>0){ openAddonModal(); }   // 有加購 → 跳視窗
-  else { gotoCalendar(); }                               // 沒加購 → 直接進下一步
-};
-$("addonConfirm").onclick=()=>{ $("addonModal").style.display="none"; gotoCalendar(); };
-$("addonSkip").onclick=()=>{ st.addons=[]; $("addonModal").style.display="none"; gotoCalendar(); };
-
-/* 須知 + 資料（手機為選填，方便老師代約）*/
-/* 預約人數：兩位為接續服務，時間與金額加倍 */
-[].forEach.call(document.querySelectorAll("#pplPick .ppl"), function(el){
-  el.onclick=function(){
-    document.querySelectorAll("#pplPick .ppl").forEach(function(x){ x.classList.remove("sel"); });
-    el.classList.add("sel");
-    st.people = Number(el.getAttribute("data-n")) || 1;
-    $("pplNote").textContent = st.people>1
-      ? "※ " + st.people + " 位為接續服務（一位做完再換下一位），所需時間與金額為 " + st.people + " 倍"
-      : "";
-  };
-});
-function checkP3(){ const ok=$("agree").checked && $("cname").value.trim();
-  $("p3next").disabled=!ok; }
-$("agree").onchange=checkP3; $("cname").oninput=checkP3; $("cphone").oninput=checkP3;
-$("p3next").onclick=()=>{ st.name=$("cname").value.trim(); st.phone=$("cphone").value.trim(); st.note=$("cnote").value.trim(); fillSummary(); show(4); };
-
-/* 確認 */
-function allKeys(){ return st.services.concat(st.addons); }
-function totalDur(){ return allKeys().reduce((s,k)=>s+(ITEM_MAP[k]?ITEM_MAP[k].dur:0),0) * (st.people||1); }
-function totalPrice(){ return allKeys().reduce((s,k)=>s+(ITEM_MAP[k]?ITEM_MAP[k].price:0),0) * (st.people||1); }
-function svcNames(){
-  const main=st.services.map(k=>ITEM_MAP[k]&&ITEM_MAP[k].name).filter(Boolean);
-  const add=st.addons.map(k=>ITEM_MAP[k]&&ITEM_MAP[k].name).filter(Boolean);
-  let s=main.join("、");
-  if(add.length) s+="（加購："+add.join("、")+"）";
-  return s;
-}
-function fillSummary(){
-  $("sName").textContent=st.name;
-  $("sPhone").textContent=st.phone || "—";
-  $("sSvc").textContent = svcNames() + (st.people>1 ? "（" + st.people + " 位）" : "");
-  const wd=["日","一","二","三","四","五","六"][new Date(st.date+"T00:00:00").getDay()];
-  $("sDate").textContent=st.date+"（週"+wd+"）";
-  $("sTime").textContent=st.time;
-  $("sDur").textContent=totalDur()+" 分鐘"; $("sPrice").textContent="NT$ "+totalPrice().toLocaleString();
-  if(st.note){ $("sNoteRow").style.display="flex"; $("sNote").textContent=st.note; }
-  else { $("sNoteRow").style.display="none"; }
-}
-$("submit").onclick=()=>{
-  const btn=$("submit"); btn.disabled=true; btn.textContent="送出中…";
-  fetch(SCRIPT_URL,{ method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({ name:st.name, phone:st.phone,
-      service:svcNames() + (st.people>1 ? "（" + st.people + " 位）" : ""),
-      people:st.people||1,
-      date:st.date, time:st.time, dur:totalDur(), price:totalPrice(), note:st.note||"", userId:st.userId||"" })
-  }).catch(()=>{});
-  // 清掉這個月的快取，下次切回會重新抓到最新（被約走的時段會消失）
-  if(st.date){ const ymk=st.date.substring(0,7); delete monthCache[ymk]; }
-  const wd=["日","一","二","三","四","五","六"][new Date(st.date+"T00:00:00").getDay()];
-  $("doneDate").textContent="預約日期為："+st.date+"（週"+wd+"）"+st.time;
-  $("gcalBtn").href = buildGcalLink();
-  btn.style.display="none"; $("done").style.display="block";
-  $("done").scrollIntoView({behavior:"smooth",block:"center"});
 };
 
-/* 建立「加入 Google 日曆」連結 */
-function buildGcalLink(){
-  const [h,m]=st.time.split(":").map(Number);
-  const start=new Date(st.date+"T00:00:00"); start.setHours(h,m,0,0);
-  const end=new Date(start.getTime()+totalDur()*60000);
-  const z=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")
-    +"T"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0")+"00";
-  const title=encodeURIComponent("沐蜜 Moome｜"+svcNames());
-  const det=encodeURIComponent("客人："+st.name+"\n服務："+svcNames()
-    +(st.note?("\n備註："+st.note):"")
-    +"\n\n♡ 請準時到，到達後請傳訊息，工作人員會接待您");
-  const loc=encodeURIComponent("台南市永康區復國一路339-1號（路易莎復國店這棟大樓）");
-  return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+title
-    +"&dates="+z(start)+"/"+z(end)+"&details="+det+"&location="+loc;
-}
-
-/* Google 導航連結 */
-const NAVI_URL = "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("台南市永康區復國一路339-1號");
-$("naviBtn").href = NAVI_URL;
-$("naviBtn2").href = NAVI_URL;
-
-/* 品牌資訊頁開關 */
-$("openInfo").onclick=()=>{ $("p5").scrollTop=0; show(5); };
-$("closeInfo").onclick=()=>show(2);
-
-/* 進場須知彈窗：同意後關閉 */
-$("noticeAgree").onclick=()=>{ $("noticeModal").style.display="none"; };
-
-/* 啟動：先讓客人選服務 */
-show(2);
+/* 儲存 */
+$("save").onclick=()=>{
+  const btn=$("save"); btn.disabled=true; btn.textContent="儲存中…";
+  $("msg").textContent="";
+  fetch(SCRIPT_URL,{ method:"POST", mode:"no-cors",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify({ action:"saveSlots", date:elDate.value,
+      slots:[...selected].sort() })
+  }).then(()=>{
+    $("msg").className="msg ok"; $("msg").textContent="✓ 已儲存！客人現在看到的就是這些時段。";
+    btn.disabled=false; btn.textContent="儲存這天的開放時段";
+  }).catch(()=>{
+    $("msg").className="msg err"; $("msg").textContent="儲存失敗，請檢查網路後再試。";
+    btn.disabled=false; btn.textContent="儲存這天的開放時段";
+  });
+};
 </script>
 </body>
 </html>
