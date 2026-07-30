@@ -117,6 +117,15 @@
   .ppl-note{font-size:12px;color:var(--warn);margin:6px 2px 0;line-height:1.5}
   .svc .info{flex:1}.svc .nm{font-weight:600;font-size:15px}.svc .mt{font-size:12.5px;color:var(--muted)}
   .svc .sub-nm{font-size:13px;color:var(--taupe-deep);margin-top:2px;font-weight:500}
+  .new-badge{display:inline-block;margin-left:7px;font-size:9.5px;font-weight:700;letter-spacing:.08em;
+    color:#fff;background:linear-gradient(135deg,#c9a961,#a8823f);padding:2px 7px;border-radius:20px;
+    vertical-align:middle;transform:translateY(-1px);box-shadow:0 1px 3px rgba(168,130,63,.35)}
+  .brow-info{margin-top:6px}
+  .bi-block{background:#faf5ec;border:1px solid #ecdfc9;border-radius:14px;padding:14px 16px;margin-bottom:10px}
+  .bi-block.bi-warn{background:#f7efe6;border-color:#e6cdba}
+  .bi-h{font-family:"Noto Serif TC",serif;font-size:14px;font-weight:700;color:#8a6d3f;margin-bottom:8px}
+  .bi-block p{font-size:12.5px;color:var(--ink);line-height:1.85;margin:4px 0}
+  .bi-block b{color:#a8823f}
   .svc.combo .sub-nm{color:#9a7b4a}
   .svc.vip .sub-nm{color:#8a6c33;font-weight:600}
   .svc .pr{font-family:"Noto Serif TC",serif;font-size:14px;color:var(--taupe-deep);font-weight:600;white-space:nowrap;flex-shrink:0}
@@ -246,6 +255,8 @@
         <p>🏷️ 為要求完美，維護操作品質</p>
         <p>🏷️ 後續請勿安排緊湊的行程</p>
         <p>🏷️ 為怕影響操作，禁止孩童與寵物</p>
+        <p class="mh">作品拍攝</p>
+        <p>📸 本工作室會拍攝臉部作品作為作品集及社群平台分享；如不希望公開，填資料時請選「不同意」，我們會尊重您的意願 ♡</p>
       </div>
       <button class="cta" id="noticeAgree">我已詳閱並同意，開始預約</button>
     </div>
@@ -350,8 +361,15 @@
       <p>🏷️ 為要求完美，維護操作品質</p>
       <p>🏷️ 後續請勿安排緊湊的行程</p>
       <p>🏷️ 為怕影響操作，禁止孩童與寵物</p>
+      <h4>作品拍攝</h4>
+      <p>📸 本工作室會拍攝臉部作品作為作品集及社群平台分享；如不希望公開，請在下方選擇「不同意」，我們會尊重您的意願 ♡</p>
     </div>
     <label class="agree"><input type="checkbox" id="agree" /><span>我已詳閱並同意以上預約須知</span></label>
+    <label class="lbl">作品照公開意願</label>
+    <div class="ppl-pick" id="photoPick">
+      <div class="ppl sel" data-p="同意公開">同意公開作品照</div>
+      <div class="ppl" data-p="不同意公開">不同意公開作品照</div>
+    </div>
     <label class="lbl">預約人數</label>
     <div class="ppl-pick" id="pplPick">
       <div class="ppl sel" data-n="1">1 位</div>
@@ -382,6 +400,7 @@
       <div class="sumrow"><span class="k">服務總時長</span><span class="v" id="sDur">—</span></div>
       <div class="sumrow"><span class="k">金額</span><span class="v" id="sPrice">—</span></div>
       <div class="sumrow" id="sNoteRow" style="display:none"><span class="k">備註</span><span class="v" id="sNote">—</span></div>
+      <div class="sumrow"><span class="k">作品照</span><span class="v" id="sPhoto">—</span></div>
     </div>
     <button class="cta" id="submit">送出預約</button>
     <div class="done" id="done" style="display:none">
@@ -445,6 +464,7 @@ const CATEGORIES = [
       { key:"f3", name:"肌膚訂製・安瓶課程",   price:2880, dur:120, durText:"約 90–120 分鐘" },
       { key:"f4", name:"舒壓撥筋・舒顏SPA",    price:2680, dur:120, durText:"約 90–120 分鐘" },
       { key:"f5", name:"基礎滑嫩・淨白課程",   price:1880, dur:120, durText:"約 90–120 分鐘" },
+      { neu:true, key:"f6", name:"極光鑽白・安瓶微導課程", price:3980, dur:120, durText:"約 90–120 分鐘" },
     ],
     addons:[
       { key:"fa1", name:"臉部精油按摩", price:680 },
@@ -452,6 +472,7 @@ const CATEGORIES = [
       { key:"fa3", name:"頭部沁涼按摩", price:680 },
       { key:"fa4", name:"唇部保濕SPA",  price:380 },
       { key:"fa5", name:"頸部保養",     price:580 },
+      { neu:true, key:"fa6", name:"冷紮體繃減壓SPA", price:1880 },
     ],
   },
   {
@@ -462,6 +483,7 @@ const CATEGORIES = [
       { key:"b3", name:"孕婦按摩SPA",         price:2480, dur:120, durText:"約 90–120 分鐘" },
       { key:"b4", name:"體態精修・平衡SPA",   price:2080, dur:120, durText:"約 90–120 分鐘" },
       { key:"b5", name:"全身精油・按摩SPA",   price:1880, dur:120, durText:"約 90–120 分鐘" },
+      { neu:true, key:"b6", name:"冷紮體繃・減壓SPA", price:2480, dur:120, durText:"約 90–120 分鐘" },
     ],
     addons:[
       { key:"ba1", name:"暖舒溫罐",  price:980 },
@@ -491,8 +513,13 @@ const CATEGORIES = [
     addons:[],
   },
   {
-    id:"brow", title:"懶人必備・霧眉霧唇", locked:true, lockText:"技術升級中・暫不開放預約",
-    items:[], addons:[],
+    id:"brow", title:"懶人必備・霧眉霧唇", locked:false,
+    items:[
+      { neu:true, key:"br1", name:"霧眉訂製", sub:"新客優惠價（原價 8800）", price:5800, dur:150, durText:"回娘家補色 4400・詳見下方說明" },
+      { neu:true, key:"br2", name:"霧唇訂製", sub:"新客優惠價（原價 10800）", price:8800, dur:150, durText:"回娘家補色 5400・詳見下方說明" },
+    ],
+    addons:[],
+    note: "brow",   // 這個類別底下要顯示補色說明
   },
 ];
 const ADDON_MIN = 30; // 每個加購多加的分鐘
@@ -524,7 +551,7 @@ const LIFF_ID = "2010510050-Tufkoisw";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM4tyeLRXkVlvAFGYx89GBs_PPjsMM27ecjzECpitvtFs4yJq/exec";
 
 const $=id=>document.getElementById(id);
-const st = { userId:null, name:"", phone:"", note:"", services:[], addons:[], date:null, time:null, people:1 };
+const st = { userId:null, name:"", phone:"", note:"", services:[], addons:[], date:null, time:null, people:1, photo:"同意公開" };
 let monthData = {};      // 當月：日期 -> 可預約時段
 // 全部時段：10:00 到 20:30，每 30 分一格（與 admin 一致）。沒開放/已約都顯示「已約」
 const ALL_TIMES = (function(){ const a=[]; for(let t=8*60;t<=20*60;t+=30){ const h=Math.floor(t/60),m=t%60; a.push((h<10?"0"+h:h)+":"+(m<10?"0"+m:m)); } return a; })();
@@ -701,14 +728,36 @@ function renderServices(){
         d.className="svc"+(it.combo?" combo":"")+(it.vip?" vip":"")+(st.services.indexOf(it.key)>=0?" sel":"");
         const mtHtml = it.durText ? `<div class="mt">${it.durText}</div>` : "";
         const subHtml = it.sub ? `<div class="sub-nm">${it.sub}</div>` : "";
+        const newBadge = it.neu ? `<span class="new-badge">NEW</span>` : "";
         // VIP 已儲值方案：可勾選預約，金額顯示「已儲值」
         const prHtml = it.vip ? `<span class="vip-pr">已儲值方案</span>` : `NT$ ${it.price.toLocaleString()}`;
-        d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${it.name}</div>${subHtml}${mtHtml}</div><div class="pr">${prHtml}</div>`;
+        d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${it.name}${newBadge}</div>${subHtml}${mtHtml}</div><div class="pr">${prHtml}</div>`;
         d.onclick=()=>{ const i=st.services.indexOf(it.key);
           if(i>=0)st.services.splice(i,1); else st.services.push(it.key);
           d.classList.toggle("sel"); afterServiceChange(); };
         body.appendChild(d);
       });
+      // 紋繡類別：底部加補色說明
+      if(cat.note==="brow"){
+        const info=document.createElement("div");
+        info.className="brow-info";
+        info.innerHTML=`
+          <div class="bi-block">
+            <div class="bi-h">🎁 回娘家限定・一年內原價 5 折優惠</div>
+            <p>專屬「1 年內（12 個月內）」回來維持美麗的舊客寶貝。此時皮膚還有至少 50% 底色、施作時間較短，可享超划算回娘家特惠：</p>
+            <p>🎨 年度霧眉補色：<b>$4,400</b>（原價 $8,800／新客優惠價 $5,800）</p>
+            <p>💋 年度霧唇補色：<b>$5,400</b>（原價 $10,800／新客優惠價 $8,800）</p>
+          </div>
+          <div class="bi-block">
+            <div class="bi-h">💡 定期補色的小心機</div>
+            <p>半永久紋繡會隨新陳代謝，約 1 年自然變淡。當顏色剩約 50%（開始需要補底色）時，就是回娘家補色的黃金期。趁還有底色回來只需微調補色，省時又省荷包，也不用經歷完全素顏的尷尬期，隨時維持完美狀態。</p>
+          </div>
+          <div class="bi-block bi-warn">
+            <div class="bi-h">⚠️ 貼心小提醒</div>
+            <p>若超過 1 年（12 個月）才回來，因顏色代謝較多，需重新設計與打底，收費會調整回【原價】計費。發現顏色變淡了，歡迎拍一張近照傳給老師評估，趕快卡位預約最划算 ♡</p>
+          </div>`;
+        body.appendChild(info);
+      }
       head.onclick=()=>{ wrap.classList.toggle("open"); };
       wrap.appendChild(body);
     }
@@ -755,7 +804,7 @@ function openAddonModal(){
   const box=$("addonList"); box.innerHTML="";
   addons.forEach(ad=>{
     const d=document.createElement("div"); d.className="svc addon"+(st.addons.indexOf(ad.key)>=0?" sel":"");
-    d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${ad.name}</div><div class="mt">+${ADDON_MIN} 分鐘</div></div><div class="pr">NT$ ${ad.price.toLocaleString()}</div>`;
+    d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${ad.name}${ad.neu?'<span class="new-badge">NEW</span>':''}</div><div class="mt">+${ADDON_MIN} 分鐘</div></div><div class="pr">NT$ ${ad.price.toLocaleString()}</div>`;
     d.onclick=()=>{ const i=st.addons.indexOf(ad.key);
       if(i>=0)st.addons.splice(i,1); else st.addons.push(ad.key);
       d.classList.toggle("sel"); refreshAddonTotal(); };
@@ -791,6 +840,14 @@ $("addonSkip").onclick=()=>{ st.addons=[]; $("addonModal").style.display="none";
       : "";
   };
 });
+/* 作品照公開意願 */
+[].forEach.call(document.querySelectorAll("#photoPick .ppl"), function(el){
+  el.onclick=function(){
+    document.querySelectorAll("#photoPick .ppl").forEach(function(x){ x.classList.remove("sel"); });
+    el.classList.add("sel");
+    st.photo = el.getAttribute("data-p") || "同意公開";
+  };
+});
 function checkP3(){ const ok=$("agree").checked && $("cname").value.trim();
   $("p3next").disabled=!ok; }
 $("agree").onchange=checkP3; $("cname").oninput=checkP3; $("cphone").oninput=checkP3;
@@ -817,6 +874,7 @@ function fillSummary(){
   $("sDur").textContent=totalDur()+" 分鐘"; $("sPrice").textContent="NT$ "+totalPrice().toLocaleString();
   if(st.note){ $("sNoteRow").style.display="flex"; $("sNote").textContent=st.note; }
   else { $("sNoteRow").style.display="none"; }
+  $("sPhoto").textContent = st.photo;
 }
 $("submit").onclick=()=>{
   const btn=$("submit"); btn.disabled=true; btn.textContent="送出中…";
@@ -824,7 +882,8 @@ $("submit").onclick=()=>{
     body:JSON.stringify({ name:st.name, phone:st.phone,
       service:svcNames() + (st.people>1 ? "（" + st.people + " 位）" : ""),
       people:st.people||1,
-      date:st.date, time:st.time, dur:totalDur(), price:totalPrice(), note:st.note||"", userId:st.userId||"" })
+      date:st.date, time:st.time, dur:totalDur(), price:totalPrice(),
+      note:(st.note ? st.note+"｜" : "")+"作品照："+st.photo, userId:st.userId||"" })
   }).catch(()=>{});
   // 清掉這個月的快取，下次切回會重新抓到最新（被約走的時段會消失）
   if(st.date){ const ymk=st.date.substring(0,7); delete monthCache[ymk]; }
