@@ -40,6 +40,16 @@
 
   /* 月曆 */
   .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:0 4px}
+  /* 頂部橫向注意事項卡片 */
+  .notice-cards-label{font-family:"Noto Serif TC",serif;font-size:15px;font-weight:600;color:var(--taupe-deep);margin:2px 2px 12px}
+  .notice-cards{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 14px;margin-bottom:20px;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+  .notice-cards::-webkit-scrollbar{height:0}
+  .ncard{flex:0 0 78%;scroll-snap-align:start;background:var(--cream-soft);border:1px solid var(--line);
+    border-radius:16px;padding:17px 18px;box-shadow:0 2px 10px rgba(140,124,106,.06)}
+  .nc-no{font-family:"Noto Serif TC",serif;font-size:26px;font-weight:700;color:#c9a961;line-height:1;margin-bottom:9px}
+  .nc-t{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px}
+  .nc-d{font-size:12.5px;color:var(--muted);line-height:1.75}
   .cal-head .mo{font-family:"Noto Serif TC",serif;font-size:17px;font-weight:600}
   .navbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--cream-soft);
     color:var(--taupe-deep);font-size:16px;cursor:pointer}
@@ -284,6 +294,29 @@
 
   <!-- 0 選日期（月曆） -->
   <div class="panel show" id="p0">
+    <div class="notice-cards-label">預約注意事項</div>
+    <div class="notice-cards" id="noticeCards">
+      <div class="ncard">
+        <div class="nc-no">01</div>
+        <div class="nc-t">預約與定金</div>
+        <div class="nc-d">預約後需先付 $500 定金，付款後預約才算完成，24 小時內未付款視同取消。</div>
+      </div>
+      <div class="ncard">
+        <div class="nc-no">02</div>
+        <div class="nc-t">準時與改期</div>
+        <div class="nc-d">遲到 15 分鐘以上、未到、或 24 小時內臨時取消改期，訂金不退。</div>
+      </div>
+      <div class="ncard">
+        <div class="nc-no">03</div>
+        <div class="nc-t">作品拍攝</div>
+        <div class="nc-d">會拍攝臉部作品作為作品集與社群分享，如不希望公開請於填資料時選「不同意」。</div>
+      </div>
+      <div class="ncard">
+        <div class="nc-no">04</div>
+        <div class="nc-t">貼心提醒</div>
+        <div class="nc-d">後續請勿安排緊湊行程；為維護操作品質，恕不便攜帶孩童與寵物。</div>
+      </div>
+    </div>
     <div class="ptitle">選擇預約日期</div>
     <div class="psub">亮起來的日子可預約，灰色為已滿。</div>
     <div class="cal-head">
