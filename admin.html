@@ -23,6 +23,9 @@
   .tag2{font-family:"Noto Serif TC",serif;font-size:16px;font-weight:700;color:var(--ink);margin-bottom:10px}
   .batch{background:#faf5ec}
   .daytab{display:flex;gap:10px;margin:14px 0 14px}
+  .rangebar{display:flex;gap:12px;margin:12px 0 4px}
+  .rangebar .rb{flex:1}
+  .rangebar .lbl{margin-bottom:6px}
   .dtab{flex:1;font:inherit;font-size:14px;font-weight:600;padding:12px;border:1.5px solid var(--line);
     border-radius:12px;background:var(--cream-soft);color:var(--muted);cursor:pointer;transition:.18s}
   .dtab.on{background:var(--taupe);color:var(--cream-soft);border-color:var(--taupe)}
@@ -66,8 +69,12 @@
   </header>
 
   <section class="batch">
-    <div class="tag2">🚀 批次設定（一次排未來 4 週）</div>
-    <div class="tip">先選「平日」或「假日」，點亮要開放的時段，按套用，就會一次幫你排好未來 4 週的所有平日（或假日）。之後要微調某一天，再用下面的單日設定即可。</div>
+    <div class="tag2">🚀 批次設定（一次排一段期間）</div>
+    <div class="tip">選好日期範圍與「平日／假日」，點亮要開放的時段，按套用，就會一次幫你排好這段期間內所有的平日（或假日）。要提早排下個月，把開始日、結束日設成下個月即可。之後要微調某天，再用下方單日設定。</div>
+    <div class="rangebar">
+      <div class="rb"><label class="lbl" for="bStart">開始日</label><input type="date" id="bStart" /></div>
+      <div class="rb"><label class="lbl" for="bEnd">結束日</label><input type="date" id="bEnd" /></div>
+    </div>
     <div class="daytab">
       <button class="dtab on" id="tabWeekday" data-k="weekday">平日（一～五）</button>
       <button class="dtab" id="tabWeekend" data-k="weekend">假日（六、日）</button>
@@ -80,7 +87,7 @@
       <button class="qbtn" id="bPM">只開下午</button>
     </div>
     <div class="slots" id="bslots"></div>
-    <button class="cta" id="bapply">套用到未來 4 週的「平日」</button>
+    <button class="cta" id="bapply">套用到這段期間的「平日」</button>
     <div class="msg" id="bmsg"></div>
     <div class="bprog" id="bprog"></div>
   </section>
@@ -221,7 +228,7 @@ function switchTab(k){
   bMode=k;
   $("tabWeekday").classList.toggle("on", k==="weekday");
   $("tabWeekend").classList.toggle("on", k==="weekend");
-  $("bapply").textContent = k==="weekday" ? "套用到未來 4 週的「平日」" : "套用到未來 4 週的「假日」";
+  $("bapply").textContent = k==="weekday" ? "套用到這段期間的「平日」" : "套用到這段期間的「假日」";
 }
 $("tabWeekday").onclick=()=>switchTab("weekday");
 $("tabWeekend").onclick=()=>switchTab("weekend");
@@ -229,21 +236,24 @@ $("tabWeekend").onclick=()=>switchTab("weekend");
 function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
 $("bapply").onclick=async ()=>{
+  const startV=$("bStart").value, endV=$("bEnd").value;
+  if(!startV || !endV){ $("bmsg").className="msg err"; $("bmsg").textContent="請先選開始日和結束日。"; return; }
+  const start=new Date(startV+"T00:00:00"), end=new Date(endV+"T00:00:00");
+  if(end<start){ $("bmsg").className="msg err"; $("bmsg").textContent="結束日不能早於開始日喔。"; return; }
   const slots=[...bSelected].sort();
-  // 找出未來 28 天內符合平日/假日的日期
+  // 找出範圍內符合平日/假日的日期
   const dates=[];
-  const today=new Date(); today.setHours(0,0,0,0);
-  for(let i=1;i<=28;i++){
-    const d=new Date(today); d.setDate(d.getDate()+i);
+  for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
     const wd=d.getDay(); // 0日 6六
     const isWeekend = (wd===0 || wd===6);
     if(bMode==="weekday" && !isWeekend) dates.push(ymd(d));
     if(bMode==="weekend" && isWeekend) dates.push(ymd(d));
   }
+  if(dates.length===0){ $("bmsg").className="msg err"; $("bmsg").textContent="這段期間內沒有符合的日子，換個範圍或切換平日/假日試試。"; return; }
+  if(dates.length>80){ $("bmsg").className="msg err"; $("bmsg").textContent="一次最多排 80 天，請縮短範圍。"; return; }
   const btn=$("bapply"); btn.disabled=true;
   $("bmsg").textContent=""; $("bprog").textContent="";
   const label = bMode==="weekday"?"平日":"假日";
-  // 逐日送出（no-cors 無法讀回應，用短間隔確保送達）
   for(let i=0;i<dates.length;i++){
     $("bprog").textContent = `套用中… ${i+1}/${dates.length}（${dates[i]}）`;
     try{
@@ -251,13 +261,19 @@ $("bapply").onclick=async ()=>{
         headers:{"Content-Type":"text/plain;charset=utf-8"},
         body:JSON.stringify({ action:"saveSlots", date:dates[i], slots:slots }) });
     }catch(e){}
-    await new Promise(r=>setTimeout(r,350)); // 稍微間隔，避免太密集
+    await new Promise(r=>setTimeout(r,350));
   }
   $("bprog").textContent="";
   $("bmsg").className="msg ok";
-  $("bmsg").textContent = `✓ 已套用！未來 4 週共 ${dates.length} 個${label}都設好了。要單獨改某天，用下方單日設定即可。`;
+  $("bmsg").textContent = `✓ 已套用！這段期間共 ${dates.length} 個${label}都設好了。要單獨改某天，用下方單日設定即可。`;
   btn.disabled=false;
 };
+
+/* 預設把開始日填今天、結束日填 4 週後，方便直接用 */
+(function(){
+  const t=new Date(); const e=new Date(); e.setDate(e.getDate()+28);
+  $("bStart").value=ymd(t); $("bEnd").value=ymd(e);
+})();
 </script>
 </body>
 </html>
