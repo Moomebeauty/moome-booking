@@ -114,28 +114,33 @@
 
   .sec-title{font-family:"Noto Serif TC",serif;font-size:15px;font-weight:600;color:var(--taupe-deep);
     letter-spacing:.12em;margin:4px 4px 14px}
+  /* 群組小標（質感霧眉 / 蜜感霧唇）*/
+  .grp-title{font-family:"Noto Serif TC",serif;font-size:15px;font-weight:700;color:var(--taupe-deep);
+    letter-spacing:.14em;margin:16px 2px 12px;padding-left:12px;position:relative}
+  .grp-title:first-child{margin-top:2px}
+  .grp-title::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);
+    width:3px;height:15px;border-radius:2px;background:linear-gradient(180deg,#c9a961,#a8823f)}
+  /* 贈送免費補色：柔金標籤，讓客人覺得賺到 */
+  .gift-line{display:flex;align-items:center;gap:7px;margin-top:7px;font-size:12.5px;
+    color:#8a6d3f;background:linear-gradient(135deg,#f7efdd,#f1e4c9);border:1px solid #e3d3ae;
+    border-radius:10px;padding:6px 10px;font-weight:600;line-height:1.4}
+  .gift-free{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:#fff;
+    background:linear-gradient(135deg,#c9a961,#a8823f);padding:2px 8px;border-radius:20px;white-space:nowrap;
+    box-shadow:0 1px 3px rgba(168,130,63,.35)}
   /* 服務卡片：縮圖 + 名稱說明 + 價格 */
   .svc{border:1px solid var(--line);background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;
     cursor:pointer;transition:.18s;display:flex;align-items:center;gap:14px;
     box-shadow:0 1px 6px rgba(140,124,106,.05)}
   .svc:hover{border-color:var(--taupe);box-shadow:0 3px 12px rgba(140,124,106,.12)}
   .svc.sel{border-color:var(--taupe);background:#f7f1e8;box-shadow:0 3px 12px rgba(140,124,106,.16)}
-  /* 縮圖 */
-  .thumb{width:64px;height:64px;border-radius:14px;flex-shrink:0;position:relative;overflow:hidden;
-    background:var(--sand);display:grid;place-items:center}
-  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-  .thumb .ph-ch{display:none;font-family:"Noto Serif TC",serif;font-size:26px;font-weight:600;color:#fff;
-    text-shadow:0 1px 3px rgba(0,0,0,.12)}
-  .thumb.ph{background:linear-gradient(135deg,#c9bba6,#a89681)}
-  .thumb.ph .ph-ch{display:block}
-  .thumb-check{position:absolute;inset:0;display:none;place-items:center;background:rgba(140,124,106,.72);
-    color:#fff;font-size:24px;font-weight:700}
-  .svc.sel .thumb-check{display:grid}
+  /* 勾選框：細緻圓角、選取時填入品牌棕 */
+  .svc .box{width:22px;height:22px;border-radius:8px;border:1.5px solid var(--line);flex-shrink:0;
+    display:grid;place-items:center;font-size:13px;color:transparent;background:#fff;transition:.18s}
+  .svc.sel .box{background:var(--taupe);border-color:var(--taupe);color:#fff}
   /* 中間文字 */
   .svc .info{flex:1;min-width:0}
   .svc .nm{font-weight:700;font-size:15.5px;color:var(--ink);line-height:1.5}
   .svc .mt{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:3px}
-  .svc .box{display:none}
   .svc .sub-nm{font-size:13px;color:var(--taupe-deep);margin-top:2px;font-weight:500}
   .ppl-pick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px}
   .ppl{border:1.5px solid var(--line);background:var(--cream-soft);border-radius:13px;padding:12px 4px;
@@ -532,6 +537,23 @@
    主項目 dur=擋日曆分鐘數、durText=顯示文字；加購 addonMin=每項加的分鐘 */
 const CATEGORIES = [
   {
+    id:"brow", title:"韓系微妝・霧眉霧唇", locked:false,
+    items:[
+      { group:"質感霧眉", neu:true, key:"br1", name:"質感霧眉", sub:"優惠價（原價 8800）", price:6800, dur:150, durText:"", gift:"贈 3 個月內免費補色一次" },
+      { group:"質感霧眉", free:true, key:"br1f", name:"新客免費補色", sub:"3 個月內・做過質感霧眉的新客", price:0, dur:120, durText:"預約前請先私訊老師確認資格" },
+      { group:"質感霧眉", key:"br1a", name:"回娘家補色・第 4～12 個月", sub:"未滿一年", price:3000, dur:120, durText:"" },
+      { group:"質感霧眉", key:"br1b", name:"回娘家補色・第 1～2 年", sub:"原價 6 折", price:5280, dur:150, durText:"" },
+      { group:"質感霧眉", key:"br1c", name:"回娘家補色・超過 2 年", sub:"原價 8 折", price:7040, dur:150, durText:"" },
+      { group:"蜜感霧唇", neu:true, key:"br2", name:"蜜感霧唇", sub:"優惠價（原價 10800）", price:8800, dur:150, durText:"", gift:"贈 3 個月內免費補色一次" },
+      { group:"蜜感霧唇", free:true, key:"br2f", name:"新客免費補色", sub:"3 個月內・做過蜜感霧唇的新客", price:0, dur:120, durText:"預約前請先私訊老師確認資格" },
+      { group:"蜜感霧唇", key:"br2a", name:"回娘家補色・第 4～12 個月", sub:"未滿一年", price:4000, dur:120, durText:"" },
+      { group:"蜜感霧唇", key:"br2b", name:"回娘家補色・第 1～2 年", sub:"原價 6 折", price:6480, dur:150, durText:"" },
+      { group:"蜜感霧唇", key:"br2c", name:"回娘家補色・超過 2 年", sub:"原價 8 折", price:8640, dur:150, durText:"" },
+    ],
+    addons:[],
+    note: "brow",
+  },
+  {
     id:"facial", title:"美容做臉・皮膚管理", locked:false,
     items:[
       { key:"f1", name:"高效美肌・外泌體課程", price:3980, dur:120, durText:"約 90–120 分鐘" },
@@ -586,16 +608,6 @@ const CATEGORIES = [
       { vip:true, key:"w13", name:"👑 除毛全身吃到飽", sub:"（VIP 方案）", price:0, dur:120, durText:"限已儲值 VIP 客人預約，尚未儲值請私訊老師" },
     ],
     addons:[],
-  },
-  {
-    id:"brow", title:"懶人必備・霧眉霧唇", locked:false,
-    items:[
-      { neu:true, key:"br1", name:"霧眉訂製", sub:"新客優惠價（原價 8800）", price:5800, dur:150, durText:"🎁 贈 3 個月內免費補色一次・回娘家補色 4400" },
-      { neu:true, key:"br2", name:"霧唇訂製", sub:"新客優惠價（原價 10800）", price:8800, dur:150, durText:"🎁 贈 3 個月內免費補色一次・回娘家補色 5400" },
-      { free:true, key:"br3", name:"新客免費補色", sub:"限 3 個月內、做過霧眉／霧唇的新客", price:0, dur:120, durText:"新客贈送・預約前請先私訊老師確認資格" },
-    ],
-    addons:[],
-    note: "brow",   // 這個類別底下要顯示補色說明
   },
 ];
 const ADDON_MIN = 30; // 每個加購多加的分鐘
@@ -803,7 +815,13 @@ function renderServices(){
     wrap.appendChild(head);
     if(!cat.locked){
       const body=document.createElement("div"); body.className="cat-body";
+      let lastGroup=null;
       cat.items.forEach(it=>{
+        // 群組標題（例如 質感霧眉 / 蜜感霧唇）
+        if(it.group && it.group!==lastGroup){
+          const g=document.createElement("div"); g.className="grp-title"; g.textContent=it.group;
+          body.appendChild(g); lastGroup=it.group;
+        }
         const d=document.createElement("div");
         d.className="svc"+(it.combo?" combo":"")+(it.vip?" vip":"")+(it.free?" free":"")+(st.services.indexOf(it.key)>=0?" sel":"");
         // 灰色小字：服務說明 ・ 所需時間（兩者都可有可無）
@@ -811,16 +829,13 @@ function renderServices(){
         const mtHtml = grayTxt ? `<div class="mt">${grayTxt}</div>` : "";
         const subHtml = it.sub ? `<div class="sub-nm">${it.sub}</div>` : "";
         const newBadge = it.neu ? `<span class="new-badge">NEW</span>` : "";
+        const giftHtml = it.gift ? `<div class="gift-line">🎁 ${it.gift}<span class="gift-free">免費</span></div>` : "";
         // VIP 已儲值方案：可勾選預約，金額顯示「已儲值」
         const prHtml = it.vip ? `<span class="vip-pr">已儲值方案</span>`
           : it.free ? `<span class="free-pr">新客贈送</span>`
           : `NT$ ${it.price.toLocaleString()}`;
         // 縮圖：有圖就用圖，沒圖顯示品牌色縮圖（取名稱第一個字）
-        const firstChar = Array.from(it.name.replace(/^[\s]+/,""))[0] || "沐";
-        const thumbHtml = it.img
-          ? `<div class="thumb"><img src="${it.img}" alt="" onerror="this.parentNode.classList.add('ph');this.remove();"><span class="ph-ch">${firstChar}</span><span class="thumb-check">✓</span></div>`
-          : `<div class="thumb ph"><span class="ph-ch">${firstChar}</span><span class="thumb-check">✓</span></div>`;
-        d.innerHTML=`${thumbHtml}<div class="info"><div class="nm">${it.name}${newBadge}</div>${subHtml}${mtHtml}</div><div class="pr">${prHtml}</div>`;
+        d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${it.name}${newBadge}</div>${subHtml}${mtHtml}${giftHtml}</div><div class="pr">${prHtml}</div>`;
         d.onclick=()=>{ const i=st.services.indexOf(it.key);
           if(i>=0)st.services.splice(i,1); else st.services.push(it.key);
           d.classList.toggle("sel"); afterServiceChange(); };
@@ -832,18 +847,18 @@ function renderServices(){
         info.className="brow-info";
         info.innerHTML=`
           <div class="bi-block">
-            <div class="bi-h">🎁 回娘家限定・一年內原價 5 折優惠</div>
-            <p>專屬「1 年內（12 個月內）」回來維持美麗的舊客寶貝。此時皮膚還有至少 50% 底色、施作時間較短，可享超划算回娘家特惠：</p>
-            <p>🎨 年度霧眉補色：<b>$4,400</b>（原價 $8,800／新客優惠價 $5,800）</p>
-            <p>💋 年度霧唇補色：<b>$5,400</b>（原價 $10,800／新客優惠價 $8,800）</p>
+            <div class="bi-h">🎁 三個月內・免費補色一次</div>
+            <p>質感霧眉、蜜感霧唇的新客，都贈送 <b>3 個月內免費補色一次</b>。這是讓顏色更飽和穩定的黃金期，請把握這次免費機會 ♡（預約前請先私訊老師確認資格）</p>
           </div>
           <div class="bi-block">
-            <div class="bi-h">💡 定期補色的小心機</div>
-            <p>半永久紋繡會隨新陳代謝，約 1 年自然變淡。當顏色剩約 50%（開始需要補底色）時，就是回娘家補色的黃金期。趁還有底色回來只需微調補色，省時又省荷包，也不用經歷完全素顏的尷尬期，隨時維持完美狀態。</p>
+            <div class="bi-h">💡 回娘家補色・時間越早越划算</div>
+            <p>半永久會隨新陳代謝自然變淡。趁還有底色時回來，只要微調補色就能恢復精緻感，省時也省荷包：</p>
+            <p>🎨 <b>質感霧眉</b>：第 4～12 個月 $3,000／第 1～2 年 原價 6 折／超過 2 年 原價 8 折</p>
+            <p>💋 <b>蜜感霧唇</b>：第 4～12 個月 $4,000／第 1～2 年 原價 6 折／超過 2 年 原價 8 折</p>
           </div>
           <div class="bi-block bi-warn">
             <div class="bi-h">⚠️ 貼心小提醒</div>
-            <p>若超過 1 年（12 個月）才回來，因顏色代謝較多，需重新設計與打底，收費會調整回【原價】計費。發現顏色變淡了，歡迎拍一張近照傳給老師評估，趕快卡位預約最划算 ♡</p>
+            <p>時間拖越久、顏色代謝越多，需要重新設計與打底，費用也會跟著調整。發現顏色變淡了，歡迎拍一張近照傳給老師評估，幫你看看該安排哪個補色方案最划算 ♡</p>
           </div>`;
         body.appendChild(info);
       }
