@@ -112,6 +112,20 @@
   .slot.off .booked{display:block;font-size:11px;letter-spacing:.12em;color:#9c4a3f;margin-top:3px;font-family:"Noto Sans TC",sans-serif}
   .slot.off .booked::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:#a8453a;margin-right:5px;vertical-align:middle}
 
+  /* 大項目卡片（點開選細項）*/
+  .pickcard{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);
+    border-radius:16px;padding:18px 16px;margin-bottom:12px;cursor:pointer;transition:.18s;
+    box-shadow:0 1px 6px rgba(140,124,106,.05)}
+  .pickcard:hover{border-color:var(--taupe);box-shadow:0 3px 12px rgba(140,124,106,.12)}
+  .pickcard.sel{border-color:var(--taupe);background:#f7f1e8;box-shadow:0 3px 12px rgba(140,124,106,.16)}
+  .pickcard .info{flex:1;min-width:0}
+  .pickcard .nm{font-family:"Noto Serif TC",serif;font-size:17px;font-weight:700;color:var(--ink);letter-spacing:.04em}
+  .pickcard .mt{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .pickcard .picked{display:inline-block;margin-top:8px;font-size:12px;font-weight:600;color:#6f7d56;
+    background:#eef2e6;border:1px solid #c4d1a8;border-radius:8px;padding:3px 9px}
+  .pkright{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .pickcard .pr{font-family:"Noto Serif TC",serif;font-size:15px;font-weight:700;color:var(--taupe-deep);white-space:nowrap}
+  .pkarrow{color:var(--taupe);font-size:20px;line-height:1}
   .sec-title{font-family:"Noto Serif TC",serif;font-size:15px;font-weight:600;color:var(--taupe-deep);
     letter-spacing:.12em;margin:4px 4px 14px}
   /* 群組小標（質感霧眉 / 蜜感霧唇）*/
@@ -403,6 +417,16 @@
     <button class="cta" id="p2next" disabled>下一步</button>
   </div>
 
+  <!-- 細項選擇對話框 -->
+  <div class="modal-mask" id="variantModal" style="display:none">
+    <div class="modal-card">
+      <div class="modal-title" id="vTitle">選擇方案</div>
+      <div class="addon-sub" id="vSub">請選擇最符合您狀況的方案（擇一）</div>
+      <div class="modal-body" id="vList"></div>
+      <button class="cta" id="vClose">關閉</button>
+    </div>
+  </div>
+
   <!-- 加購彈出視窗 -->
   <div class="modal-mask" id="addonModal" style="display:none">
     <div class="modal-card">
@@ -552,6 +576,12 @@ const CATEGORIES = [
     ],
     addons:[],
     note: "brow",
+    picks:[
+      { id:"pk_brow", title:"質感霧眉", hint:"新做優惠 · 補色方案都在這裡", from:3000,
+        options:["br1","br1f","br1a","br1b","br1c"] },
+      { id:"pk_lip",  title:"蜜感霧唇", hint:"新做優惠 · 補色方案都在這裡", from:4000,
+        options:["br2","br2f","br2a","br2b","br2c"] },
+    ],
   },
   {
     id:"facial", title:"美容做臉・皮膚管理", locked:false,
@@ -608,6 +638,14 @@ const CATEGORIES = [
       { vip:true, key:"w13", name:"👑 除毛全身吃到飽", sub:"（VIP 方案）", price:0, dur:120, durText:"限已儲值 VIP 客人預約，尚未儲值請私訊老師" },
     ],
     addons:[],
+    picks:[
+      { id:"pk_wax1", title:"單一部位除毛", hint:"可複選多個部位", from:380, multi:true,
+        options:["w1","w2","w3","w4","w5","w6","w7","w8","w9"] },
+      { id:"pk_wax2", title:"優惠組合", hint:"熱門搭配・比單點更划算", from:2280,
+        options:["w10","w11","w12"] },
+      { id:"pk_wax3", title:"VIP 除毛方案", hint:"全身吃到飽・已儲值客人專屬", from:0,
+        options:["w13"] },
+    ],
   },
 ];
 const ADDON_MIN = 30; // 每個加購多加的分鐘
@@ -800,6 +838,71 @@ function openDay(ds, slots){
 $("backToCal").onclick=()=>show(0);
 $("p1next").onclick=()=>show(3);
 
+/* 紋繡補色說明區塊 */
+function appendBrowInfo(body){
+  const info=document.createElement("div");
+  info.className="brow-info";
+  info.innerHTML=`
+    <div class="bi-block">
+      <div class="bi-h">🎁 三個月內・免費補色一次</div>
+      <p>質感霧眉、蜜感霧唇的新客，都贈送 <b>3 個月內免費補色一次</b>。這是讓顏色更飽和穩定的黃金期，請把握這次免費機會 ♡（預約前請先私訊老師確認資格）</p>
+    </div>
+    <div class="bi-block">
+      <div class="bi-h">💡 回娘家補色・時間越早越划算</div>
+      <p>半永久會隨新陳代謝自然變淡。趁還有底色時回來，只要微調補色就能恢復精緻感，省時也省荷包：</p>
+      <p>🎨 <b>質感霧眉</b>：第 4～12 個月 $3,000／第 1～2 年 原價 6 折／超過 2 年 原價 8 折</p>
+      <p>💋 <b>蜜感霧唇</b>：第 4～12 個月 $4,000／第 1～2 年 原價 6 折／超過 2 年 原價 8 折</p>
+    </div>
+    <div class="bi-block bi-warn">
+      <div class="bi-h">⚠️ 貼心小提醒</div>
+      <p>時間拖越久、顏色代謝越多，需要重新設計與打底，費用也會跟著調整。發現顏色變淡了，歡迎拍一張近照傳給老師評估，幫你看看該安排哪個補色方案最划算 ♡</p>
+    </div>`;
+  body.appendChild(info);
+}
+
+/* 大項目 → 跳出對話框選細項（同一大項目只能選一個）*/
+function openVariantModal(pk){
+  $("vTitle").textContent = pk.title;
+  $("vSub").textContent = pk.multi ? "可複選多個項目，選好按完成" : "請選擇最符合您狀況的方案（擇一）";
+  $("vClose").textContent = pk.multi ? "完成" : "關閉";
+  const box=$("vList");
+  function draw(){
+    box.innerHTML="";
+    pk.options.forEach(k=>{
+      const it=ITEM_MAP[k]; if(!it)return;
+      const on = st.services.indexOf(k)>=0;
+      const d=document.createElement("div");
+      d.className="svc"+(it.free?" free":"")+(it.combo?" combo":"")+(it.vip?" vip":"")+(on?" sel":"");
+      const newBadge = it.neu ? `<span class="new-badge">NEW</span>` : "";
+      const subHtml = it.sub ? `<div class="sub-nm">${it.sub}</div>` : "";
+      const mtHtml = it.durText ? `<div class="mt">${it.durText}</div>` : "";
+      const giftHtml = it.gift ? `<div class="gift-line">🎁 ${it.gift}<span class="gift-free">免費</span></div>` : "";
+      const prHtml = it.vip ? `<span class="vip-pr">已儲值方案</span>`
+        : it.free ? `<span class="free-pr">新客贈送</span>`
+        : `NT$ ${it.price.toLocaleString()}`;
+      d.innerHTML=`<div class="box">✓</div><div class="info"><div class="nm">${it.name}${newBadge}</div>${subHtml}${mtHtml}${giftHtml}</div><div class="pr">${prHtml}</div>`;
+      d.onclick=()=>{
+        const i=st.services.indexOf(k);
+        if(pk.multi){
+          // 可複選：單純切換
+          if(i>=0) st.services.splice(i,1); else st.services.push(k);
+          draw(); afterServiceChange();
+        }else{
+          // 擇一：先清掉同組其他選項
+          pk.options.forEach(o=>{ const j=st.services.indexOf(o); if(j>=0) st.services.splice(j,1); });
+          if(i<0) st.services.push(k);   // 再次點同一個 = 取消
+          $("variantModal").style.display="none";
+          renderServices(); afterServiceChange();
+        }
+      };
+      box.appendChild(d);
+    });
+  }
+  draw();
+  $("vClose").onclick=()=>{ $("variantModal").style.display="none"; renderServices(); afterServiceChange(); };
+  $("variantModal").style.display="flex";
+}
+
 /* 服務：分類展開、跨類複選、選了某類主項目就顯示該類加購 */
 const svcList=$("svcList");
 function renderServices(){
@@ -815,6 +918,43 @@ function renderServices(){
     wrap.appendChild(head);
     if(!cat.locked){
       const body=document.createElement("div"); body.className="cat-body";
+      // 有大項目（picks）的類別：只顯示大卡片，細項用對話框選
+      if(cat.picks){
+        cat.picks.forEach(pk=>{
+          const chosenKeys = pk.options.filter(k=>st.services.indexOf(k)>=0);
+          const sum = chosenKeys.reduce((a,k)=>a+(ITEM_MAP[k]?ITEM_MAP[k].price:0),0);
+          const hasVipPick = chosenKeys.some(k=>ITEM_MAP[k]&&ITEM_MAP[k].vip);
+          const hasFreePick = chosenKeys.some(k=>ITEM_MAP[k]&&ITEM_MAP[k].free);
+          let prTxt;
+          if(chosenKeys.length===0){
+            prTxt = pk.from>0 ? `NT$ ${pk.from.toLocaleString()} 起` : "洽詢";
+          }else if(hasVipPick && sum===0){ prTxt = "已儲值方案"; }
+          else if(hasFreePick && sum===0){ prTxt = "新客贈送"; }
+          else { prTxt = `NT$ ${sum.toLocaleString()}`; }
+          const pickedTxt = chosenKeys.length
+            ? "已選：" + chosenKeys.map(k=>ITEM_MAP[k].name.replace(/^[🎁👑]\s*/,"")).join("、")
+            : "";
+          const card=document.createElement("div");
+          card.className="pickcard"+(chosenKeys.length?" sel":"");
+          card.innerHTML=`
+            <div class="info">
+              <div class="nm">${pk.title}</div>
+              <div class="mt">${pk.hint}</div>
+              ${pickedTxt?`<div class="picked">${pickedTxt}</div>`:""}
+            </div>
+            <div class="pkright">
+              <div class="pr">${prTxt}</div>
+              <div class="pkarrow">›</div>
+            </div>`;
+          card.onclick=()=>openVariantModal(pk);
+          body.appendChild(card);
+        });
+        if(cat.note==="brow") appendBrowInfo(body);
+        head.onclick=()=>{ wrap.classList.toggle("open"); };
+        wrap.appendChild(body);
+        svcList.appendChild(wrap);
+        return;
+      }
       let lastGroup=null;
       cat.items.forEach(it=>{
         // 群組標題（例如 質感霧眉 / 蜜感霧唇）
@@ -841,27 +981,7 @@ function renderServices(){
           d.classList.toggle("sel"); afterServiceChange(); };
         body.appendChild(d);
       });
-      // 紋繡類別：底部加補色說明
-      if(cat.note==="brow"){
-        const info=document.createElement("div");
-        info.className="brow-info";
-        info.innerHTML=`
-          <div class="bi-block">
-            <div class="bi-h">🎁 三個月內・免費補色一次</div>
-            <p>質感霧眉、蜜感霧唇的新客，都贈送 <b>3 個月內免費補色一次</b>。這是讓顏色更飽和穩定的黃金期，請把握這次免費機會 ♡（預約前請先私訊老師確認資格）</p>
-          </div>
-          <div class="bi-block">
-            <div class="bi-h">💡 回娘家補色・時間越早越划算</div>
-            <p>半永久會隨新陳代謝自然變淡。趁還有底色時回來，只要微調補色就能恢復精緻感，省時也省荷包：</p>
-            <p>🎨 <b>質感霧眉</b>：第 4～12 個月 $3,000／第 1～2 年 原價 6 折／超過 2 年 原價 8 折</p>
-            <p>💋 <b>蜜感霧唇</b>：第 4～12 個月 $4,000／第 1～2 年 原價 6 折／超過 2 年 原價 8 折</p>
-          </div>
-          <div class="bi-block bi-warn">
-            <div class="bi-h">⚠️ 貼心小提醒</div>
-            <p>時間拖越久、顏色代謝越多，需要重新設計與打底，費用也會跟著調整。發現顏色變淡了，歡迎拍一張近照傳給老師評估，幫你看看該安排哪個補色方案最划算 ♡</p>
-          </div>`;
-        body.appendChild(info);
-      }
+      if(cat.note==="brow") appendBrowInfo(body);
       head.onclick=()=>{ wrap.classList.toggle("open"); };
       wrap.appendChild(body);
     }
