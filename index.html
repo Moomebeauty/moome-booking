@@ -187,18 +187,22 @@
   .svc .pr{font-family:"Noto Serif TC",serif;font-size:15px;color:var(--taupe-deep);font-weight:700;
     white-space:nowrap;flex-shrink:0;text-align:right;letter-spacing:.02em}
   /* 分類 */
-  .cat{border:1px solid var(--line);border-radius:16px;margin-bottom:14px;overflow:hidden;background:var(--cream-soft)}
-  .cat-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer;
-    background:var(--taupe);transition:.2s}
-  .cat-head:hover{background:var(--taupe-deep)}
-  .cat-title{font-family:"Noto Serif TC",serif;font-size:16.5px;font-weight:700;color:var(--cream-soft);letter-spacing:.04em}
-  .cat-arrow{color:var(--cream-soft);transition:.2s}
+  /* 類別：輕盈的紙感卡片，不用深色橫條壓迫畫面 */
+  .cat{border:1px solid var(--line);border-radius:18px;margin-bottom:12px;overflow:hidden;background:#fdfbf7;
+    transition:.2s}
+  .cat.open{border-color:var(--taupe);box-shadow:0 4px 18px rgba(140,124,106,.10)}
+  .cat-head{display:flex;align-items:center;gap:14px;padding:20px 18px;cursor:pointer;background:transparent}
+  .cat-rule{width:3px;height:26px;border-radius:2px;background:var(--taupe);flex-shrink:0;transition:.2s}
+  .cat.open .cat-rule{background:linear-gradient(180deg,#c9a961,#a8823f)}
+  .cat-title{font-family:"Noto Serif TC",serif;font-size:17px;font-weight:700;color:var(--ink);
+    letter-spacing:.06em;flex:1}
+  .cat-arrow{color:var(--taupe);font-size:13px;transition:.25s;flex-shrink:0}
   .cat.open .cat-arrow{transform:rotate(180deg)}
-  .cat-head.locked{background:#e4dccd;cursor:not-allowed}
-  .cat-head.locked .cat-title{color:#9a8c79;font-weight:600}
-  .cat-locked-wrap{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+  .cat-head.locked{cursor:not-allowed}
+  .cat-head.locked .cat-title{color:#b3a693}
+  .cat-head.locked .cat-rule{background:#ddd2c0}
+  .cat-locked-wrap{display:flex;flex-direction:column;gap:6px;align-items:flex-start;flex:1}
   .cat-lock{display:inline-block;font-size:11px;color:#a8806f;background:#f3e8e2;padding:3px 10px;border-radius:20px;letter-spacing:.06em}
-  .cat.open .cat-head{border-bottom-left-radius:0;border-bottom-right-radius:0}
   .cat-body{display:none;padding:14px 12px 12px}
   .cat.open .cat-body{display:block}
   .cat-body .svc{margin-bottom:10px}
@@ -410,8 +414,7 @@
   <!-- 2 選服務 -->
   <div class="panel" id="p2">
     <div class="ptitle">選擇服務</div>
-    <div class="psub">點開類別選擇項目，可跨類複選。</div>
-    <div class="sec-title">服務項目</div>
+    <div class="psub">點開想看的類別，選擇您想預約的項目，不同類別可以一起選。</div>
     <div id="svcList"></div>
     <div class="svc-total" id="svcTotal"></div>
     <button class="cta" id="p2next" disabled>下一步</button>
@@ -563,16 +566,16 @@ const CATEGORIES = [
   {
     id:"brow", title:"韓系微妝・霧眉霧唇", locked:false,
     items:[
-      { group:"質感霧眉", neu:true, key:"br1", name:"質感霧眉", sub:"優惠價（原價 8800）", price:6800, dur:150, durText:"", gift:"贈 3 個月內免費補色一次" },
-      { group:"質感霧眉", free:true, key:"br1f", name:"新客免費補色", sub:"3 個月內・做過質感霧眉的新客", price:0, dur:120, durText:"預約前請先私訊老師確認資格" },
-      { group:"質感霧眉", key:"br1a", name:"回娘家補色・第 4～12 個月", sub:"未滿一年", price:3000, dur:120, durText:"" },
-      { group:"質感霧眉", key:"br1b", name:"回娘家補色・第 1～2 年", sub:"原價 6 折", price:5280, dur:150, durText:"" },
-      { group:"質感霧眉", key:"br1c", name:"回娘家補色・超過 2 年", sub:"原價 8 折", price:7040, dur:150, durText:"" },
-      { group:"蜜感霧唇", neu:true, key:"br2", name:"蜜感霧唇", sub:"優惠價（原價 10800）", price:8800, dur:150, durText:"", gift:"贈 3 個月內免費補色一次" },
-      { group:"蜜感霧唇", free:true, key:"br2f", name:"新客免費補色", sub:"3 個月內・做過蜜感霧唇的新客", price:0, dur:120, durText:"預約前請先私訊老師確認資格" },
-      { group:"蜜感霧唇", key:"br2a", name:"回娘家補色・第 4～12 個月", sub:"未滿一年", price:4000, dur:120, durText:"" },
-      { group:"蜜感霧唇", key:"br2b", name:"回娘家補色・第 1～2 年", sub:"原價 6 折", price:6480, dur:150, durText:"" },
-      { group:"蜜感霧唇", key:"br2c", name:"回娘家補色・超過 2 年", sub:"原價 8 折", price:8640, dur:150, durText:"" },
+      { group:"質感霧眉", neu:true, key:"br1", desc:"打造自然漸層眉型，素顏也有好氣色", name:"質感霧眉", sub:"優惠價（原價 8800）", price:6800, dur:150, durText:"", gift:"贈 3 個月內免費補色一次" },
+      { group:"質感霧眉", free:true, key:"br1f", desc:"讓顏色更飽和穩定的黃金補強", name:"新客免費補色", sub:"3 個月內・做過質感霧眉的新客", price:0, dur:120, durText:"預約前請先私訊老師確認資格" },
+      { group:"質感霧眉", key:"br1a", desc:"趁底色還在，微調就能恢復精緻", name:"回娘家補色・第 4～12 個月", sub:"未滿一年", price:3000, dur:120, durText:"" },
+      { group:"質感霧眉", key:"br1b", desc:"顏色代謝較多，需重新補底", name:"回娘家補色・第 1～2 年", sub:"原價 6 折", price:5280, dur:150, durText:"" },
+      { group:"質感霧眉", key:"br1c", desc:"需重新設計與打底", name:"回娘家補色・超過 2 年", sub:"原價 8 折", price:7040, dur:150, durText:"" },
+      { group:"蜜感霧唇", neu:true, key:"br2", desc:"改善唇色暗沉，氣色自然透亮", name:"蜜感霧唇", sub:"優惠價（原價 10800）", price:8800, dur:150, durText:"", gift:"贈 3 個月內免費補色一次" },
+      { group:"蜜感霧唇", free:true, key:"br2f", desc:"讓顏色更飽和穩定的黃金補強", name:"新客免費補色", sub:"3 個月內・做過蜜感霧唇的新客", price:0, dur:120, durText:"預約前請先私訊老師確認資格" },
+      { group:"蜜感霧唇", key:"br2a", desc:"趁底色還在，微調就能恢復精緻", name:"回娘家補色・第 4～12 個月", sub:"未滿一年", price:4000, dur:120, durText:"" },
+      { group:"蜜感霧唇", key:"br2b", desc:"顏色代謝較多，需重新補底", name:"回娘家補色・第 1～2 年", sub:"原價 6 折", price:6480, dur:150, durText:"" },
+      { group:"蜜感霧唇", key:"br2c", desc:"需重新設計與打底", name:"回娘家補色・超過 2 年", sub:"原價 8 折", price:8640, dur:150, durText:"" },
     ],
     addons:[],
     note: "brow",
@@ -586,12 +589,12 @@ const CATEGORIES = [
   {
     id:"facial", title:"美容做臉・皮膚管理", locked:false,
     items:[
-      { key:"f1", name:"高效美肌・外泌體課程", price:3980, dur:120, durText:"約 90–120 分鐘" },
-      { key:"f2", name:"透亮水光・藻針課程",   price:3280, dur:120, durText:"約 90–120 分鐘" },
-      { key:"f3", name:"肌膚訂製・安瓶課程",   price:2880, dur:120, durText:"約 90–120 分鐘" },
-      { key:"f4", name:"舒壓撥筋・舒顏SPA",    price:2680, dur:120, durText:"約 90–120 分鐘" },
-      { key:"f5", name:"基礎滑嫩・淨白課程",   price:1880, dur:120, durText:"約 90–120 分鐘" },
-      { neu:true, key:"f6", name:"極光鑽白・安瓶微導課程", price:3980, dur:120, durText:"約 90–120 分鐘" },
+      { key:"f1", desc:"修護疲勞肌，提升光澤與緊緻", name:"高效美肌・外泌體課程", price:3980, dur:120, durText:"約 90–120 分鐘" },
+      { key:"f2", desc:"代謝老廢角質，改善粗糙暗沉", name:"透亮水光・藻針課程",   price:3280, dur:120, durText:"約 90–120 分鐘" },
+      { key:"f3", desc:"依當下膚況調配，針對性保養", name:"肌膚訂製・安瓶課程",   price:2880, dur:120, durText:"約 90–120 分鐘" },
+      { key:"f4", desc:"放鬆緊繃臉部，線條變柔和", name:"舒壓撥筋・舒顏SPA",    price:2680, dur:120, durText:"約 90–120 分鐘" },
+      { key:"f5", desc:"深層清潔保濕，乾淨透亮", name:"基礎滑嫩・淨白課程",   price:1880, dur:120, durText:"約 90–120 分鐘" },
+      { neu:true, key:"f6", desc:"微導加乘吸收，提亮膚色", name:"極光鑽白・安瓶微導課程", price:3980, dur:120, durText:"約 90–120 分鐘" },
     ],
     addons:[
       { key:"fa1", name:"臉部精油按摩", price:680 },
@@ -605,12 +608,12 @@ const CATEGORIES = [
   {
     id:"body", title:"美體按摩・體態調整", locked:false,
     items:[
-      { key:"b1", name:"除濕肌・被動爆汗SPA", price:3280, dur:120, durText:"約 90–120 分鐘" },
-      { key:"b2", name:"牛奶美背SPA",         price:2880, dur:120, durText:"約 90–120 分鐘" },
-      { key:"b3", name:"孕婦按摩SPA",         price:2480, dur:120, durText:"約 90–120 分鐘" },
-      { key:"b4", name:"體態精修・平衡SPA",   price:2080, dur:120, durText:"約 90–120 分鐘" },
-      { key:"b5", name:"全身精油・按摩SPA",   price:1880, dur:120, durText:"約 90–120 分鐘" },
-      { neu:true, key:"b6", name:"冷紮體繃・減壓SPA", price:2480, dur:120, durText:"約 90–120 分鐘" },
+      { key:"b1", desc:"促進循環代謝，改善沉重濕氣感", name:"除濕肌・被動爆汗SPA", price:3280, dur:120, durText:"約 90–120 分鐘" },
+      { key:"b2", desc:"清潔背部毛孔，撫平粗糙暗沉", name:"牛奶美背SPA",         price:2880, dur:120, durText:"約 90–120 分鐘" },
+      { key:"b3", desc:"孕期專屬手法，緩解腰背痠脹", name:"孕婦按摩SPA",         price:2480, dur:120, durText:"約 90–120 分鐘" },
+      { key:"b4", desc:"調整體態線條，放鬆緊繃肌群", name:"體態精修・平衡SPA",   price:2080, dur:120, durText:"約 90–120 分鐘" },
+      { key:"b5", desc:"全身舒緩放鬆，趕走疲勞", name:"全身精油・按摩SPA",   price:1880, dur:120, durText:"約 90–120 分鐘" },
+      { neu:true, key:"b6", desc:"冰涼包覆減壓，舒緩水腫沉重", name:"冷紮體繃・減壓SPA", price:2480, dur:120, durText:"約 90–120 分鐘" },
     ],
     addons:[
       { key:"ba1", name:"暖舒溫罐",  price:980 },
@@ -623,15 +626,15 @@ const CATEGORIES = [
   {
     id:"wax", title:"熱蠟除毛・擺脫毛怪", locked:false,
     items:[
-      { key:"w1",  name:"私密處全除",          price:1880, dur:120, durText:"" },
-      { key:"w2",  name:"全腿（含腳趾頭）",     price:1680, dur:120, durText:"" },
-      { key:"w3",  name:"小腿（含膝蓋、腳趾）", price:1480, dur:120, durText:"" },
-      { key:"w4",  name:"全手（含手指頭）",     price:1280, dur:120, durText:"" },
-      { key:"w5",  name:"腋下全除",            price:580,  dur:120, durText:"" },
-      { key:"w6",  name:"男生落腮鬍全除",       price:1280, dur:120, durText:"" },
-      { key:"w7",  name:"男生上唇鬍／下巴鬍",   price:880,  dur:120, durText:"" },
-      { key:"w8",  name:"修眉（質感眉型）",     price:580,  dur:120, durText:"" },
-      { key:"w9",  name:"女生小鬍子",          price:380,  dur:120, durText:"" },
+      { key:"w1", desc:"清爽透氣，日常更舒適",  name:"私密處全除",          price:1880, dur:120, durText:"" },
+      { key:"w2", desc:"腿部線條乾淨俐落",  name:"全腿（含腳趾頭）",     price:1680, dur:120, durText:"" },
+      { key:"w3", desc:"膝蓋腳趾一次處理",  name:"小腿（含膝蓋、腳趾）", price:1480, dur:120, durText:"" },
+      { key:"w4", desc:"手臂手指乾淨清爽",  name:"全手（含手指頭）",     price:1280, dur:120, durText:"" },
+      { key:"w5", desc:"穿無袖更自在",  name:"腋下全除",            price:580,  dur:120, durText:"" },
+      { key:"w6", desc:"鬍渣清除，臉部乾淨清爽",  name:"男生落腮鬍全除",       price:1280, dur:120, durText:"" },
+      { key:"w7", desc:"修飾唇周下巴線條",  name:"男生上唇鬍／下巴鬍",   price:880,  dur:120, durText:"" },
+      { key:"w8", desc:"修出適合你的眉型",  name:"修眉（質感眉型）",     price:580,  dur:120, durText:"" },
+      { key:"w9", desc:"唇上細毛清除，妝感更服貼",  name:"女生小鬍子",          price:380,  dur:120, durText:"" },
       { combo:true, key:"w10", name:"🎁 私密處＋腋下",            sub:"（組合價・省180）", price:2280, dur:120, durText:"原價 2460" },
       { combo:true, key:"w11", name:"🎁 私密處＋腋下＋小腿",       sub:"（組合價・省460）", price:3480, dur:120, durText:"原價 3940" },
       { combo:true, key:"w12", name:"🎁 私密處＋腋下＋全手＋全腿", sub:"（最划算・省540）", price:4880, dur:120, durText:"原價 5420" },
@@ -875,7 +878,8 @@ function openVariantModal(pk){
       d.className="svc"+(it.free?" free":"")+(it.combo?" combo":"")+(it.vip?" vip":"")+(on?" sel":"");
       const newBadge = it.neu ? `<span class="new-badge">NEW</span>` : "";
       const subHtml = it.sub ? `<div class="sub-nm">${it.sub}</div>` : "";
-      const mtHtml = it.durText ? `<div class="mt">${it.durText}</div>` : "";
+      const grayTxt2 = [it.desc, it.durText].filter(Boolean).join(" ・ ");
+      const mtHtml = grayTxt2 ? `<div class="mt">${grayTxt2}</div>` : "";
       const giftHtml = it.gift ? `<div class="gift-line">🎁 ${it.gift}<span class="gift-free">免費</span></div>` : "";
       const prHtml = it.vip ? `<span class="vip-pr">已儲值方案</span>`
         : it.free ? `<span class="free-pr">新客贈送</span>`
@@ -911,9 +915,9 @@ function renderServices(){
     const wrap=document.createElement("div"); wrap.className="cat";
     const head=document.createElement("div"); head.className="cat-head"+(cat.locked?" locked":"");
     if(cat.locked){
-      head.innerHTML=`<div class="cat-locked-wrap"><span class="cat-title">${cat.title}</span><span class="cat-lock">${cat.lockText||"暫不開放"}</span></div>`;
+      head.innerHTML=`<span class="cat-rule"></span><div class="cat-locked-wrap"><span class="cat-title">${cat.title}</span><span class="cat-lock">${cat.lockText||"暫不開放"}</span></div>`;
     }else{
-      head.innerHTML=`<span class="cat-title">${cat.title}</span><span class="cat-arrow">▾</span>`;
+      head.innerHTML=`<span class="cat-rule"></span><span class="cat-title">${cat.title}</span><span class="cat-arrow">▼</span>`;
     }
     wrap.appendChild(head);
     if(!cat.locked){
@@ -987,9 +991,7 @@ function renderServices(){
     }
     svcList.appendChild(wrap);
   });
-  // 預設展開第一個未鎖類別
-  const cats=svcList.querySelectorAll(".cat");
-  for(let i=0;i<cats.length;i++){ if(!CATEGORIES[i].locked){ cats[i].classList.add("open"); break; } }
+  // 預設全部收合，讓客人自己選想看的類別
 }
 
 /* 選了主項目後：清掉不相關加購、更新合計與按鈕 */
