@@ -4,18 +4,20 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>沐蜜 Moome · 線上預約</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
   :root{
-    --ink:#4a4038; --taupe:#8c7c6a; --taupe-deep:#6f6151;
-    --cream:#f3ece2; --cream-soft:#faf5ec; --sand:#e6dccb;
-    --line:#ddd0bd; --muted:#9b8d7c; --ok:#7c8a6a; --warn:#b06a4a;
+    --ink:#3d342c; --taupe:#8c7c6a; --taupe-deep:#6f6151;
+    --cream:#f3ece2; --cream-soft:#faf6f2; --sand:#e6dccb;
+    --line:#e8dccb; --muted:#8a7b6b; --ok:#7c8a6a; --warn:#b06a4a;
+    --ivory:#faf6f2; --gold:#b99a63; --white:#fff;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
-    background:var(--cream);color:var(--ink);line-height:1.75;letter-spacing:.02em;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:480px;margin:0 auto;min-height:100vh;background:var(--cream);position:relative;overflow:hidden}
+    background:var(--ivory);color:var(--ink);line-height:1.8;letter-spacing:.03em;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:480px;margin:0 auto;min-height:100vh;background:var(--ivory);position:relative;overflow:hidden}
   .wrap::before{content:"";position:absolute;left:-30%;top:40%;width:120%;height:60%;
     background:radial-gradient(60% 50% at 30% 30%, rgba(140,124,106,.08), transparent 70%);pointer-events:none;z-index:0}
 
@@ -32,11 +34,17 @@
   .dot{width:7px;height:7px;border-radius:50%;background:var(--sand);transition:.3s}
   .dot.on{background:var(--taupe);width:22px;border-radius:4px}
 
-  .panel{position:relative;z-index:1;padding:24px 24px 32px;display:none}
+  .panel{position:relative;z-index:1;padding:34px 22px 44px;display:none}
   .panel.show{display:block;animation:fade .35s ease}
   @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  .ptitle{font-family:"Noto Serif TC",serif;font-size:20px;font-weight:600;letter-spacing:.06em;margin-bottom:6px;padding:0 4px}
-  .psub{font-size:13.5px;color:var(--muted);margin-bottom:18px;padding:0 4px}
+  .ptitle{position:relative;font-size:22px;font-weight:400;letter-spacing:.18em;color:var(--ink);
+    margin:0 4px 8px;padding-top:26px;font-family:"Noto Sans TC",sans-serif}
+  .ptitle::before{content:attr(data-eb);position:absolute;top:0;left:0;
+    font-family:"Cormorant Garamond",serif;font-style:italic;font-size:13px;font-weight:400;
+    letter-spacing:.42em;color:var(--gold);text-transform:uppercase}
+  .ptitle::after{content:"";position:absolute;left:0;bottom:-14px;width:34px;height:1.5px;
+    background:linear-gradient(to right,var(--taupe),transparent)}
+  .psub{font-size:13px;color:var(--muted);margin:26px 4px 24px;letter-spacing:.04em;line-height:1.9}
 
   /* 月曆 */
   .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:0 4px}
@@ -50,17 +58,17 @@
   .nc-no{font-family:"Noto Serif TC",serif;font-size:26px;font-weight:700;color:#c9a961;line-height:1;margin-bottom:9px}
   .nc-t{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px}
   .nc-d{font-size:12.5px;color:var(--muted);line-height:1.75}
-  .cal-head .mo{font-family:"Noto Serif TC",serif;font-size:17px;font-weight:600}
+  .cal-head .mo{font-family:"Cormorant Garamond",serif;font-size:21px;font-weight:400;letter-spacing:.14em;color:var(--ink)}
   .navbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--cream-soft);
     color:var(--taupe-deep);font-size:16px;cursor:pointer}
   .navbtn:disabled{opacity:.3;cursor:not-allowed}
   .week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
   .week div{text-align:center;font-size:12px;color:var(--muted);padding:4px 0}
   .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-  .cell{aspect-ratio:1/1;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    font-size:15px;border:1px solid transparent;position:relative}
+  .cell{aspect-ratio:1/1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:"Cormorant Garamond",serif;font-size:17px;border:1px solid transparent;position:relative}
   .cell.empty{visibility:hidden}
-  .cell.open{background:var(--cream-soft);border-color:var(--taupe);color:var(--ink);cursor:pointer;font-weight:600}
+  .cell.open{background:var(--white);border-color:rgba(140,124,106,.35);color:var(--ink);cursor:pointer;font-weight:500}
   .cell.open:hover{background:#ece1d0}
   .cell.open .tagfree{font-size:9px;color:var(--ok);margin-top:1px}
   .cell.full{background:#efe6dd;color:#c2b5a2;cursor:not-allowed}
@@ -103,8 +111,10 @@
   .times-full .slot.off{padding:7px 0;background:#efe9e2;border-color:#e6ddd2}
   .times-full .slot.off .t{font-size:12.5px}
   .times-full .slot.off .booked{font-size:10px;margin-top:1px}
-  .slot{padding:14px 0;text-align:center;border:1px solid var(--line);border-radius:12px;background:var(--cream-soft);
-    font-size:15px;cursor:pointer;font-family:"Noto Serif TC",serif;transition:.15s}
+  .slot{padding:14px 0;text-align:center;border:1px solid rgba(140,124,106,.16);border-radius:12px;
+    background:var(--white);font-size:15px;cursor:pointer;letter-spacing:.06em;
+    font-family:"Cormorant Garamond",serif;font-weight:400;transition:transform .18s ease,border-color .18s}
+  .slot:active{transform:scale(.96)}
   .slot:hover{border-color:var(--taupe)}
   .slot.sel{background:var(--taupe);color:var(--cream-soft);border-color:var(--taupe)}
   .slot.off{cursor:not-allowed;background:#f0e6e4;border-color:#e3cfca;color:#9a6b62;position:relative;padding:10px 0}
@@ -113,13 +123,16 @@
   .slot.off .booked::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:#a8453a;margin-right:5px;vertical-align:middle}
 
   /* 大項目卡片（點開選細項）*/
-  .pickcard{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);
-    border-radius:16px;padding:18px 16px;margin-bottom:12px;cursor:pointer;transition:.18s;
-    box-shadow:0 1px 6px rgba(140,124,106,.05)}
-  .pickcard:hover{border-color:var(--taupe);box-shadow:0 3px 12px rgba(140,124,106,.12)}
-  .pickcard.sel{border-color:var(--taupe);background:#f7f1e8;box-shadow:0 3px 12px rgba(140,124,106,.16)}
+  .pickcard{display:flex;align-items:center;gap:14px;background:var(--white);
+    border:1px solid rgba(140,124,106,.14);border-radius:18px;padding:22px 18px;margin-bottom:13px;
+    cursor:pointer;transition:transform .2s ease,border-color .2s,background .2s;position:relative;overflow:hidden}
+  .pickcard::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:linear-gradient(to bottom,var(--taupe),var(--sand));opacity:.45;transition:.2s}
+  .pickcard:active{transform:scale(.985)}
+  .pickcard.sel{border-color:var(--taupe);background:linear-gradient(135deg,var(--ivory),var(--cream))}
+  .pickcard.sel::after{opacity:1;background:linear-gradient(to bottom,var(--gold),#e3d3ae)}
   .pickcard .info{flex:1;min-width:0}
-  .pickcard .nm{font-family:"Noto Serif TC",serif;font-size:17px;font-weight:700;color:var(--ink);letter-spacing:.04em}
+  .pickcard .nm{font-size:17px;font-weight:500;color:var(--ink);letter-spacing:.12em;line-height:1.5}
   .pickcard .mt{font-size:12.5px;color:var(--muted);margin-top:4px}
   .pickcard .picked{display:inline-block;margin-top:8px;font-size:12px;font-weight:600;color:#6f7d56;
     background:#eef2e6;border:1px solid #c4d1a8;border-radius:8px;padding:3px 9px}
@@ -142,18 +155,18 @@
     background:linear-gradient(135deg,#c9a961,#a8823f);padding:2px 8px;border-radius:20px;white-space:nowrap;
     box-shadow:0 1px 3px rgba(168,130,63,.35)}
   /* 服務卡片：縮圖 + 名稱說明 + 價格 */
-  .svc{border:1px solid var(--line);background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;
-    cursor:pointer;transition:.18s;display:flex;align-items:center;gap:14px;
-    box-shadow:0 1px 6px rgba(140,124,106,.05)}
-  .svc:hover{border-color:var(--taupe);box-shadow:0 3px 12px rgba(140,124,106,.12)}
-  .svc.sel{border-color:var(--taupe);background:#f7f1e8;box-shadow:0 3px 12px rgba(140,124,106,.16)}
+  .svc{border:1px solid rgba(140,124,106,.14);background:var(--white);border-radius:16px;padding:18px 16px;
+    margin-bottom:12px;cursor:pointer;transition:transform .2s ease,border-color .2s,background .2s;
+    display:flex;align-items:center;gap:14px}
+  .svc:active{transform:scale(.985)}
+  .svc.sel{border-color:var(--taupe);background:linear-gradient(135deg,var(--ivory),var(--cream))}
   /* 勾選框：細緻圓角、選取時填入品牌棕 */
   .svc .box{width:22px;height:22px;border-radius:8px;border:1.5px solid var(--line);flex-shrink:0;
     display:grid;place-items:center;font-size:13px;color:transparent;background:#fff;transition:.18s}
   .svc.sel .box{background:var(--taupe);border-color:var(--taupe);color:#fff}
   /* 中間文字 */
   .svc .info{flex:1;min-width:0}
-  .svc .nm{font-weight:700;font-size:15.5px;color:var(--ink);line-height:1.5}
+  .svc .nm{font-weight:500;font-size:15.5px;color:var(--ink);line-height:1.6;letter-spacing:.08em}
   .svc .mt{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:3px}
   .svc .sub-nm{font-size:13px;color:var(--taupe-deep);margin-top:2px;font-weight:500}
   .ppl-pick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px}
@@ -187,22 +200,24 @@
   .svc .pr{font-family:"Noto Serif TC",serif;font-size:15px;color:var(--taupe-deep);font-weight:700;
     white-space:nowrap;flex-shrink:0;text-align:right;letter-spacing:.02em}
   /* 分類 */
-  /* 類別：輕盈的紙感卡片，不用深色橫條壓迫畫面 */
-  .cat{border:1px solid var(--line);border-radius:18px;margin-bottom:12px;overflow:hidden;background:#fdfbf7;
-    transition:.2s}
-  .cat.open{border-color:var(--taupe);box-shadow:0 4px 18px rgba(140,124,106,.10)}
-  .cat-head{display:flex;align-items:center;gap:14px;padding:20px 18px;cursor:pointer;background:transparent}
-  .cat-rule{width:3px;height:26px;border-radius:2px;background:var(--taupe);flex-shrink:0;transition:.2s}
-  .cat.open .cat-rule{background:linear-gradient(180deg,#c9a961,#a8823f)}
-  .cat-title{font-family:"Noto Serif TC",serif;font-size:17px;font-weight:700;color:var(--ink);
-    letter-spacing:.06em;flex:1}
-  .cat-arrow{color:var(--taupe);font-size:13px;transition:.25s;flex-shrink:0}
-  .cat.open .cat-arrow{transform:rotate(180deg)}
+  /* 類別：白卡 + 左側漸層細線（參考的高級感）*/
+  .cat{background:var(--white);border:1px solid rgba(140,124,106,.14);border-radius:20px;margin-bottom:14px;
+    position:relative;overflow:hidden;transition:transform .2s ease,box-shadow .25s ease}
+  .cat::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0 2px 2px 0;
+    background:linear-gradient(to bottom,var(--taupe),var(--sand));opacity:.5;transition:.25s}
+  .cat.open{box-shadow:0 8px 30px rgba(140,124,106,.12)}
+  .cat.open::after{opacity:1;background:linear-gradient(to bottom,var(--gold),var(--blushline,#e3d3ae))}
+  .cat-head{display:flex;align-items:center;gap:14px;padding:24px 22px;cursor:pointer;background:transparent}
+  .cat-head:active{transform:scale(.99)}
+  .cat-rule{display:none}
+  .cat-title{font-size:17px;font-weight:500;color:var(--ink);letter-spacing:.14em;flex:1;line-height:1.5}
+  .cat-arrow{color:var(--taupe);font-size:11px;transition:.25s;flex-shrink:0;opacity:.7}
+  .cat.open .cat-arrow{transform:rotate(180deg);opacity:1}
   .cat-head.locked{cursor:not-allowed}
   .cat-head.locked .cat-title{color:#b3a693}
-  .cat-head.locked .cat-rule{background:#ddd2c0}
-  .cat-locked-wrap{display:flex;flex-direction:column;gap:6px;align-items:flex-start;flex:1}
-  .cat-lock{display:inline-block;font-size:11px;color:#a8806f;background:#f3e8e2;padding:3px 10px;border-radius:20px;letter-spacing:.06em}
+  .cat-locked-wrap{display:flex;flex-direction:column;gap:7px;align-items:flex-start;flex:1}
+  .cat-lock{display:inline-block;font-size:10px;letter-spacing:.2em;color:var(--gold);
+    background:rgba(185,154,99,.12);padding:3px 10px;border-radius:20px}
   .cat-body{display:none;padding:14px 12px 12px}
   .cat.open .cat-body{display:block}
   .cat-body .svc{margin-bottom:10px}
@@ -263,9 +278,12 @@
   .sumrow:last-child{border-bottom:none}
   .sumrow .k{color:var(--muted)} .sumrow .v{font-weight:600;text-align:right;font-family:"Noto Serif TC",serif;max-width:60%}
 
-  .cta{display:block;width:100%;margin-top:22px;padding:16px;border:none;border-radius:16px;background:var(--taupe);
-    color:var(--cream-soft);font:inherit;font-weight:600;font-size:16px;letter-spacing:.18em;cursor:pointer;transition:.2s;padding-left:.18em}
-  .cta:hover{background:var(--taupe-deep)} .cta:disabled{background:var(--sand);color:#fff;cursor:not-allowed}
+  .cta{display:block;width:100%;margin-top:30px;padding:18px;border:none;border-radius:100px;
+    background:linear-gradient(135deg,var(--taupe),var(--taupe-deep));color:#fff;font:inherit;font-weight:400;
+    font-size:15px;letter-spacing:.3em;cursor:pointer;transition:transform .2s ease,opacity .2s;padding-left:.3em;
+    box-shadow:0 6px 20px rgba(140,124,106,.25)}
+  .cta:active{transform:scale(.985)}
+  .cta:disabled{background:var(--sand);color:#fff;cursor:not-allowed;box-shadow:none}
   .ghost{background:none;border:1px solid var(--line);color:var(--muted);margin-top:10px;padding:13px;border-radius:14px;width:100%;font:inherit;cursor:pointer;font-size:14px}
   .backbtn{display:block;width:100%;margin-top:18px;padding:14px;border:1.5px solid var(--taupe);border-radius:14px;
     background:#ece1d0;color:var(--taupe-deep);font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;letter-spacing:.04em}
@@ -293,7 +311,7 @@
     border-radius:14px;text-decoration:none;font-size:15px;font-weight:600;letter-spacing:.08em}
   .gcal:hover{background:var(--taupe-deep)}
   .loading{text-align:center;color:var(--taupe-deep);font-size:14px;padding:34px 16px;line-height:1.7;letter-spacing:.03em}
-  footer{position:relative;z-index:1;padding:24px 28px 40px;text-align:center;color:var(--muted);font-size:12px;letter-spacing:.12em;border-top:1px solid var(--sand)}
+  footer{position:relative;z-index:1;padding:34px 28px 48px;text-align:center;color:var(--muted);font-size:11px;letter-spacing:.34em;border-top:1px solid rgba(140,124,106,.12)}
   @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
@@ -378,7 +396,7 @@
         <div class="nc-d">後續請勿安排緊湊行程；為維護操作品質，恕不便攜帶孩童與寵物。</div>
       </div>
     </div>
-    <div class="ptitle">選擇預約日期</div>
+    <div class="ptitle" data-eb="Date">選擇預約日期</div>
     <div class="psub">亮起來的日子可預約，灰色為已滿約。</div>
     <div class="cal-head">
       <button class="navbtn" id="prevMo">‹</button>
@@ -396,7 +414,7 @@
 
   <!-- 1 選時段 -->
   <div class="panel" id="p1">
-    <div class="ptitle">選擇時段</div>
+    <div class="ptitle" data-eb="Time">選擇時段</div>
     <div class="daysel" id="dayTitle">—</div>
     <div class="avail-card" id="availCard">
       <div class="sec-label avail-title" id="availLabel">可預約時段</div>
@@ -413,7 +431,7 @@
 
   <!-- 2 選服務 -->
   <div class="panel" id="p2">
-    <div class="ptitle">選擇服務</div>
+    <div class="ptitle" data-eb="Menu">選擇服務</div>
     <div class="psub">點開想看的類別，選擇您想預約的項目，不同類別可以一起選。</div>
     <div id="svcList"></div>
     <div class="svc-total" id="svcTotal"></div>
@@ -444,7 +462,7 @@
 
   <!-- 3 須知 + 資料 -->
   <div class="panel" id="p3">
-    <div class="ptitle">預約須知</div>
+    <div class="ptitle" data-eb="Notice">預約須知</div>
     <div class="psub">預約前請詳閱以下內容。</div>
     <div class="notice">
       <h4>關於預約</h4>
@@ -496,7 +514,7 @@
 
   <!-- 4 確認 -->
   <div class="panel" id="p4">
-    <div class="ptitle">確認預約</div>
+    <div class="ptitle" data-eb="Confirm">確認預約</div>
     <div class="psub">請確認以下資料正確。</div>
     <div class="sumcard">
       <div class="sumrow"><span class="k">姓名</span><span class="v" id="sName">—</span></div>
@@ -532,7 +550,7 @@
 
   <!-- 5 工作室・交通資訊（獨立頁） -->
   <div class="panel" id="p5">
-    <div class="ptitle">工作室</div>
+    <div class="ptitle" data-eb="Studio">工作室</div>
     <div class="infoblock">
       <p class="lead">藏身在輕奢小宅裡的美學秘境 🪞✨</p>
     </div>
