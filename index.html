@@ -8,34 +8,35 @@
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
   :root{
-    --brand:#8B3A4A;            /* 主色：酒紅 */
-    --brand-soft:#f5eaec;
-    --ink:#1A1A1A;              /* 一般文字 */
-    --grey:#B0B0B0;             /* 次要／未選中 */
-    --divider:#EAEAEA;          /* 分隔線 */
-    --white:#fff; --ivory:#fff;
-    --taupe:#8B3A4A; --taupe-deep:#6f2c39;
-    --cream:#faf7f4; --cream-soft:#fff; --sand:#EAEAEA;
-    --line:#EAEAEA; --muted:#B0B0B0; --ok:#5f7245; --warn:#8B3A4A;
-    --gold:#8B3A4A; --rose:#8B3A4A; --rose-soft:#f5eaec; --rose-deep:#6f2c39;
+    --brand:#8c7c6a;            /* 主色：LOGO 灰褐 */
+    --brand-deep:#6f6151;
+    --brand-soft:#f3ece2;       /* 奶茶米白 */
+    --ink:#4a4038;              /* 暖棕黑，文字 */
+    --grey:#b3a596;             /* 次要／未選中 */
+    --divider:#ece4d9;          /* 分隔線 */
+    --white:#fff; --ivory:#fdfaf6;
+    --taupe:#8c7c6a; --taupe-deep:#6f6151;
+    --cream:#f3ece2; --cream-soft:#faf5ec; --sand:#e6dccb;
+    --line:#ece4d9; --muted:#b3a596; --ok:#7c8a6a; --warn:#8c7c6a;
+    --gold:#b99a63; --rose:#8c7c6a; --rose-soft:#f3ece2; --rose-deep:#6f6151;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
-    background:#fff;color:var(--ink);line-height:1.8;letter-spacing:.02em;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:480px;margin:0 auto;min-height:100vh;background:#fff;position:relative;overflow:hidden}
+    background:var(--ivory);color:var(--ink);line-height:1.8;letter-spacing:.02em;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:480px;margin:0 auto;min-height:100vh;background:var(--ivory);position:relative;overflow:hidden}
   .wrap::before{content:"";position:absolute;left:-30%;top:40%;width:120%;height:60%;
     background:radial-gradient(60% 50% at 30% 30%, rgba(140,124,106,.08), transparent 70%);pointer-events:none;z-index:0}
 
   .topbar{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;
-    padding:20px 22px 6px;background:#fff}
+    padding:20px 22px 6px;background:var(--ivory)}
   .tb-title{font-size:16px;font-weight:600;color:var(--ink);letter-spacing:.06em}
   .tb-close{position:absolute;right:18px;top:50%;transform:translateY(-40%);background:none;border:none;
     font-size:19px;color:var(--ink);cursor:pointer;line-height:1;padding:4px}
   .logo-wrap,.brand,.moome,.slogan{display:none}
   /* 步驟列：純文字＋數字，無圓圈無連線 */
   .steps{display:flex;justify-content:space-between;align-items:baseline;padding:26px 22px 22px;
-    position:relative;z-index:1;background:#fff}
+    position:relative;z-index:1;background:var(--ivory)}
   .stp{display:flex;align-items:baseline;gap:4px}
   .sn{font-size:19px;font-weight:700;color:var(--grey);transition:.2s}
   .sl{font-size:13px;color:var(--grey);letter-spacing:.04em;transition:.2s}
@@ -66,7 +67,7 @@
   .nc-no{font-family:"Noto Serif TC",serif;font-size:26px;font-weight:700;color:#c9a961;line-height:1;margin-bottom:9px}
   .nc-t{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px}
   .nc-d{font-size:12.5px;color:var(--muted);line-height:1.75}
-  .cal-head .mo{font-family:"Cormorant Garamond",serif;font-size:21px;font-weight:400;letter-spacing:.14em;color:var(--ink)}
+  .cal-head .mo{font-family:"Noto Sans TC",sans-serif;font-size:17px;font-weight:700;letter-spacing:.08em;color:var(--ink)}
   .navbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--cream-soft);
     color:var(--taupe-deep);font-size:16px;cursor:pointer}
   .navbtn:disabled{opacity:.3;cursor:not-allowed}
@@ -74,7 +75,7 @@
   .week div{text-align:center;font-size:12px;color:var(--muted);padding:4px 0}
   .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
   .cell{aspect-ratio:1/1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    font-family:"Cormorant Garamond",serif;font-size:17px;border:1px solid transparent;position:relative}
+    font-family:"Noto Sans TC",sans-serif;font-size:16px;font-weight:600;border:1px solid transparent;position:relative}
   .cell.empty{visibility:hidden}
   .cell.open{background:var(--white);border-color:rgba(140,124,106,.35);color:var(--ink);cursor:pointer;font-weight:500}
   .cell.open:hover{background:#ece1d0}
@@ -119,9 +120,9 @@
   .times-full .slot.off{padding:7px 0;background:#efe9e2;border-color:#e6ddd2}
   .times-full .slot.off .t{font-size:12.5px}
   .times-full .slot.off .booked{font-size:10px;margin-top:1px}
-  .slot{padding:14px 0;text-align:center;border:1px solid rgba(140,124,106,.16);border-radius:12px;
-    background:var(--white);font-size:15px;cursor:pointer;letter-spacing:.06em;
-    font-family:"Cormorant Garamond",serif;font-weight:400;transition:transform .18s ease,border-color .18s}
+  .slot{padding:14px 0;text-align:center;border:1px solid var(--divider);border-radius:12px;
+    background:var(--white);font-size:15px;cursor:pointer;letter-spacing:.04em;
+    font-family:"Noto Sans TC",sans-serif;font-weight:600;transition:transform .18s ease,border-color .18s}
   .slot:active{transform:scale(.96)}
   .slot:hover{border-color:var(--taupe)}
   .slot.sel{background:var(--taupe);color:var(--cream-soft);border-color:var(--taupe)}
@@ -171,9 +172,23 @@
   .more-link{display:block;text-align:center;margin:6px 0 10px;padding:14px;border:1px solid var(--divider);
     border-radius:18px;color:var(--brand);font-size:13.5px;letter-spacing:.04em;text-decoration:none;background:#fff}
   .more-link:active{background:var(--brand-soft)}
+  /* 內嵌加購區 */
+  .addonbox{margin:-22px 0 34px;border:1px solid var(--divider);border-radius:16px;overflow:hidden;background:#fff}
+  .addon-head2{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;
+    font-size:14px;font-weight:600;color:var(--ink);letter-spacing:.06em}
+  .ab-arrow{font-size:10px;color:var(--brand);transition:.25s}
+  .addonbox.open .ab-arrow{transform:rotate(180deg)}
+  .addon-list2{display:none;padding:0 12px 12px}
+  .addonbox.open .addon-list2{display:block}
+  .addrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;
+    border:1px solid var(--divider);border-radius:12px;margin-bottom:8px;cursor:pointer;background:#fff;
+    transition:.18s}
+  .addrow:last-child{margin-bottom:0}
+  .addrow.sel{border-color:var(--brand);background:var(--brand-soft)}
+  .ar-nm{font-size:14px;color:var(--ink);font-weight:500}
+  .ar-pr{font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap}
   /* 服務項目：左圖右卡 */
-  .sym{width:23%;min-width:76px;aspect-ratio:1/1;border-radius:6px;flex-shrink:0;display:grid;place-items:center;
-    font-size:30px;background:var(--brand-soft);color:var(--brand)}
+  .sym{display:none}
   .meta{display:flex;align-items:center;gap:18px;margin-top:10px;flex-wrap:wrap}
   .dur,.prices{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:700;color:var(--ink)}
   .prices{margin-left:0}
@@ -328,7 +343,7 @@
   .loading{text-align:center;color:var(--taupe-deep);font-size:14px;padding:34px 16px;line-height:1.7;letter-spacing:.03em}
   /* 底部導覽列 */
   .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;max-width:480px;margin:0 auto;
-    background:#fff;border-top:1px solid var(--divider);
+    background:var(--ivory);border-top:1px solid var(--divider);
     padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
   .tab{flex:1;background:none;border:none;font:inherit;display:flex;flex-direction:column;align-items:center;
     gap:4px;padding:9px 0 7px;color:var(--grey);font-size:11px;letter-spacing:.1em;cursor:pointer;
@@ -813,9 +828,11 @@ function renderCal(){
     const slots=monthData[ds]||[];
     const isPast = dateObj <= today;   // 今天（含）以前都不可預約，最早只能約明天
     const holiday = HOLIDAYS[ds]; // 國定假日名稱（若有）
-    if(isPast || !(ds in monthData) || slots.length===0){
-      // 今天（含）以前若原本有開放時段 → 顯示「已滿」；沒開放過 → 單純灰掉
-      if(ds in monthData && (slots.length===0 || isPast)){
+    const openedThatDay = (ds in monthData);
+    const noSlotLeft = openedThatDay && slots.length===0;
+    if(isPast || !openedThatDay || noSlotLeft){
+      // 有開放過但已被約滿（或今天以前）→ 灰底「已滿」，不可點
+      if(openedThatDay){
         c.className="cell full"; c.innerHTML=`${d}<span class="tagfull">已滿</span>`;
       }else{
         c.className="cell closed"; c.textContent=d;
@@ -885,6 +902,29 @@ function appendBrowInfo(body){
   body.appendChild(a);
 }
 
+/* 內嵌加購區：選了該類服務後，卡片下方出現「▼ 加購項目」 */
+function buildAddonBlock(cat){
+  const wrap=document.createElement("div"); wrap.className="addonbox";
+  const head=document.createElement("div"); head.className="addon-head2";
+  head.innerHTML=`<span>加購項目</span><span class="ab-arrow">▼</span>`;
+  const list=document.createElement("div"); list.className="addon-list2";
+  cat.addons.forEach(ad=>{
+    const on=st.addons.indexOf(ad.key)>=0;
+    const r=document.createElement("div"); r.className="addrow"+(on?" sel":"");
+    r.innerHTML=`<span class="ar-nm">${ad.name}${ad.neu?'<span class="new-badge">NEW</span>':''}</span>
+      <span class="ar-pr">+$${ad.price.toLocaleString()}</span>`;
+    r.onclick=(e)=>{ e.stopPropagation();
+      const i=st.addons.indexOf(ad.key);
+      if(i>=0)st.addons.splice(i,1); else st.addons.push(ad.key);
+      r.classList.toggle("sel"); updateTotal(); };
+    list.appendChild(r);
+  });
+  head.onclick=()=>{ wrap.classList.toggle("open"); };
+  wrap.appendChild(head); wrap.appendChild(list);
+  wrap.classList.add("open");
+  return wrap;
+}
+
 /* 建立一張服務卡片 */
 function buildSvcCard(it,cat){
   const d=document.createElement("div");
@@ -899,10 +939,10 @@ function buildSvcCard(it,cat){
     : it.free ? `<span class="p-now free">新客贈送</span>`
     : (it.orig ? `<span class="p-was">$${it.orig.toLocaleString()}</span><span class="p-now">$${it.price.toLocaleString()}</span>`
                : `<span class="p-now">$${it.price.toLocaleString()}</span>`);
-  d.innerHTML=`<div class="sym">${(cat&&cat.icon)||"✿"}</div><div class="info"><div class="nm">${it.name}${newBadge}</div>${subHtml}${mtHtml}${giftHtml}<div class="meta">${durShow?`<span class="dur">${durShow}</span>`:""}<span class="prices">${priceRow}</span></div></div>`;
+  d.innerHTML=`<div class="info"><div class="nm">${it.name}${newBadge}</div>${subHtml}${mtHtml}${giftHtml}<div class="meta">${durShow?`<span class="dur">${durShow}</span>`:""}<span class="prices">${priceRow}</span></div></div>`;
   d.onclick=()=>{ const i=st.services.indexOf(it.key);
     if(i>=0)st.services.splice(i,1); else st.services.push(it.key);
-    d.classList.toggle("sel"); afterServiceChange(); };
+    afterServiceChange(); renderServices(); };
   return d;
 }
 
@@ -986,7 +1026,6 @@ function renderServices(){
           const card=document.createElement("div");
           card.className="pickcard"+(chosenKeys.length?" sel":"");
           card.innerHTML=`
-            <div class="sym">${cat.icon||"✿"}</div>
             <div class="info">
               <div class="nm">${pk.title}</div>
               <div class="mt">${pk.hint}</div>
@@ -1009,6 +1048,9 @@ function renderServices(){
           body.appendChild(g); lastGroup=it.group;
         }
         body.appendChild(buildSvcCard(it,cat));
+        if(cat.addons && cat.addons.length && st.services.indexOf(it.key)>=0){
+          body.appendChild(buildAddonBlock(cat));
+        }
       });
       if(cat.note==="brow") appendBrowInfo(body);
       head.onclick=()=>{ wrap.classList.toggle("open"); };
@@ -1080,10 +1122,7 @@ function refreshAddonTotal(){
 function gotoCalendar(){ updateTotal(); show(0); if(!viewYM) initMonth(); else loadMonth(); }
 
 renderServices();
-$("p2next").onclick=()=>{
-  if(availableAddons().length>0){ openAddonModal(); }   // 有加購 → 跳視窗
-  else { gotoCalendar(); }                               // 沒加購 → 直接進下一步
-};
+$("p2next").onclick=()=>{ gotoCalendar(); };
 $("addonConfirm").onclick=()=>{ $("addonModal").style.display="none"; gotoCalendar(); };
 $("addonSkip").onclick=()=>{ st.addons=[]; $("addonModal").style.display="none"; gotoCalendar(); };
 
