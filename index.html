@@ -8,44 +8,40 @@
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
   :root{
-    --ink:#3d342c; --taupe:#8c7c6a; --taupe-deep:#6f6151;
-    --cream:#f3ece2; --cream-soft:#faf6f2; --sand:#e6dccb;
-    --line:#e8dccb; --muted:#8a7b6b; --ok:#7c8a6a; --warn:#b06a4a;
-    --ivory:#faf6f2; --gold:#b99a63; --white:#fff;
-    --rose:#b5808a; --rose-soft:#ecdcdd; --rose-deep:#96626d;
+    --brand:#8B3A4A;            /* 主色：酒紅 */
+    --brand-soft:#f5eaec;
+    --ink:#1A1A1A;              /* 一般文字 */
+    --grey:#B0B0B0;             /* 次要／未選中 */
+    --divider:#EAEAEA;          /* 分隔線 */
+    --white:#fff; --ivory:#fff;
+    --taupe:#8B3A4A; --taupe-deep:#6f2c39;
+    --cream:#faf7f4; --cream-soft:#fff; --sand:#EAEAEA;
+    --line:#EAEAEA; --muted:#B0B0B0; --ok:#5f7245; --warn:#8B3A4A;
+    --gold:#8B3A4A; --rose:#8B3A4A; --rose-soft:#f5eaec; --rose-deep:#6f2c39;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
-    background:var(--ivory);color:var(--ink);line-height:1.8;letter-spacing:.03em;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:480px;margin:0 auto;min-height:100vh;background:var(--ivory);position:relative;overflow:hidden}
+    background:#fff;color:var(--ink);line-height:1.8;letter-spacing:.02em;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:480px;margin:0 auto;min-height:100vh;background:#fff;position:relative;overflow:hidden}
   .wrap::before{content:"";position:absolute;left:-30%;top:40%;width:120%;height:60%;
     background:radial-gradient(60% 50% at 30% 30%, rgba(140,124,106,.08), transparent 70%);pointer-events:none;z-index:0}
 
-  header{position:relative;z-index:1;text-align:center;background:var(--cream);overflow:hidden}
-  .logo-wrap{position:relative;line-height:0}
-  .logo-banner{display:block;width:100%;height:auto;object-fit:cover}
-  .logo-fade{position:absolute;left:0;right:0;bottom:-1px;height:38%;pointer-events:none;
-    background:linear-gradient(to bottom, rgba(243,236,226,0) 0%, rgba(243,236,226,.55) 55%, var(--cream) 100%)}
-  .brand{font-family:"Noto Serif TC",serif;font-size:14px;letter-spacing:.5em;color:var(--taupe-deep);margin-bottom:6px;padding-left:.5em;padding-top:42px}
-  .moome{font-family:"Brush Script MT","Segoe Script",cursive;font-size:40px;line-height:1;margin-bottom:10px}
-  .slogan{font-family:"Noto Serif TC",serif;font-size:13px;color:var(--muted);letter-spacing:.28em;padding-left:.28em}
-
-  .steps{display:flex;align-items:flex-start;justify-content:center;gap:0;padding:22px 20px 4px;
-    position:relative;z-index:1}
-  .stp{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;position:relative}
-  .stp::after{content:"";position:absolute;top:13px;left:calc(50% + 18px);right:calc(-50% + 18px);
-    height:1px;background:var(--line)}
-  .stp:last-child::after{display:none}
-  .sn{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
-    font-family:"Cormorant Garamond",serif;font-size:14px;color:var(--muted);
-    background:var(--white);border:1px solid var(--line);transition:.25s}
-  .sl{font-size:11px;letter-spacing:.12em;color:var(--muted);transition:.25s;white-space:nowrap}
-  .stp.on .sn{background:var(--rose);border-color:var(--rose);color:#fff;
-    box-shadow:0 3px 10px rgba(181,128,138,.3)}
-  .stp.on .sl{color:var(--rose-deep);font-weight:500}
-  .stp.done .sn{background:var(--rose-soft);border-color:var(--rose-soft);color:var(--rose-deep)}
-  .stp.done .sl{color:var(--taupe-deep)}
+  .topbar{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;
+    padding:20px 22px 6px;background:#fff}
+  .tb-title{font-size:16px;font-weight:600;color:var(--ink);letter-spacing:.06em}
+  .tb-close{position:absolute;right:18px;top:50%;transform:translateY(-40%);background:none;border:none;
+    font-size:19px;color:var(--ink);cursor:pointer;line-height:1;padding:4px}
+  .logo-wrap,.brand,.moome,.slogan{display:none}
+  /* 步驟列：純文字＋數字，無圓圈無連線 */
+  .steps{display:flex;justify-content:space-between;align-items:baseline;padding:26px 22px 22px;
+    position:relative;z-index:1;background:#fff}
+  .stp{display:flex;align-items:baseline;gap:4px}
+  .sn{font-size:19px;font-weight:700;color:var(--grey);transition:.2s}
+  .sl{font-size:13px;color:var(--grey);letter-spacing:.04em;transition:.2s}
+  .stp.on .sn,.stp.on .sl{color:var(--brand)}
+  .stp.on .sl{font-weight:600}
+  .stp.done .sn,.stp.done .sl{color:var(--ink)}
   .panel{position:relative;z-index:1;padding:34px 22px 44px;display:none}
   .panel.show{display:block;animation:fade .35s ease}
   @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -134,23 +130,19 @@
   .slot.off .booked{display:block;font-size:11px;letter-spacing:.12em;color:#9c4a3f;margin-top:3px;font-family:"Noto Sans TC",sans-serif}
   .slot.off .booked::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:#a8453a;margin-right:5px;vertical-align:middle}
 
-  /* 大項目卡片（點開選細項）*/
-  .pickcard{display:flex;align-items:center;gap:14px;background:var(--white);
-    border:1px solid rgba(140,124,106,.14);border-radius:18px;padding:22px 18px;margin-bottom:13px;
-    cursor:pointer;transition:transform .2s ease,border-color .2s,background .2s;position:relative;overflow:hidden}
-  .pickcard::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
-    background:linear-gradient(to bottom,var(--taupe),var(--sand));opacity:.45;transition:.2s}
-  .pickcard:active{transform:scale(.985)}
-  .pickcard.sel{border-color:var(--taupe);background:linear-gradient(135deg,var(--ivory),var(--cream))}
-  .pickcard.sel::after{opacity:1;background:linear-gradient(to bottom,var(--gold),#e3d3ae)}
-  .pickcard .info{flex:1;min-width:0}
-  .pickcard .nm{font-size:17px;font-weight:500;color:var(--ink);letter-spacing:.12em;line-height:1.5}
-  .pickcard .mt{font-size:12.5px;color:var(--muted);margin-top:4px}
-  .pickcard .picked{display:inline-block;margin-top:8px;font-size:12px;font-weight:600;color:#6f7d56;
-    background:#eef2e6;border:1px solid #c4d1a8;border-radius:8px;padding:3px 9px}
-  .pkright{display:flex;align-items:center;gap:8px;flex-shrink:0}
-  .pickcard .pr{font-family:"Noto Serif TC",serif;font-size:15px;font-weight:700;color:var(--taupe-deep);white-space:nowrap}
-  .pkarrow{color:var(--taupe);font-size:20px;line-height:1}
+  /* 大項目卡（點開選細項）*/
+  .pickcard{display:flex;align-items:stretch;gap:12px;background:transparent;border:none;border-radius:0;
+    padding:0;margin-bottom:34px;cursor:pointer;position:static;transition:transform .18s ease}
+  .pickcard::after{display:none}
+  .pickcard:active{transform:scale(.99)}
+  .pickcard .info{flex:1;min-width:0;border:1px solid var(--brand);border-radius:18px;padding:16px 18px;
+    background:#fff;display:flex;flex-direction:column;justify-content:center}
+  .pickcard.sel .info{background:var(--brand-soft);border-width:2px}
+  .pickcard .nm{font-size:17px;font-weight:700;color:var(--ink);letter-spacing:.03em;line-height:1.5}
+  .pickcard .mt{font-size:12.5px;color:var(--grey);margin-top:4px;line-height:1.65}
+  .pickcard .picked{display:inline-block;margin-top:8px;font-size:12px;font-weight:600;color:var(--brand);
+    background:var(--brand-soft);border-radius:5px;padding:3px 9px}
+  .pkright{display:none}
   .sec-title{font-family:"Noto Serif TC",serif;font-size:15px;font-weight:600;color:var(--taupe-deep);
     letter-spacing:.12em;margin:4px 4px 14px}
   /* 群組小標（質感霧眉 / 蜜感霧唇）*/
@@ -167,23 +159,27 @@
     background:linear-gradient(135deg,#c9a961,#a8823f);padding:2px 8px;border-radius:20px;white-space:nowrap;
     box-shadow:0 1px 3px rgba(168,130,63,.35)}
   /* 服務卡片：縮圖 + 名稱說明 + 價格 */
-  .svc{border:1px solid rgba(140,124,106,.14);background:var(--white);border-radius:16px;padding:18px 16px;
-    margin-bottom:12px;cursor:pointer;transition:transform .2s ease,border-color .2s,background .2s;
-    display:flex;align-items:center;gap:14px}
-  .svc:active{transform:scale(.985)}
-  .svc.sel{border-color:var(--rose);background:linear-gradient(135deg,#fdf8f7,var(--rose-soft))}
-  /* 服務符號圖 */
-  .sym{width:54px;height:54px;border-radius:14px;flex-shrink:0;display:grid;place-items:center;
-    font-size:22px;color:var(--rose);background:linear-gradient(135deg,var(--ivory),var(--rose-soft));
-    border:1px solid rgba(181,128,138,.18)}
-  .svc.sel .sym{background:linear-gradient(135deg,var(--rose-soft),#e3cdd0);color:var(--rose-deep)}
-  /* 時長與價格 */
-  .meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;flex-wrap:wrap}
-  .dur{font-size:12px;color:var(--muted);letter-spacing:.04em}
-  .prices{display:flex;align-items:baseline;gap:8px;margin-left:auto}
-  .p-was{font-size:12.5px;color:#bbaa9a;text-decoration:line-through}
-  .p-now{font-family:"Cormorant Garamond",serif;font-size:19px;font-weight:500;color:var(--rose-deep);letter-spacing:.02em}
-  .p-now.free{font-family:"Noto Sans TC",sans-serif;font-size:13px;font-weight:600;color:#5f7245}
+  .svc{border:none;background:transparent;border-radius:0;padding:0;margin-bottom:34px;cursor:pointer;
+    display:flex;align-items:stretch;gap:12px;transition:transform .18s ease}
+  .svc:active{transform:scale(.99)}
+  .svc .info{flex:1;min-width:0;border:1px solid var(--brand);border-radius:18px;padding:16px 18px;
+    background:#fff;display:flex;flex-direction:column;justify-content:center;transition:.2s}
+  .svc.sel .info{background:var(--brand-soft);border-width:2px}
+  .svc .box{display:none}
+  .svc .nm{font-weight:700;font-size:17px;color:var(--ink);letter-spacing:.03em;line-height:1.5}
+  .svc .mt{font-size:12.5px;color:var(--grey);line-height:1.65;margin-top:4px}
+  .more-link{display:block;text-align:center;margin:6px 0 10px;padding:14px;border:1px solid var(--divider);
+    border-radius:18px;color:var(--brand);font-size:13.5px;letter-spacing:.04em;text-decoration:none;background:#fff}
+  .more-link:active{background:var(--brand-soft)}
+  /* 服務項目：左圖右卡 */
+  .sym{width:23%;min-width:76px;aspect-ratio:1/1;border-radius:6px;flex-shrink:0;display:grid;place-items:center;
+    font-size:30px;background:var(--brand-soft);color:var(--brand)}
+  .meta{display:flex;align-items:center;gap:18px;margin-top:10px;flex-wrap:wrap}
+  .dur,.prices{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:700;color:var(--ink)}
+  .prices{margin-left:0}
+  .p-was{font-size:13px;color:var(--grey);text-decoration:line-through;font-weight:400}
+  .p-now{font-size:15px;font-weight:700;color:var(--ink);font-family:inherit}
+  .p-now.free{font-size:13px;color:var(--brand)}
   /* 勾選框：細緻圓角、選取時填入品牌棕 */
   .svc .box{width:22px;height:22px;border-radius:8px;border:1.5px solid var(--line);flex-shrink:0;
     display:grid;place-items:center;font-size:13px;color:transparent;background:#fff;transition:.18s}
@@ -224,27 +220,21 @@
   .svc .pr{font-family:"Noto Serif TC",serif;font-size:15px;color:var(--taupe-deep);font-weight:700;
     white-space:nowrap;flex-shrink:0;text-align:right;letter-spacing:.02em}
   /* 分類 */
-  /* 類別：白卡 + 左側漸層細線（參考的高級感）*/
-  .cat{background:var(--white);border:1px solid rgba(140,124,106,.14);border-radius:20px;margin-bottom:14px;
-    position:relative;overflow:hidden;transition:transform .2s ease,box-shadow .25s ease}
-  .cat::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0 2px 2px 0;
-    background:linear-gradient(to bottom,var(--taupe),var(--sand));opacity:.5;transition:.25s}
-  .cat.open{box-shadow:0 8px 30px rgba(140,124,106,.12)}
-  .cat.open::after{opacity:1;background:linear-gradient(to bottom,var(--gold),var(--blushline,#e3d3ae))}
-  .cat-head{display:flex;align-items:center;gap:14px;padding:24px 22px;cursor:pointer;background:transparent}
-  .cat-head:active{transform:scale(.99)}
+  /* 分類：純文字＋分隔線，無外框無陰影 */
+  .cat{background:transparent;border:none;border-radius:0;margin:0;position:static;box-shadow:none}
+  .cat::after{display:none}
+  .cat-head{display:flex;align-items:center;gap:10px;padding:22px 0 18px;cursor:pointer;background:transparent;
+    border-bottom:1px solid var(--divider)}
   .cat-rule{display:none}
-  .cat-title{font-size:17px;font-weight:500;color:var(--ink);letter-spacing:.14em;flex:1;line-height:1.5}
-  .cat-en{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:13px;
-    color:var(--muted);letter-spacing:.08em;font-weight:400}
-  .cat-arrow{color:var(--taupe);font-size:11px;transition:.25s;flex-shrink:0;opacity:.7}
-  .cat.open .cat-arrow{transform:rotate(180deg);opacity:1}
+  .cat-title{font-size:16px;font-weight:600;color:var(--ink);letter-spacing:.04em;flex:1;line-height:1.6}
+  .cat-en{font-size:16px;font-weight:600;color:var(--ink);letter-spacing:.04em;font-family:inherit;font-style:normal}
+  .cat-arrow{color:var(--ink);font-size:11px;flex-shrink:0;transform:none!important}
   .cat-head.locked{cursor:not-allowed}
-  .cat-head.locked .cat-title{color:#b3a693}
-  .cat-locked-wrap{display:flex;flex-direction:column;gap:7px;align-items:flex-start;flex:1}
-  .cat-lock{display:inline-block;font-size:10px;letter-spacing:.2em;color:var(--gold);
-    background:rgba(185,154,99,.12);padding:3px 10px;border-radius:20px}
-  .cat-body{display:none;padding:14px 12px 12px}
+  .cat-head.locked .cat-title,.cat-head.locked .cat-en{color:var(--grey)}
+  .cat-locked-wrap{display:flex;align-items:baseline;gap:10px;flex:1;flex-wrap:wrap}
+  .cat-lock{display:inline-block;font-size:11px;letter-spacing:.08em;color:var(--brand);
+    background:var(--brand-soft);padding:2px 9px;border-radius:4px}
+  .cat-body{display:none;padding:26px 0 8px}
   .cat.open .cat-body{display:block}
   .cat-body .svc{margin-bottom:10px}
   .cat-body .svc:last-child{margin-bottom:2px}
@@ -304,12 +294,11 @@
   .sumrow:last-child{border-bottom:none}
   .sumrow .k{color:var(--muted)} .sumrow .v{font-weight:600;text-align:right;font-family:"Noto Serif TC",serif;max-width:60%}
 
-  .cta{display:block;width:100%;margin-top:30px;padding:18px;border:none;border-radius:100px;
-    background:linear-gradient(135deg,var(--taupe),var(--taupe-deep));color:#fff;font:inherit;font-weight:400;
-    font-size:15px;letter-spacing:.3em;cursor:pointer;transition:transform .2s ease,opacity .2s;padding-left:.3em;
-    box-shadow:0 6px 20px rgba(140,124,106,.25)}
-  .cta:active{transform:scale(.985)}
-  .cta:disabled{background:var(--sand);color:#fff;cursor:not-allowed;box-shadow:none}
+  .cta{display:block;width:100%;margin-top:30px;padding:16px;border:1px solid var(--brand);border-radius:26px;
+    background:#fff;color:var(--brand);font:inherit;font-weight:600;font-size:15px;letter-spacing:.1em;
+    cursor:pointer;transition:transform .2s ease,background .2s}
+  .cta:active{transform:scale(.985);background:var(--brand-soft)}
+  .cta:disabled{border-color:var(--divider);color:var(--grey);cursor:not-allowed;background:#fff}
   .ghost{background:none;border:1px solid var(--line);color:var(--muted);margin-top:10px;padding:13px;border-radius:14px;width:100%;font:inherit;cursor:pointer;font-size:14px}
   .backbtn{display:block;width:100%;margin-top:18px;padding:14px;border:1.5px solid var(--taupe);border-radius:14px;
     background:#ece1d0;color:var(--taupe-deep);font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;letter-spacing:.04em}
@@ -339,22 +328,23 @@
   .loading{text-align:center;color:var(--taupe-deep);font-size:14px;padding:34px 16px;line-height:1.7;letter-spacing:.03em}
   /* 底部導覽列 */
   .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;max-width:480px;margin:0 auto;
-    background:rgba(250,246,242,.94);backdrop-filter:blur(10px);border-top:1px solid rgba(140,124,106,.14);
+    background:#fff;border-top:1px solid var(--divider);
     padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
   .tab{flex:1;background:none;border:none;font:inherit;display:flex;flex-direction:column;align-items:center;
-    gap:3px;padding:7px 0;color:var(--muted);font-size:11px;letter-spacing:.14em;cursor:pointer;transition:.2s}
-  .tab .ti{font-size:17px;line-height:1}
-  .tab.on{color:var(--rose-deep)}
+    gap:4px;padding:9px 0 7px;color:var(--grey);font-size:11px;letter-spacing:.1em;cursor:pointer;
+    transition:.2s;position:relative}
+  .tab .ti{font-size:18px;line-height:1}
+  .tab.on{color:var(--brand)}
+  .tab.on::before{content:"";position:absolute;top:0;left:22%;right:22%;height:2px;background:var(--brand);
+    border-radius:2px}
   body{padding-bottom:74px}
   /* 上一步／下一步 */
   .navrow{display:flex;gap:12px;margin-top:28px}
-  .navbtn2{flex:1;padding:16px 10px;border:1px solid var(--taupe);border-radius:100px;background:transparent;
-    color:var(--taupe-deep);font:inherit;font-size:14px;letter-spacing:.14em;cursor:pointer;
-    transition:transform .18s ease,opacity .2s}
-  .navbtn2:active{transform:scale(.985)}
-  .navbtn2.primary{background:linear-gradient(135deg,var(--rose),var(--rose-deep));border-color:transparent;
-    color:#fff;box-shadow:0 6px 18px rgba(181,128,138,.28)}
-  .navbtn2:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+  .navbtn2{flex:1;padding:15px 10px;border:1px solid var(--brand);border-radius:26px;background:#fff;
+    color:var(--brand);font:inherit;font-size:14px;letter-spacing:.06em;cursor:pointer;font-weight:600;
+    transition:transform .18s ease,background .2s}
+  .navbtn2:active{transform:scale(.985);background:var(--brand-soft)}
+  .navbtn2:disabled{opacity:.3;cursor:not-allowed}
   footer{position:relative;z-index:1;padding:34px 28px 48px;text-align:center;color:var(--muted);font-size:11px;letter-spacing:.34em;border-top:1px solid rgba(140,124,106,.12)}
   @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
@@ -395,53 +385,22 @@
     </div>
   </div>
 
-  <header>
-    <div class="logo-wrap" id="logoWrap">
-      <img src="logo.jpg" alt="沐蜜 Moome" class="logo-banner"
-           onerror="document.getElementById('logoWrap').style.display='none';document.getElementById('textLogo').style.display='block';" />
-      <div class="logo-fade"></div>
-    </div>
-    <div id="textLogo" style="display:none">
-      <div class="brand">沐 蜜</div>
-      <div class="moome">Moome</div>
-      <div class="slogan">遇見美好 · 所得皆所願</div>
-    </div>
+  <header class="topbar">
+    <div class="tb-title">我要預約 · 沐蜜 Moome</div>
+    <button class="tb-close" id="tbClose" aria-label="關閉">✕</button>
   </header>
 
   <button class="infobar" id="openInfo" style="display:none">🌿 工作室 · 交通資訊</button>
 
   <div class="steps" id="stepBar">
-    <div class="stp on" id="d0"><span class="sn">1</span><span class="sl">服務</span></div>
-    <div class="stp" id="d1"><span class="sn">2</span><span class="sl">預約</span></div>
-    <div class="stp" id="d2"><span class="sn">3</span><span class="sl">填寫資料</span></div>
-    <div class="stp" id="d3"><span class="sn">4</span><span class="sl">完成預約</span></div>
+    <div class="stp on" id="d0"><span class="sn">1.</span><span class="sl">服務</span></div>
+    <div class="stp" id="d1"><span class="sn">2.</span><span class="sl">預約</span></div>
+    <div class="stp" id="d2"><span class="sn">3.</span><span class="sl">填寫資料</span></div>
+    <div class="stp" id="d3"><span class="sn">4.</span><span class="sl">完成預約</span></div>
   </div>
 
   <!-- 0 選日期（月曆） -->
   <div class="panel show" id="p0">
-    <div class="notice-cards-label">預約注意事項</div>
-    <div class="notice-cards" id="noticeCards">
-      <div class="ncard">
-        <div class="nc-no">01</div>
-        <div class="nc-t">預約與定金</div>
-        <div class="nc-d">定金將於當天消費結帳時全額折抵 ♡ 此定金為預約保證，若爽約恕不退還。舊顧客免收定金，直接為您安排喔～</div>
-      </div>
-      <div class="ncard">
-        <div class="nc-no">02</div>
-        <div class="nc-t">準時與改期</div>
-        <div class="nc-d">遲到15分鐘以上、未到或24小時內「無故」臨時取消/改期，視同爽約，定金不予退還。</div>
-      </div>
-      <div class="ncard">
-        <div class="nc-no">03</div>
-        <div class="nc-t">作品拍攝</div>
-        <div class="nc-d">會拍攝臉部作品/服務過程作為作品集與社群分享，如不希望公開請於填資料時選「不同意」。</div>
-      </div>
-      <div class="ncard">
-        <div class="nc-no">04</div>
-        <div class="nc-t">貼心提醒</div>
-        <div class="nc-d">後續請勿安排緊湊行程；為維護操作品質，恕不便攜帶孩童與寵物。</div>
-      </div>
-    </div>
     <div class="ptitle" data-eb="Date">選擇預約日期</div>
     <div class="psub">亮起來的日子可預約，灰色為已滿約。</div>
     <div class="cal-head">
@@ -626,8 +585,8 @@
 
   <!-- 底部導覽列 -->
   <nav class="tabbar" id="tabbar">
-    <button class="tab on" id="tabBook"><span class="ti">❀</span><span>我要預約</span></button>
-    <button class="tab" id="tabInfo"><span class="ti">☰</span><span>品牌資訊</span></button>
+    <button class="tab on" id="tabBook"><span class="ti">🗓</span><span>我要預約</span></button>
+    <button class="tab" id="tabInfo"><span class="ti">🏠</span><span>品牌資訊</span></button>
   </nav>
 </div>
 
@@ -653,10 +612,8 @@ const CATEGORIES = [
     addons:[],
     note: "brow",
     picks:[
-      { id:"pk_brow", title:"質感霧眉", hint:"新做優惠 · 補色方案都在這裡", from:3000,
-        options:["br1","br1f","br1a","br1b","br1c"] },
-      { id:"pk_lip",  title:"蜜感霧唇", hint:"新做優惠 · 補色方案都在這裡", from:4000,
-        options:["br2","br2f","br2a","br2b","br2c"] },
+      { id:"pk_refill", title:"補色預約", hint:"三個月內免費補色 · 回娘家補色方案", from:0,
+        options:["br1f","br1a","br1b","br1c","br2f","br2a","br2b","br2c"] },
     ],
   },
   {
@@ -917,26 +874,36 @@ function openDay(ds, slots){
 $("backToCal").onclick=()=>show(0);
 $("p1next").onclick=()=>show(3);
 
-/* 紋繡補色說明區塊 */
+/* 紋繡：詳細說明改用外部連結，避免頁面過長 */
 function appendBrowInfo(body){
-  const info=document.createElement("div");
-  info.className="brow-info";
-  info.innerHTML=`
-    <div class="bi-block">
-      <div class="bi-h">🎁 三個月內・免費補色一次</div>
-      <p>質感霧眉、蜜感霧唇的新客，都贈送 <b>3 個月內免費補色一次</b>。這是讓顏色更飽和穩定的黃金期，請把握這次免費機會 ♡（預約前請先私訊老師確認資格）</p>
-    </div>
-    <div class="bi-block">
-      <div class="bi-h">💡 回娘家補色・時間越早越划算</div>
-      <p>半永久會隨新陳代謝自然變淡。趁還有底色時回來，只要微調補色就能恢復精緻感，省時也省荷包：</p>
-      <p>🎨 <b>質感霧眉</b>：第 4～12 個月 $3,000／第 1～2 年 原價 6 折／超過 2 年 原價 8 折</p>
-      <p>💋 <b>蜜感霧唇</b>：第 4～12 個月 $4,000／第 1～2 年 原價 6 折／超過 2 年 原價 8 折</p>
-    </div>
-    <div class="bi-block bi-warn">
-      <div class="bi-h">⚠️ 貼心小提醒</div>
-      <p>時間拖越久、顏色代謝越多，需要重新設計與打底，費用也會跟著調整。發現顏色變淡了，歡迎拍一張近照傳給老師評估，幫你看看該安排哪個補色方案最划算 ♡</p>
-    </div>`;
-  body.appendChild(info);
+  const a=document.createElement("a");
+  a.className="more-link";
+  a.href="https://melodious-horse-ad59b5.netlify.app/";
+  a.target="_blank"; a.rel="noopener";
+  a.textContent="了解霧眉・霧唇完整介紹與補色說明";
+  a.onclick=e=>e.stopPropagation();
+  body.appendChild(a);
+}
+
+/* 建立一張服務卡片 */
+function buildSvcCard(it,cat){
+  const d=document.createElement("div");
+  d.className="svc"+(it.combo?" combo":"")+(it.vip?" vip":"")+(it.free?" free":"")+(st.services.indexOf(it.key)>=0?" sel":"");
+  const grayTxt = [it.desc, it.durText].filter(Boolean).join(" ・ ");
+  const mtHtml = grayTxt ? `<div class="mt">${grayTxt}</div>` : "";
+  const subHtml = it.sub ? `<div class="sub-nm">${it.sub}</div>` : "";
+  const newBadge = it.neu ? `<span class="new-badge">NEW</span>` : "";
+  const giftHtml = it.gift ? `<div class="gift-line">${it.gift}<span class="gift-free">免費</span></div>` : "";
+  const durShow = it.dur ? (it.dur>=60 ? `⏱ ${Math.floor(it.dur/60)} 時${it.dur%60?` ${it.dur%60} 分`:""}` : `⏱ ${it.dur} 分`) : "";
+  const priceRow = it.vip ? `<span class="p-now">已儲值方案</span>`
+    : it.free ? `<span class="p-now free">新客贈送</span>`
+    : (it.orig ? `<span class="p-was">$${it.orig.toLocaleString()}</span><span class="p-now">$${it.price.toLocaleString()}</span>`
+               : `<span class="p-now">$${it.price.toLocaleString()}</span>`);
+  d.innerHTML=`<div class="sym">${(cat&&cat.icon)||"✿"}</div><div class="info"><div class="nm">${it.name}${newBadge}</div>${subHtml}${mtHtml}${giftHtml}<div class="meta">${durShow?`<span class="dur">${durShow}</span>`:""}<span class="prices">${priceRow}</span></div></div>`;
+  d.onclick=()=>{ const i=st.services.indexOf(it.key);
+    if(i>=0)st.services.splice(i,1); else st.services.push(it.key);
+    d.classList.toggle("sel"); afterServiceChange(); };
+  return d;
 }
 
 /* 大項目 → 跳出對話框選細項（同一大項目只能選一個）*/
@@ -998,8 +965,10 @@ function renderServices(){
     wrap.appendChild(head);
     if(!cat.locked){
       const body=document.createElement("div"); body.className="cat-body";
-      // 有大項目（picks）的類別：只顯示大卡片，細項用對話框選
+      // 有大項目（picks）的類別：先列出獨立項目，再列出大項目卡
       if(cat.picks){
+        const inPicks = new Set(); cat.picks.forEach(p=>p.options.forEach(k=>inPicks.add(k)));
+        cat.items.filter(it=>!inPicks.has(it.key)).forEach(it=>{ body.appendChild(buildSvcCard(it,cat)); });
         cat.picks.forEach(pk=>{
           const chosenKeys = pk.options.filter(k=>st.services.indexOf(k)>=0);
           const sum = chosenKeys.reduce((a,k)=>a+(ITEM_MAP[k]?ITEM_MAP[k].price:0),0);
@@ -1017,14 +986,12 @@ function renderServices(){
           const card=document.createElement("div");
           card.className="pickcard"+(chosenKeys.length?" sel":"");
           card.innerHTML=`
+            <div class="sym">${cat.icon||"✿"}</div>
             <div class="info">
               <div class="nm">${pk.title}</div>
               <div class="mt">${pk.hint}</div>
               ${pickedTxt?`<div class="picked">${pickedTxt}</div>`:""}
-            </div>
-            <div class="pkright">
-              <div class="pr">${prTxt}</div>
-              <div class="pkarrow">›</div>
+              ${chosenKeys.length?`<div class="meta"><span class="prices"><span class="p-now">${prTxt}</span></span></div>`:""}
             </div>`;
           card.onclick=()=>openVariantModal(pk);
           body.appendChild(card);
@@ -1037,34 +1004,11 @@ function renderServices(){
       }
       let lastGroup=null;
       cat.items.forEach(it=>{
-        // 群組標題（例如 質感霧眉 / 蜜感霧唇）
         if(it.group && it.group!==lastGroup){
           const g=document.createElement("div"); g.className="grp-title"; g.textContent=it.group;
           body.appendChild(g); lastGroup=it.group;
         }
-        const d=document.createElement("div");
-        d.className="svc"+(it.combo?" combo":"")+(it.vip?" vip":"")+(it.free?" free":"")+(st.services.indexOf(it.key)>=0?" sel":"");
-        // 灰色小字：服務說明 ・ 所需時間（兩者都可有可無）
-        const grayTxt = [it.desc, it.durText].filter(Boolean).join(" ・ ");
-        const mtHtml = grayTxt ? `<div class="mt">${grayTxt}</div>` : "";
-        const subHtml = it.sub ? `<div class="sub-nm">${it.sub}</div>` : "";
-        const newBadge = it.neu ? `<span class="new-badge">NEW</span>` : "";
-        const giftHtml = it.gift ? `<div class="gift-line">🎁 ${it.gift}<span class="gift-free">免費</span></div>` : "";
-        // VIP 已儲值方案：可勾選預約，金額顯示「已儲值」
-        const prHtml = it.vip ? `<span class="vip-pr">已儲值方案</span>`
-          : it.free ? `<span class="free-pr">新客贈送</span>`
-          : `NT$ ${it.price.toLocaleString()}`;
-        // 縮圖：有圖就用圖，沒圖顯示品牌色縮圖（取名稱第一個字）
-        const durShow = it.dur ? (it.dur>=60 ? `⏱ ${Math.floor(it.dur/60)} 時${it.dur%60?` ${it.dur%60} 分`:""}` : `⏱ ${it.dur} 分`) : "";
-        const priceRow = it.vip ? `<span class="p-now">已儲值方案</span>`
-          : it.free ? `<span class="p-now free">新客贈送</span>`
-          : (it.orig ? `<span class="p-was">💲${it.orig.toLocaleString()}</span><span class="p-now">💲${it.price.toLocaleString()}</span>`
-                     : `<span class="p-now">💲${it.price.toLocaleString()}</span>`);
-        d.innerHTML=`<div class="sym">${cat.icon||"✿"}</div><div class="info"><div class="nm">${it.name}${newBadge}</div>${subHtml}${mtHtml}${giftHtml}<div class="meta">${durShow?`<span class="dur">${durShow}</span>`:""}<span class="prices">${priceRow}</span></div></div>`;
-        d.onclick=()=>{ const i=st.services.indexOf(it.key);
-          if(i>=0)st.services.splice(i,1); else st.services.push(it.key);
-          d.classList.toggle("sel"); afterServiceChange(); };
-        body.appendChild(d);
+        body.appendChild(buildSvcCard(it,cat));
       });
       if(cat.note==="brow") appendBrowInfo(body);
       head.onclick=()=>{ wrap.classList.toggle("open"); };
