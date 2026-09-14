@@ -73,6 +73,10 @@
   .navbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--cream-soft);
     color:var(--taupe-deep);font-size:16px;cursor:pointer}
   .navbtn:disabled{opacity:.3;cursor:not-allowed}
+  .refreshbtn{display:block;margin:0 auto 14px;padding:7px 16px;border:1px solid var(--divider);
+    border-radius:20px;background:#fff;color:var(--muted);font:inherit;font-size:12px;cursor:pointer;
+    letter-spacing:.06em}
+  .refreshbtn:active{background:var(--brand-soft);color:var(--brand-deep)}
   .week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
   .week div{text-align:center;font-size:12px;color:var(--muted);padding:4px 0}
   .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
@@ -443,6 +447,7 @@
       <div class="mo" id="moLabel">—</div>
       <button class="navbtn" id="nextMo">›</button>
     </div>
+    <button class="refreshbtn" id="refreshCal">↻ 重新整理時段</button>
     <div class="week"><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div></div>
     <div class="grid" id="calGrid"></div>
     <div class="legend">
@@ -791,7 +796,7 @@ $("prevMo").onclick=()=>{ const now=new Date(today.getFullYear(),today.getMonth(
 $("nextMo").onclick=()=>{ const v=new Date(viewYM.y,viewYM.m+1,1); viewYM={y:v.getFullYear(),m:v.getMonth()}; loadMonth(); };
 
 const monthCache = {};   // 快取：ym字串 -> {data, at}，60秒內用快取、之後重抓最新
-const CACHE_TTL = 60000; // 快取有效 60 秒
+const CACHE_TTL = 15000; // 快取有效 15 秒
 function loadMonth(){
   $("moLabel").textContent = viewYM.y+" 年 "+(viewYM.m+1)+" 月";
   const atThisMonth = (viewYM.y===today.getFullYear() && viewYM.m===today.getMonth());
@@ -817,6 +822,14 @@ function loadMonth(){
   s.onerror=()=>{ cleanup(); if(!c){ monthData={}; renderCal(); } };
   document.body.appendChild(s);
 }
+/* 使用者切回這個頁面時，清掉快取重新抓最新（老師剛改完就看得到）*/
+document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden){
+    for(const k in monthCache) delete monthCache[k];
+    if(viewYM && $("p0").classList.contains("show")) loadMonth();
+  }
+});
+
 /* 背景預抓某月資料存進快取（不影響畫面）*/
 function prefetchMonth(y,m){
   const d=new Date(y,m,1);
@@ -845,7 +858,8 @@ function renderCal(){
     const dateObj=new Date(viewYM.y,viewYM.m,d);
     const ds=fmtDate(dateObj);
     const c=document.createElement("div");
-    const slots=monthData[ds]||[];
+    const rawSlots=monthData[ds]||[];
+    const slots=rawSlots.filter(t=>ALL_TIMES.indexOf(t)>=0); // 只算客人實際可點的時段
     const isPast = dateObj <= today;   // 今天（含）以前都不可預約，最早只能約明天
     const holiday = HOLIDAYS[ds]; // 國定假日名稱（若有）
     const openedThatDay = (ds in monthData);
@@ -867,6 +881,11 @@ function renderCal(){
     grid.appendChild(c);
   }
 }
+
+$("refreshCal").onclick=()=>{
+  for(const k in monthCache) delete monthCache[k];
+  loadMonth();
+};
 
 /* 選某天 → 進時段頁 */
 function openDay(ds, slots){
