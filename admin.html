@@ -205,7 +205,18 @@ $("save").onclick=()=>{
         ? "✓ 已儲存："+res.saved.join("、")
         : "✓ 已儲存：這天全部關閉（客人看不到任何時段）";
     }else{
-      $("msg").className="msg err"; $("msg").textContent="儲存失敗，請再試一次。";
+      // 後端還是舊版（沒重新部署）→ 自動改用舊方式存檔
+      const why = (res && res.error) ? ("（後端訊息："+res.error+"）") : "（後端沒有回應此功能，多半是 Apps Script 還沒重新部署）";
+      fetch(SCRIPT_URL,{ method:"POST", mode:"no-cors",
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify({ action:"saveSlots", date:elDate.value, slots:slots })
+      }).then(()=>{
+        $("msg").className="msg ok";
+        $("msg").textContent="已用備援方式送出儲存，請重選一次日期確認是否正確。"+why;
+      }).catch(()=>{
+        $("msg").className="msg err";
+        $("msg").textContent="儲存失敗 "+why;
+      });
     }
   };
   const sc=document.createElement("script"); sc.id=cb;
