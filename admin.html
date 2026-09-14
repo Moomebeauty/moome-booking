@@ -188,19 +188,34 @@ elDate.onchange=()=>{
 /* 儲存 */
 $("save").onclick=()=>{
   const btn=$("save"); btn.disabled=true; btn.textContent="儲存中…";
-  $("msg").textContent="";
-  fetch(SCRIPT_URL,{ method:"POST", mode:"no-cors",
-    headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({ action:"saveSlots", date:elDate.value,
-      slots:[...selected].sort() })
-  }).then(()=>{
-    $("msg").className="msg ok"; $("msg").textContent="✓ 已儲存！客人現在看到的就是這些時段。";
+  $("msg").textContent=""; $("msg").className="msg";
+  const slots=[...selected].sort();
+  const cb="saveCB_"+Date.now();
+  const timer=setTimeout(()=>{ cleanup();
+    $("msg").className="msg err"; $("msg").textContent="儲存逾時，請檢查網路後再試一次。";
+    btn.disabled=false; btn.textContent="儲存這天的開放時段"; },12000);
+  function cleanup(){ delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(timer); }
+  window[cb]=function(res){ cleanup();
     btn.disabled=false; btn.textContent="儲存這天的開放時段";
-  }).catch(()=>{
-    $("msg").className="msg err"; $("msg").textContent="儲存失敗，請檢查網路後再試。";
-    btn.disabled=false; btn.textContent="儲存這天的開放時段";
-  });
+    if(res && res.ok){
+      // 用後端回報的內容更新畫面，確保看到的就是真正存進去的
+      selected=new Set(res.saved||[]); refresh();
+      $("msg").className="msg ok";
+      $("msg").textContent = (res.saved&&res.saved.length)
+        ? "✓ 已儲存："+res.saved.join("、")
+        : "✓ 已儲存：這天全部關閉（客人看不到任何時段）";
+    }else{
+      $("msg").className="msg err"; $("msg").textContent="儲存失敗，請再試一次。";
+    }
+  };
+  const sc=document.createElement("script"); sc.id=cb;
+  sc.src=SCRIPT_URL+"?action=saveSlots&date="+encodeURIComponent(elDate.value)
+       +"&slots="+encodeURIComponent(slots.join(","))+"&callback="+cb;
+  sc.onerror=()=>{ cleanup(); $("msg").className="msg err"; $("msg").textContent="連線失敗，請檢查網路。";
+    btn.disabled=false; btn.textContent="儲存這天的開放時段"; };
+  document.body.appendChild(sc);
 };
+
 /* ===== 批次設定：平日/假日預設時段，一次套用未來 4 週 ===== */
 let bSelected = new Set(ALL_SLOTS);   // 批次目前選的時段
 let bMode = "weekday";                 // weekday 或 weekend
