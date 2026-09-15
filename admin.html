@@ -176,7 +176,11 @@ elDate.onchange=()=>{
   const timer=setTimeout(()=>{ cleanup(); refresh(); },6000);
   function cleanup(){ delete window[cb]; const s=$(cb); if(s)s.remove(); clearTimeout(timer); }
   window[cb]=function(res){ cleanup();
-    if(res&&res.slots){ res.slots.forEach(t=>selected.add(t)); }
+    if(res&&res.slots){
+      // 只接受合格時段，過濾掉試算表格式亂掉產生的垃圾
+      res.slots.filter(t=>/^\d{2}:\d{2}$/.test(t) && ALL_SLOTS.indexOf(t)>=0)
+               .forEach(t=>selected.add(t));
+    }
     refresh();
   };
   const s=document.createElement("script"); s.id=cb;
@@ -189,7 +193,7 @@ elDate.onchange=()=>{
 $("save").onclick=()=>{
   const btn=$("save"); btn.disabled=true; btn.textContent="儲存中…";
   $("msg").textContent=""; $("msg").className="msg";
-  const slots=[...selected].sort();
+  const slots=[...selected].filter(t=>ALL_SLOTS.indexOf(t)>=0).sort();
   const cb="saveCB_"+Date.now();
   const timer=setTimeout(()=>{ cleanup();
     $("msg").className="msg err"; $("msg").textContent="儲存逾時，請檢查網路後再試一次。";
@@ -199,7 +203,7 @@ $("save").onclick=()=>{
     btn.disabled=false; btn.textContent="儲存這天的開放時段";
     if(res && res.ok){
       // 用後端回報的內容更新畫面，確保看到的就是真正存進去的
-      selected=new Set(res.saved||[]); refresh();
+      selected=new Set((res.saved||[]).filter(t=>ALL_SLOTS.indexOf(t)>=0)); refresh();
       $("msg").className="msg ok";
       $("msg").textContent = (res.saved&&res.saved.length)
         ? "✓ 已儲存："+res.saved.join("、")
@@ -266,7 +270,7 @@ $("bapply").onclick=async ()=>{
   if(!startV || !endV){ $("bmsg").className="msg err"; $("bmsg").textContent="請先選開始日和結束日。"; return; }
   const start=new Date(startV+"T00:00:00"), end=new Date(endV+"T00:00:00");
   if(end<start){ $("bmsg").className="msg err"; $("bmsg").textContent="結束日不能早於開始日喔。"; return; }
-  const slots=[...bSelected].sort();
+  const slots=[...bSelected].filter(t=>ALL_SLOTS.indexOf(t)>=0).sort();
   // 找出範圍內符合平日/假日的日期
   const dates=[];
   for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
