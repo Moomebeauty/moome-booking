@@ -119,6 +119,8 @@
     <div class="count" id="count"></div>
     <button class="cta" id="save" disabled>儲存這天的開放時段</button>
     <div class="msg" id="msg"></div>
+    <button class="qbtn" id="verChk" style="display:block;margin:16px auto 0">🔍 檢查後端版本</button>
+    <div class="msg" id="verMsg"></div>
   </section>
 
   <footer>沐蜜 Moome · 開放時段管理</footer>
@@ -167,6 +169,26 @@ $("qHour").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>t.endsWith(":00"))
 $("qNone").onclick=()=>{ selected.clear(); refresh(); };
 $("qAM").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>parseInt(t)<12)); refresh(); };
 $("qPM").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>parseInt(t)>=12)); refresh(); };
+
+/* 檢查後端是否已更新（部署成功與否） */
+$("verChk").onclick=()=>{
+  $("verMsg").className="msg"; $("verMsg").textContent="檢查中…";
+  const cb="verCB_"+Date.now();
+  const t=setTimeout(()=>{ cleanupV(); $("verMsg").className="msg err"; $("verMsg").textContent="檢查逾時，請確認網路。"; },10000);
+  function cleanupV(){ delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(t); }
+  window[cb]=function(res){ cleanupV();
+    if(res && res.version==="v3-status"){
+      $("verMsg").className="msg ok"; $("verMsg").textContent="✓ 後端已是最新版（休假／進修功能可用）";
+    }else{
+      $("verMsg").className="msg err";
+      $("verMsg").textContent="✗ 後端仍是舊版 → 請到 Apps Script：部署 → 管理部署作業 → 鉛筆 → 版本選「新版本」→ 部署";
+    }
+  };
+  const sc=document.createElement("script"); sc.id=cb;
+  sc.src=SCRIPT_URL+"?action=version&callback="+cb;
+  sc.onerror=()=>{ cleanupV(); $("verMsg").className="msg err"; $("verMsg").textContent="連線失敗。"; };
+  document.body.appendChild(sc);
+};
 
 /* 這天的狀態（休假／進修） */
 let dayStatus = "";
@@ -243,7 +265,7 @@ $("save").onclick=()=>{
       const why = (res && res.error) ? ("（後端訊息："+res.error+"）") : "（後端沒有回應此功能，多半是 Apps Script 還沒重新部署）";
       fetch(SCRIPT_URL,{ method:"POST", mode:"no-cors",
         headers:{"Content-Type":"text/plain;charset=utf-8"},
-        body:JSON.stringify({ action:"saveSlots", date:elDate.value, slots:slots })
+        body:JSON.stringify({ action:"saveSlots", date:elDate.value, slots:slots, status:dayStatus })
       }).then(()=>{
         $("msg").className="msg ok";
         $("msg").textContent="已用備援方式送出儲存，請重選一次日期確認是否正確。"+why;
