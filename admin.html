@@ -22,6 +22,10 @@
   section{padding:24px 26px;border-top:1px solid var(--sand)}
   .tag2{font-family:"Noto Serif TC",serif;font-size:16px;font-weight:700;color:var(--ink);margin-bottom:10px}
   .batch{background:#faf5ec}
+  .daystat{display:flex;gap:9px;margin:4px 0 16px}
+  .dsbtn{flex:1;font:inherit;font-size:13.5px;padding:11px 6px;border:1px solid var(--line);border-radius:12px;
+    background:var(--cream-soft);color:var(--muted);cursor:pointer;transition:.18s;font-weight:600}
+  .dsbtn.on{background:var(--taupe);border-color:var(--taupe);color:var(--cream-soft)}
   .daytab{display:flex;gap:10px;margin:14px 0 14px}
   .rangebar{display:flex;gap:12px;margin:12px 0 4px}
   .rangebar .rb{flex:1}
@@ -98,6 +102,12 @@
     <input type="date" id="date" />
     <div class="holi-banner" id="holiBanner" style="display:none"></div>
     <div class="tip">點亮要開放的時段，再按下方儲存。客人只會看到你開放的時段。</div>
+    <label class="lbl">這天的狀態（客人月曆上會顯示）</label>
+    <div class="daystat" id="dayStat">
+      <button class="dsbtn on" data-s="">正常開放</button>
+      <button class="dsbtn" data-s="休假">休假</button>
+      <button class="dsbtn" data-s="進修">進修</button>
+    </div>
     <div class="quick">
       <button class="qbtn" id="qAll">全部開放</button>
       <button class="qbtn" id="qHour">只開整點</button>
@@ -158,12 +168,29 @@ $("qNone").onclick=()=>{ selected.clear(); refresh(); };
 $("qAM").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>parseInt(t)<12)); refresh(); };
 $("qPM").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>parseInt(t)>=12)); refresh(); };
 
+/* 這天的狀態（休假／進修） */
+let dayStatus = "";
+[].forEach.call(document.querySelectorAll("#dayStat .dsbtn"), function(b){
+  b.onclick=function(){
+    document.querySelectorAll("#dayStat .dsbtn").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    dayStatus = b.getAttribute("data-s") || "";
+    if(dayStatus){ selected.clear(); refresh(); }   // 休假／進修 → 不開放任何時段
+  };
+});
+function setStatusUI(v){
+  dayStatus = v || "";
+  document.querySelectorAll("#dayStat .dsbtn").forEach(x=>{
+    x.classList.toggle("on", (x.getAttribute("data-s")||"") === dayStatus);
+  });
+}
+
 /* 選日期 → 讀這天已設定的時段帶入 */
 const elDate=$("date");
 const today=new Date(); today.setHours(0,0,0,0);
 elDate.min=today.toISOString().split("T")[0];
 elDate.onchange=()=>{
-  $("msg").textContent=""; selected.clear(); refresh();
+  $("msg").textContent=""; selected.clear(); setStatusUI(""); refresh();
   if(!elDate.value)return;
   // 假日提示
   const holi=HOLIDAYS[elDate.value];
@@ -181,6 +208,7 @@ elDate.onchange=()=>{
       res.slots.filter(t=>/^\d{2}:\d{2}$/.test(t) && ALL_SLOTS.indexOf(t)>=0)
                .forEach(t=>selected.add(t));
     }
+    setStatusUI(res && res.status);
     refresh();
   };
   const s=document.createElement("script"); s.id=cb;
@@ -205,9 +233,11 @@ $("save").onclick=()=>{
       // 用後端回報的內容更新畫面，確保看到的就是真正存進去的
       selected=new Set((res.saved||[]).filter(t=>ALL_SLOTS.indexOf(t)>=0)); refresh();
       $("msg").className="msg ok";
-      $("msg").textContent = (res.saved&&res.saved.length)
-        ? "✓ 已儲存："+res.saved.join("、")
-        : "✓ 已儲存：這天全部關閉（客人看不到任何時段）";
+      $("msg").textContent = dayStatus
+        ? "✓ 已儲存：這天標示為「"+dayStatus+"」，客人月曆會顯示"
+        : ((res.saved&&res.saved.length)
+            ? "✓ 已儲存："+res.saved.join("、")
+            : "✓ 已儲存：這天全部關閉（客人看不到任何時段）");
     }else{
       // 後端還是舊版（沒重新部署）→ 自動改用舊方式存檔
       const why = (res && res.error) ? ("（後端訊息："+res.error+"）") : "（後端沒有回應此功能，多半是 Apps Script 還沒重新部署）";
@@ -225,7 +255,8 @@ $("save").onclick=()=>{
   };
   const sc=document.createElement("script"); sc.id=cb;
   sc.src=SCRIPT_URL+"?action=saveSlots&date="+encodeURIComponent(elDate.value)
-       +"&slots="+encodeURIComponent(slots.join(","))+"&callback="+cb;
+       +"&slots="+encodeURIComponent(slots.join(","))
+       +"&status="+encodeURIComponent(dayStatus)+"&callback="+cb;
   sc.onerror=()=>{ cleanup(); $("msg").className="msg err"; $("msg").textContent="連線失敗，請檢查網路。";
     btn.disabled=false; btn.textContent="儲存這天的開放時段"; };
   document.body.appendChild(sc);
