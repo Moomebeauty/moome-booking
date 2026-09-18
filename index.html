@@ -89,6 +89,8 @@
   .cell.full{background:#efe6dd;color:#c2b5a2;cursor:not-allowed}
   .cell.full .tagfull{font-size:9px;color:var(--warn);margin-top:1px}
   .cell.closed{color:#cdc1b0;cursor:default}
+  .cell.rest{background:#f2eee8;color:#a99a88;cursor:not-allowed}
+  .cell.rest .tagrest{font-size:9px;color:#8c7c6a;margin-top:1px;letter-spacing:.04em}
   .cell.sel{background:var(--taupe);border-color:var(--taupe);color:var(--cream-soft)}
   .cell.sel .tagfree{color:var(--cream-soft)}
   /* 國定假日：數字轉紅、底部紅點標示 */
@@ -105,6 +107,7 @@
   .lg.open{background:var(--cream-soft);border:1px solid var(--taupe)}
   .lg.full{background:#efe6dd}
   .lg.holi{background:#f5d9d2;border:1px solid #c0584a}
+  .lg.rest{background:#f2eee8;border:1px solid #cdbfae}
 
   /* 時段 */
   .daytitle{font-family:"Noto Serif TC",serif;font-size:16px;margin:6px 4px 12px;font-weight:600}
@@ -454,6 +457,7 @@
       <span><i class="lg open"></i>可預約</span>
       <span><i class="lg full"></i>已滿</span>
       <span><i class="lg holi"></i>國定假日</span>
+      <span><i class="lg rest"></i>休假／進修</span>
     </div>
   </div>
 
@@ -752,6 +756,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzc295CQtnGeGaAA-tuM
 const $=id=>document.getElementById(id);
 const st = { userId:null, name:"", phone:"", note:"", services:[], addons:[], date:null, time:null, people:1, photo:"同意公開" };
 let monthData = {};      // 當月：日期 -> 可預約時段
+let monthStatus = {};    // 當月：日期 -> 休假／進修
 // 全部時段：10:00 到 20:30，每 30 分一格（與 admin 一致）。沒開放/已約都顯示「已約」
 const ALL_TIMES = (function(){ const a=[]; for(let t=8*60;t<=20*60;t+=30){ const h=Math.floor(t/60),m=t%60; a.push((h<10?"0"+h:h)+":"+(m<10?"0"+m:m)); } return a; })();
 let viewYM = null;       // 目前顯示的年月
@@ -804,16 +809,17 @@ function loadMonth(){
   const ym = ymStr();
   // 快取存在且未過期 → 立即顯示；過期就重抓
   const c = monthCache[ym];
-  if(c && (Date.now()-c.at < CACHE_TTL)){ monthData = c.data; renderCal(); return; }
+  if(c && (Date.now()-c.at < CACHE_TTL)){ monthData = c.data; monthStatus = c.stat||{}; renderCal(); return; }
   // 未快取或已過期 → 若有舊快取先顯示（不卡頓），同時在背景抓最新
-  if(c){ monthData = c.data; renderCal(); }
+  if(c){ monthData = c.data; monthStatus = c.stat||{}; renderCal(); }
   else { $("calGrid").innerHTML=`<div class="loading" style="grid-column:1/-1">🌿 正在為您查看空檔時段，請稍候一下下～</div>`; }
   const cb="monthCB_"+Date.now();
   const timer=setTimeout(()=>{ cleanup(); if(!c){ monthData={}; renderCal(); } },7000);
   function cleanup(){ delete window[cb]; const s=$(cb); if(s)s.remove(); clearTimeout(timer); }
   window[cb]=function(res){ cleanup();
     monthData=(res&&res.month)?res.month:{};
-    monthCache[ym]={data:monthData, at:Date.now()};   // 存快取＋時間
+    monthStatus=(res&&res.status)?res.status:{};
+    monthCache[ym]={data:monthData, stat:monthStatus, at:Date.now()};   // 存快取＋時間
     if(ymStr()===ym) renderCal(); // 只有還停在同一月才繪製
     prefetchMonth(viewYM.y, viewYM.m+1); // 背景預抓下個月
   };
@@ -840,7 +846,7 @@ function prefetchMonth(y,m){
   function cleanup(){ delete window[cb]; const s=document.getElementById(cb); if(s)s.remove(); }
   const timer=setTimeout(cleanup,7000);
   window[cb]=function(res){ clearTimeout(timer); cleanup();
-    monthCache[ym]={data:(res&&res.month)?res.month:{}, at:Date.now()}; };
+    monthCache[ym]={data:(res&&res.month)?res.month:{}, stat:(res&&res.status)?res.status:{}, at:Date.now()}; };
   const s=document.createElement("script"); s.id=cb;
   s.src=SCRIPT_URL+"?action=getMonth&ym="+encodeURIComponent(ym)+"&callback="+cb;
   s.onerror=()=>{ clearTimeout(timer); cleanup(); };
@@ -862,15 +868,15 @@ function renderCal(){
     const slots=rawSlots.filter(t=>ALL_TIMES.indexOf(t)>=0); // 只算客人實際可點的時段
     const isPast = dateObj <= today;   // 今天（含）以前都不可預約，最早只能約明天
     const holiday = HOLIDAYS[ds]; // 國定假日名稱（若有）
+    const dayStat = monthStatus[ds] || "";   // 休假／進修
     const openedThatDay = (ds in monthData);
     const noSlotLeft = openedThatDay && slots.length===0;
-    if(isPast || !openedThatDay || noSlotLeft){
-      // 有開放過但已被約滿（或今天以前）→ 灰底「已滿」，不可點
-      if(openedThatDay){
-        c.className="cell full"; c.innerHTML=`${d}<span class="tagfull">已滿</span>`;
-      }else{
-        c.className="cell closed"; c.textContent=d;
-      }
+    if(dayStat){
+      // 老師標示的日程（休假／進修）
+      c.className="cell rest"; c.innerHTML=`${d}<span class="tagrest">${dayStat}</span>`;
+    }else if(isPast || !openedThatDay || noSlotLeft){
+      // 沒有空檔可約（約滿、沒開放、今天以前）→ 一律顯示「已滿」，不可點
+      c.className="cell full"; c.innerHTML=`${d}<span class="tagfull">已滿</span>`;
     }else{
       c.className="cell open"; c.innerHTML=`${d}<span class="tagfree">可約</span>`;
       c.onclick=()=>{ st.date=ds; st.time=null; openDay(ds, slots); };
