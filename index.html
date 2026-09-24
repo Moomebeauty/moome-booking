@@ -73,6 +73,7 @@
   .navbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--cream-soft);
     color:var(--taupe-deep);font-size:16px;cursor:pointer}
   .navbtn:disabled{opacity:.3;cursor:not-allowed}
+  .calerr{text-align:center;color:var(--muted);font-size:13.5px;line-height:1.9;padding:34px 16px}
   .refreshbtn{display:block;margin:0 auto 14px;padding:7px 16px;border:1px solid var(--divider);
     border-radius:20px;background:#fff;color:var(--muted);font:inherit;font-size:12px;cursor:pointer;
     letter-spacing:.06em}
@@ -807,34 +808,49 @@ function loadMonth(){
   const atThisMonth = (viewYM.y===today.getFullYear() && viewYM.m===today.getMonth());
   $("prevMo").disabled = atThisMonth;
   const ym = ymStr();
-  // 快取存在且未過期 → 立即顯示；過期就重抓
   const c = monthCache[ym];
-  if(c && (Date.now()-c.at < CACHE_TTL)){ monthData = c.data; monthStatus = c.stat||{}; renderCal(); return; }
-  // 未快取或已過期 → 若有舊快取先顯示（不卡頓），同時在背景抓最新
-  if(c){ monthData = c.data; monthStatus = c.stat||{}; renderCal(); }
+  // 快取還新鮮 → 直接顯示
+  if(c && (Date.now()-c.at < CACHE_TTL)){ monthData=c.data; monthStatus=c.stat||{}; renderCal(); return; }
+  // 有舊快取先顯示不卡頓；沒有就顯示讀取中
+  if(c){ monthData=c.data; monthStatus=c.stat||{}; renderCal(); }
   else { $("calGrid").innerHTML=`<div class="loading" style="grid-column:1/-1">🌿 正在為您查看空檔時段，請稍候一下下～</div>`; }
-  const cb="monthCB_"+Date.now();
-  const timer=setTimeout(()=>{ cleanup(); if(!c){ monthData={}; renderCal(); } },7000);
-  function cleanup(){ delete window[cb]; const s=$(cb); if(s)s.remove(); clearTimeout(timer); }
-  window[cb]=function(res){ cleanup();
-    monthData=(res&&res.month)?res.month:{};
-    monthStatus=(res&&res.status)?res.status:{};
-    monthCache[ym]={data:monthData, stat:monthStatus, at:Date.now()};   // 存快取＋時間
-    if(ymStr()===ym) renderCal(); // 只有還停在同一月才繪製
-    prefetchMonth(viewYM.y, viewYM.m+1); // 背景預抓下個月
-  };
-  const s=document.createElement("script"); s.id=cb;
-  s.src=SCRIPT_URL+"?action=getMonth&ym="+encodeURIComponent(ym)+"&callback="+cb;
-  s.onerror=()=>{ cleanup(); if(!c){ monthData={}; renderCal(); } };
-  document.body.appendChild(s);
+  fetchMonth(ym, 0, !!c);
 }
-/* 使用者切回這個頁面時，清掉快取重新抓最新（老師剛改完就看得到）*/
-document.addEventListener("visibilitychange",()=>{
-  if(!document.hidden){
-    for(const k in monthCache) delete monthCache[k];
-    if(viewYM && $("p0").classList.contains("show")) loadMonth();
+
+/* 抓某月資料：逾時 18 秒、失敗自動重試 2 次、失敗絕不寫入快取 */
+function fetchMonth(ym, attempt, hasOld){
+  const cb="monthCB_"+Date.now()+"_"+attempt;
+  let done=false;
+  const timer=setTimeout(()=>{ if(done)return; cleanup(); retryOrFail(); },18000);
+  function cleanup(){ done=true; delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(timer); }
+  function retryOrFail(){
+    if(attempt<2){ setTimeout(()=>fetchMonth(ym, attempt+1, hasOld), 900); }   // 再試
+    else if(!hasOld){ showCalError(); }                                        // 真的失敗才報錯
   }
-});
+  window[cb]=function(res){
+    if(done)return; cleanup();
+    // 只接受「確實帶回 month 資料」的回應，否則視為失敗（不會誤判成全部已滿）
+    if(!res || typeof res.month!=="object" || res.month===null){ retryOrFail(); return; }
+    monthData = res.month;
+    monthStatus = res.status || {};
+    monthCache[ym]={data:monthData, stat:monthStatus, at:Date.now()};
+    if(ymStr()===ym) renderCal();
+    prefetchMonth(viewYM.y, viewYM.m+1);
+  };
+  const el=document.createElement("script"); el.id=cb;
+  el.src=SCRIPT_URL+"?action=getMonth&ym="+encodeURIComponent(ym)+"&_t="+Date.now()+"&callback="+cb;
+  el.onerror=()=>{ if(done)return; cleanup(); retryOrFail(); };
+  document.body.appendChild(el);
+}
+
+/* 讀取失敗時，明確告知，不要讓畫面看起來像「全部已滿」*/
+function showCalError(){
+  $("calGrid").innerHTML=`<div class="calerr" style="grid-column:1/-1">
+    🌧 時段載入失敗了，可能是網路不穩<br>請按下方按鈕再試一次，或稍後重新開啟頁面
+    <button class="refreshbtn" id="retryCal" style="margin-top:12px">↻ 再試一次</button>
+  </div>`;
+  const b=$("retryCal"); if(b) b.onclick=()=>{ for(const k in monthCache) delete monthCache[k]; loadMonth(); };
+}
 
 /* 背景預抓某月資料存進快取（不影響畫面）*/
 function prefetchMonth(y,m){
@@ -846,7 +862,9 @@ function prefetchMonth(y,m){
   function cleanup(){ delete window[cb]; const s=document.getElementById(cb); if(s)s.remove(); }
   const timer=setTimeout(cleanup,7000);
   window[cb]=function(res){ clearTimeout(timer); cleanup();
-    monthCache[ym]={data:(res&&res.month)?res.month:{}, stat:(res&&res.status)?res.status:{}, at:Date.now()}; };
+    if(res && typeof res.month==="object" && res.month!==null){
+      monthCache[ym]={data:res.month, stat:res.status||{}, at:Date.now()};
+    } };
   const s=document.createElement("script"); s.id=cb;
   s.src=SCRIPT_URL+"?action=getMonth&ym="+encodeURIComponent(ym)+"&callback="+cb;
   s.onerror=()=>{ clearTimeout(timer); cleanup(); };
