@@ -177,7 +177,7 @@ $("verChk").onclick=()=>{
   const t=setTimeout(()=>{ cleanupV(); $("verMsg").className="msg err"; $("verMsg").textContent="檢查逾時，請確認網路。"; },10000);
   function cleanupV(){ delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(t); }
   window[cb]=function(res){ cleanupV();
-    if(res && res.version==="v3-status"){
+    if(res && res.version==="v5-stable"){
       $("verMsg").className="msg ok"; $("verMsg").textContent="✓ 後端已是最新版（休假／進修功能可用）";
     }else{
       $("verMsg").className="msg err";
