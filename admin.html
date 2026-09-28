@@ -20,6 +20,24 @@
   .sub{font-size:12.5px;color:var(--muted);margin-top:8px}
 
   section{padding:24px 26px;border-top:1px solid var(--sand)}
+  .bookings{background:#fff}
+  .bkfilter{display:flex;gap:8px;margin:12px 0 16px;flex-wrap:wrap}
+  .bkf{font:inherit;font-size:13px;padding:8px 15px;border:1px solid var(--line);border-radius:20px;
+    background:var(--cream-soft);color:var(--muted);cursor:pointer;transition:.18s}
+  .bkf.on{background:var(--taupe);border-color:var(--taupe);color:var(--cream-soft)}
+  .bkf.reload{margin-left:auto;padding:8px 13px}
+  .bklist{display:flex;flex-direction:column;gap:10px}
+  .bkcard{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--cream-soft)}
+  .bkcard.today{border-color:var(--taupe);background:#fff;box-shadow:0 2px 10px rgba(140,124,106,.1)}
+  .bk-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
+  .bk-when{font-size:15px;font-weight:700;color:var(--ink)}
+  .bk-badge{font-size:11px;padding:2px 9px;border-radius:5px;background:var(--taupe);color:#fff;white-space:nowrap}
+  .bk-name{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:3px}
+  .bk-svc{font-size:12.5px;color:var(--muted);line-height:1.6}
+  .bk-note{font-size:12.5px;color:#b0563f;margin-top:5px}
+  .bk-tel{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .bk-tel a{color:var(--taupe-deep);text-decoration:none;font-weight:600}
+  .bkempty{text-align:center;color:var(--muted);font-size:13.5px;padding:26px 10px}
   .tag2{font-family:"Noto Serif TC",serif;font-size:16px;font-weight:700;color:var(--ink);margin-bottom:10px}
   .batch{background:#faf5ec}
   .daystat{display:flex;gap:9px;margin:4px 0 16px}
@@ -71,6 +89,17 @@
     <div class="tag">開放時段設定</div>
     <div class="sub">這是老師專用頁面，請勿給客人</div>
   </header>
+
+  <section class="bookings">
+    <div class="tag2">📋 我的預約</div>
+    <div class="bkfilter">
+      <button class="bkf on" data-r="today">今天</button>
+      <button class="bkf" data-r="week">未來 7 天</button>
+      <button class="bkf" data-r="all">全部</button>
+      <button class="bkf reload" id="bkReload">↻</button>
+    </div>
+    <div id="bkList" class="bklist"><div class="bkempty">讀取中…</div></div>
+  </section>
 
   <section class="batch">
     <div class="tag2">🚀 批次設定（一次排一段期間）</div>
@@ -170,6 +199,60 @@ $("qNone").onclick=()=>{ selected.clear(); refresh(); };
 $("qAM").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>parseInt(t)<12)); refresh(); };
 $("qPM").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>parseInt(t)>=12)); refresh(); };
 
+/* ===== 預約一覽表 ===== */
+let bkData = null, bkRange = "today";
+function ymdLocal(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function loadBookings(){
+  $("bkList").innerHTML='<div class="bkempty">讀取中…</div>';
+  const cb="bkCB_"+Date.now();
+  const t=setTimeout(()=>{ cleanupB(); $("bkList").innerHTML='<div class="bkempty">讀取失敗，請按 ↻ 再試一次</div>'; },18000);
+  function cleanupB(){ delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(t); }
+  window[cb]=function(res){ cleanupB();
+    if(res && res.ok && Array.isArray(res.bookings)){ bkData=res.bookings; drawBookings(); }
+    else { $("bkList").innerHTML='<div class="bkempty">讀取失敗，請確認後端是否已重新部署</div>'; }
+  };
+  const sc=document.createElement("script"); sc.id=cb;
+  sc.src=SCRIPT_URL+"?action=getBookings&days=120&_t="+Date.now()+"&callback="+cb;
+  sc.onerror=()=>{ cleanupB(); $("bkList").innerHTML='<div class="bkempty">連線失敗，請檢查網路</div>'; };
+  document.body.appendChild(sc);
+}
+function drawBookings(){
+  if(!bkData){ return; }
+  const today=ymdLocal(new Date());
+  const d7=new Date(); d7.setDate(d7.getDate()+7);
+  const to7=ymdLocal(d7);
+  let list=bkData;
+  if(bkRange==="today") list=bkData.filter(b=>b.date===today);
+  else if(bkRange==="week") list=bkData.filter(b=>b.date>=today && b.date<=to7);
+  if(!list.length){
+    $("bkList").innerHTML='<div class="bkempty">'+(bkRange==="today"?"今天沒有預約 ☕":"這段期間沒有預約")+'</div>';
+    return;
+  }
+  const wd=["日","一","二","三","四","五","六"];
+  $("bkList").innerHTML = list.map(b=>{
+    const w=wd[new Date(b.date+"T00:00:00").getDay()];
+    const isToday = b.date===today;
+    return `<div class="bkcard${isToday?" today":""}">
+      <div class="bk-top">
+        <span class="bk-when">${b.date.substring(5)}（${w}）${b.time}</span>
+        ${isToday?'<span class="bk-badge">今天</span>':''}
+      </div>
+      <div class="bk-name">${b.name||"（未填姓名）"}</div>
+      <div class="bk-svc">${b.service||""}</div>
+      ${b.phone?`<div class="bk-tel">📞 <a href="tel:${b.phone}">${b.phone}</a></div>`:""}
+      ${b.note?`<div class="bk-note">📝 ${b.note}</div>`:""}
+    </div>`;
+  }).join("");
+}
+[].forEach.call(document.querySelectorAll(".bkf[data-r]"), function(b){
+  b.onclick=function(){
+    document.querySelectorAll(".bkf[data-r]").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); bkRange=b.getAttribute("data-r"); drawBookings();
+  };
+});
+$("bkReload").onclick=loadBookings;
+loadBookings();
+
 /* 檢查後端是否已更新（部署成功與否） */
 $("verChk").onclick=()=>{
   $("verMsg").className="msg"; $("verMsg").textContent="檢查中…";
@@ -177,7 +260,7 @@ $("verChk").onclick=()=>{
   const t=setTimeout(()=>{ cleanupV(); $("verMsg").className="msg err"; $("verMsg").textContent="檢查逾時，請確認網路。"; },10000);
   function cleanupV(){ delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(t); }
   window[cb]=function(res){ cleanupV();
-    if(res && res.version==="v5-stable"){
+    if(res && res.version==="v6-bookings"){
       $("verMsg").className="msg ok"; $("verMsg").textContent="✓ 後端已是最新版（休假／進修功能可用）";
     }else{
       $("verMsg").className="msg err";
