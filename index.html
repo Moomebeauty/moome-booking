@@ -639,7 +639,8 @@
 /* ===== 服務分類資料 =====
    每個類別：title 類別名、locked 是否暫不開放、items 主項目、addons 該類加購
    主項目 dur=擋日曆分鐘數、durText=顯示文字；加購 addonMin=每項加的分鐘 */
-const CATEGORIES = [
+let CATEGORIES = [   // 內建備援：後端讀不到時使用
+
   {
     id:"brow", title:"精緻紋繡", en:"Brows & Lips", icon:"❀", locked:false,
     items:[
@@ -1006,7 +1007,7 @@ function buildSvcCard(it,cat){
   const grayTxt = [it.desc, it.durText].filter(Boolean).join(" ・ ");
   const mtHtml = grayTxt ? `<div class="mt">${grayTxt}</div>` : "";
   const subHtml = it.sub ? `<div class="sub-nm">${it.sub}</div>` : "";
-  const newBadge = "";
+  const newBadge = it.tag ? `<span class="new-badge">${it.tag}</span>` : "";
   const giftHtml = it.gift ? `<div class="gift-line">${it.gift}<span class="gift-free">免費</span></div>` : "";
   const durShow = it.dur ? (it.dur>=60 ? `⏱ ${Math.floor(it.dur/60)} 時${it.dur%60?` ${it.dur%60} 分`:""}` : `⏱ ${it.dur} 分`) : "";
   const priceRow = it.vip ? `<span class="p-now">已儲值方案</span>`
@@ -1197,6 +1198,29 @@ function refreshAddonTotal(){
 function gotoCalendar(){ updateTotal(); show(0); if(!viewYM) initMonth(); else loadMonth(); }
 
 renderServices();
+/* 從後端讀取服務設定（老師在管理頁編輯的內容），讀不到就沿用內建備援 */
+(function loadServicesFromBackend(){
+  const cb="svcCB_"+Date.now();
+  const t=setTimeout(()=>{ cl(); },18000);
+  function cl(){ delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(t); }
+  window[cb]=function(res){ cl();
+    if(res && res.ok && Array.isArray(res.categories) && res.categories.length){
+      CATEGORIES = res.categories;
+      // 重建查表
+      for(const k in ITEM_MAP) delete ITEM_MAP[k];
+      CATEGORIES.forEach(c=>{
+        (c.items||[]).forEach(it=>{ ITEM_MAP[it.key]=Object.assign({},it,{type:"main",catId:c.id}); });
+        (c.addons||[]).forEach(ad=>{ ITEM_MAP[ad.key]=Object.assign({},ad,{type:"addon",catId:c.id,dur:ad.dur||ADDON_MIN}); });
+      });
+      st.services=[]; st.addons=[];
+      renderServices(); updateTotal();
+    }
+  };
+  const sc=document.createElement("script"); sc.id=cb;
+  sc.src=SCRIPT_URL+"?action=getServices&_t="+Date.now()+"&callback="+cb;
+  sc.onerror=()=>cl();
+  document.body.appendChild(sc);
+})();
 $("p2next").onclick=()=>{ gotoCalendar(); };
 $("addonConfirm").onclick=()=>{ $("addonModal").style.display="none"; gotoCalendar(); };
 $("addonSkip").onclick=()=>{ st.addons=[]; $("addonModal").style.display="none"; gotoCalendar(); };
