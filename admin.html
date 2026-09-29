@@ -20,7 +20,6 @@
   .sub{font-size:12.5px;color:var(--muted);margin-top:8px}
 
   section{padding:24px 26px;border-top:1px solid var(--sand)}
-  .svcmgr{background:#fff}
   .svclist{display:flex;flex-direction:column;gap:9px;margin-top:16px}
   .svcgrp{font-size:13px;font-weight:700;color:var(--taupe-deep);letter-spacing:.1em;
     margin:12px 2px 2px;padding-bottom:7px;border-bottom:1px solid var(--line)}
@@ -52,7 +51,6 @@
   .svcbody input,.svcbody textarea,.svcbody select{width:100%;font:inherit;padding:12px 13px;
     border:1px solid var(--line);border-radius:11px;background:var(--cream-soft);color:var(--ink)}
   .svcbody textarea{resize:vertical;line-height:1.6}
-  .bookings{background:#fff}
   .bkfilter{display:flex;gap:8px;margin:12px 0 16px;flex-wrap:wrap}
   .bkf{font:inherit;font-size:13px;padding:8px 15px;border:1px solid var(--line);border-radius:20px;
     background:var(--cream-soft);color:var(--muted);cursor:pointer;transition:.18s}
@@ -121,73 +119,6 @@
     <div class="tag">開放時段設定</div>
     <div class="sub">這是老師專用頁面，請勿給客人</div>
   </header>
-
-  <section class="bookings">
-    <div class="tag2">📋 我的預約</div>
-    <div class="bkfilter">
-      <button class="bkf on" data-r="today">今天</button>
-      <button class="bkf" data-r="week">未來 7 天</button>
-      <button class="bkf" data-r="all">全部</button>
-      <button class="bkf reload" id="bkReload">↻</button>
-    </div>
-    <div id="bkList" class="bklist"><div class="bkempty">讀取中…</div></div>
-  </section>
-
-  <section class="svcmgr">
-    <div class="tag2">🛠 服務管理</div>
-    <div class="tip">在這裡新增、編輯、刪除服務，客人的預約頁會自動更新，不用改程式。</div>
-    <button class="cta" id="svcNew" style="margin-top:4px">＋ 新增服務</button>
-    <div id="svcList" class="svclist"><div class="bkempty">讀取中…</div></div>
-  </section>
-
-  <!-- 編輯服務 -->
-  <div class="svcmask" id="svcModal" style="display:none">
-    <div class="svccard">
-      <div class="svchead">編輯服務<button class="svcx" id="svcClose">✕</button></div>
-      <div class="svcbody">
-        <label class="lbl">名稱 <span class="req">必填</span></label>
-        <input type="text" id="fName" placeholder="例如：質感霧眉" />
-        <div class="frow">
-          <div><label class="lbl">時長（分鐘）</label><input type="number" id="fDur" placeholder="120" /></div>
-          <div><label class="lbl">價格</label><input type="number" id="fPrice" placeholder="6800" /></div>
-        </div>
-        <label class="lbl">原價（選填，有優惠才填）</label>
-        <input type="number" id="fOrig" placeholder="8800" />
-
-        <div class="fsec">更多設定（選填，之後再補也可以）</div>
-        <label class="lbl">介紹</label>
-        <textarea id="fDesc" rows="2" placeholder="一句話說明這個服務能帶來什麼"></textarea>
-        <label class="lbl">服務須知</label>
-        <textarea id="fNotice" rows="2" placeholder="例如：施作前請勿飲酒、需卸妝"></textarea>
-
-        <div class="fsec">分類與標籤</div>
-        <label class="lbl">分類（主目錄）</label>
-        <input type="text" id="fCat" list="catList" placeholder="例如：精緻紋繡" />
-        <datalist id="catList"></datalist>
-        <label class="lbl">分類英文（選填）</label>
-        <input type="text" id="fEn" placeholder="Brows &amp; Lips" />
-        <label class="lbl">標籤（選填）</label>
-        <input type="text" id="fTag" placeholder="熱門、NEW、限時優惠" />
-
-        <div class="fsec">類型與排序</div>
-        <label class="lbl">這是什麼</label>
-        <div class="daystat" id="fType">
-          <button class="dsbtn on" data-t="服務">主服務</button>
-          <button class="dsbtn" data-t="加購">加購項目</button>
-        </div>
-        <div class="frow">
-          <div><label class="lbl">排序（小的在前）</label><input type="number" id="fSort" placeholder="1" /></div>
-          <div><label class="lbl">是否顯示</label>
-            <select id="fShow"><option value="Y">顯示</option><option value="N">隱藏</option></select></div>
-        </div>
-      </div>
-      <div class="svcfoot">
-        <button class="navbtn2 del" id="svcDel">刪除</button>
-        <button class="cta" id="svcSave" style="margin:0;flex:1">儲存</button>
-      </div>
-      <div class="msg" id="svcMsg"></div>
-    </div>
-  </div>
 
   <section class="batch">
     <div class="tag2">🚀 批次設定（一次排一段期間）</div>
@@ -286,174 +217,6 @@ $("qHour").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>t.endsWith(":00"))
 $("qNone").onclick=()=>{ selected.clear(); refresh(); };
 $("qAM").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>parseInt(t)<12)); refresh(); };
 $("qPM").onclick=()=>{ selected=new Set(ALL_SLOTS.filter(t=>parseInt(t)>=12)); refresh(); };
-
-/* ===== 服務管理 ===== */
-let svcCats=[], editingId=null, fType="服務";
-function jsonp(params, ok, fail){
-  const cb="jp_"+Date.now()+"_"+Math.floor(Math.random()*9999);
-  const t=setTimeout(()=>{ cl(); fail&&fail("timeout"); },18000);
-  function cl(){ delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(t); }
-  window[cb]=function(res){ cl(); ok(res); };
-  const sc=document.createElement("script"); sc.id=cb;
-  sc.src=SCRIPT_URL+"?"+params+"&_t="+Date.now()+"&callback="+cb;
-  sc.onerror=()=>{ cl(); fail&&fail("error"); };
-  document.body.appendChild(sc);
-}
-function loadServices(){
-  $("svcList").innerHTML='<div class="bkempty">讀取中…</div>';
-  jsonp("action=getServices", res=>{
-    if(res&&res.ok&&Array.isArray(res.categories)){ svcCats=res.categories; drawServices(); }
-    else $("svcList").innerHTML='<div class="bkempty">讀取失敗，請確認後端已重新部署</div>';
-  }, ()=>{ $("svcList").innerHTML='<div class="bkempty">讀取失敗，請按新增或重整再試</div>'; });
-}
-function drawServices(){
-  if(!svcCats.length){
-    $("svcList").innerHTML='<div class="bkempty">還沒有服務項目，按上面「＋ 新增服務」開始建立</div>';
-    updateCatList(); return;
-  }
-  let html="";
-  svcCats.forEach(c=>{
-    html+='<div class="svcgrp">'+c.title+(c.en?'｜'+c.en:'')+'</div>';
-    c.items.concat(c.addons.map(a=>Object.assign({},a,{_add:true}))).forEach(it=>{
-      const dur = it.dur? Math.floor(it.dur/60)+" 時"+(it.dur%60?" "+(it.dur%60)+" 分":"") : "";
-      html+='<div class="svcrow" data-id="'+it.key+'" data-cat="'+c.title+'" data-en="'+(c.en||"")+'" data-add="'+(it._add?1:0)+'">'
-        +'<div class="sr-l"><div class="sr-n">'+it.name
-        +(it.tag?'<span class="sr-tag">'+it.tag+'</span>':'')
-        +(it._add?'<span class="sr-add">加購</span>':'')+'</div>'
-        +'<div class="sr-m">'+[dur,it.desc].filter(Boolean).join(" ・ ")+'</div></div>'
-        +'<div class="sr-p">$'+(it.price||0).toLocaleString()+'</div></div>';
-    });
-  });
-  $("svcList").innerHTML=html;
-  document.querySelectorAll(".svcrow").forEach(r=>{
-    r.onclick=()=>{
-      const id=r.getAttribute("data-id");
-      let found=null, fc=null, isAdd=r.getAttribute("data-add")==="1";
-      svcCats.forEach(c=>{ (isAdd?c.addons:c.items).forEach(x=>{ if(x.key===id){found=x;fc=c;} }); });
-      if(found) openSvcModal(found, fc, isAdd);
-    };
-  });
-  updateCatList();
-}
-function updateCatList(){
-  $("catList").innerHTML = svcCats.map(c=>'<option value="'+c.title+'">').join("");
-}
-function setType(t){
-  fType=t;
-  document.querySelectorAll("#fType .dsbtn").forEach(b=>b.classList.toggle("on", b.getAttribute("data-t")===t));
-}
-document.querySelectorAll("#fType .dsbtn").forEach(b=>{ b.onclick=()=>setType(b.getAttribute("data-t")); });
-
-function openSvcModal(it, cat, isAdd){
-  editingId = it ? it.key : null;
-  $("fName").value = it?it.name:"";
-  $("fDur").value  = it&&it.dur?it.dur:"";
-  $("fPrice").value= it&&it.price?it.price:"";
-  $("fOrig").value = it&&it.orig?it.orig:"";
-  $("fDesc").value = it?(it.desc||""):"";
-  $("fNotice").value=it?(it.notice||""):"";
-  $("fCat").value  = cat?cat.title:"";
-  $("fEn").value   = cat?(cat.en||""):"";
-  $("fTag").value  = it?(it.tag||""):"";
-  $("fSort").value = it&&it.sort?it.sort:"";
-  $("fShow").value = "Y";
-  setType(isAdd?"加購":"服務");
-  $("svcDel").style.display = it ? "block" : "none";
-  $("svcMsg").textContent="";
-  $("svcModal").style.display="flex";
-}
-$("svcNew").onclick=()=>openSvcModal(null,null,false);
-$("svcClose").onclick=()=>{ $("svcModal").style.display="none"; };
-
-$("svcSave").onclick=()=>{
-  const name=$("fName").value.trim();
-  if(!name){ $("svcMsg").className="msg err"; $("svcMsg").textContent="請填寫名稱"; return; }
-  if(!$("fCat").value.trim()){ $("svcMsg").className="msg err"; $("svcMsg").textContent="請填寫分類"; return; }
-  $("svcMsg").className="msg"; $("svcMsg").textContent="儲存中…";
-  const p="action=svcSave"
-    +"&id="+encodeURIComponent(editingId||"")
-    +"&cat="+encodeURIComponent($("fCat").value.trim())
-    +"&en="+encodeURIComponent($("fEn").value.trim())
-    +"&type="+encodeURIComponent(fType)
-    +"&name="+encodeURIComponent(name)
-    +"&dur="+encodeURIComponent($("fDur").value||0)
-    +"&price="+encodeURIComponent($("fPrice").value||0)
-    +"&orig="+encodeURIComponent($("fOrig").value||0)
-    +"&desc="+encodeURIComponent($("fDesc").value.trim())
-    +"&notice="+encodeURIComponent($("fNotice").value.trim())
-    +"&tag="+encodeURIComponent($("fTag").value.trim())
-    +"&sort="+encodeURIComponent($("fSort").value||0)
-    +"&show="+encodeURIComponent($("fShow").value);
-  jsonp(p, res=>{
-    if(res&&res.ok){ $("svcModal").style.display="none"; loadServices(); }
-    else { $("svcMsg").className="msg err"; $("svcMsg").textContent="儲存失敗，請確認後端已重新部署"; }
-  }, ()=>{ $("svcMsg").className="msg err"; $("svcMsg").textContent="連線逾時，請再試一次"; });
-};
-
-$("svcDel").onclick=()=>{
-  if(!editingId)return;
-  if(!confirm("確定要刪除這個服務嗎？刪除後客人就看不到了。"))return;
-  $("svcMsg").className="msg"; $("svcMsg").textContent="刪除中…";
-  jsonp("action=svcDelete&id="+encodeURIComponent(editingId), res=>{
-    if(res&&res.ok){ $("svcModal").style.display="none"; loadServices(); }
-    else { $("svcMsg").className="msg err"; $("svcMsg").textContent="刪除失敗"; }
-  }, ()=>{ $("svcMsg").className="msg err"; $("svcMsg").textContent="連線逾時"; });
-};
-loadServices();
-
-/* ===== 預約一覽表 ===== */
-let bkData = null, bkRange = "today";
-function ymdLocal(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function loadBookings(){
-  $("bkList").innerHTML='<div class="bkempty">讀取中…</div>';
-  const cb="bkCB_"+Date.now();
-  const t=setTimeout(()=>{ cleanupB(); $("bkList").innerHTML='<div class="bkempty">讀取失敗，請按 ↻ 再試一次</div>'; },18000);
-  function cleanupB(){ delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(t); }
-  window[cb]=function(res){ cleanupB();
-    if(res && res.ok && Array.isArray(res.bookings)){ bkData=res.bookings; drawBookings(); }
-    else { $("bkList").innerHTML='<div class="bkempty">讀取失敗，請確認後端是否已重新部署</div>'; }
-  };
-  const sc=document.createElement("script"); sc.id=cb;
-  sc.src=SCRIPT_URL+"?action=getBookings&days=120&_t="+Date.now()+"&callback="+cb;
-  sc.onerror=()=>{ cleanupB(); $("bkList").innerHTML='<div class="bkempty">連線失敗，請檢查網路</div>'; };
-  document.body.appendChild(sc);
-}
-function drawBookings(){
-  if(!bkData){ return; }
-  const today=ymdLocal(new Date());
-  const d7=new Date(); d7.setDate(d7.getDate()+7);
-  const to7=ymdLocal(d7);
-  let list=bkData;
-  if(bkRange==="today") list=bkData.filter(b=>b.date===today);
-  else if(bkRange==="week") list=bkData.filter(b=>b.date>=today && b.date<=to7);
-  if(!list.length){
-    $("bkList").innerHTML='<div class="bkempty">'+(bkRange==="today"?"今天沒有預約 ☕":"這段期間沒有預約")+'</div>';
-    return;
-  }
-  const wd=["日","一","二","三","四","五","六"];
-  $("bkList").innerHTML = list.map(b=>{
-    const w=wd[new Date(b.date+"T00:00:00").getDay()];
-    const isToday = b.date===today;
-    return `<div class="bkcard${isToday?" today":""}">
-      <div class="bk-top">
-        <span class="bk-when">${b.date.substring(5)}（${w}）${b.time}</span>
-        ${isToday?'<span class="bk-badge">今天</span>':''}
-      </div>
-      <div class="bk-name">${b.name||"（未填姓名）"}</div>
-      <div class="bk-svc">${b.service||""}</div>
-      ${b.phone?`<div class="bk-tel">📞 <a href="tel:${b.phone}">${b.phone}</a></div>`:""}
-      ${b.note?`<div class="bk-note">📝 ${b.note}</div>`:""}
-    </div>`;
-  }).join("");
-}
-[].forEach.call(document.querySelectorAll(".bkf[data-r]"), function(b){
-  b.onclick=function(){
-    document.querySelectorAll(".bkf[data-r]").forEach(x=>x.classList.remove("on"));
-    b.classList.add("on"); bkRange=b.getAttribute("data-r"); drawBookings();
-  };
-});
-$("bkReload").onclick=loadBookings;
-loadBookings();
 
 /* 檢查後端是否已更新（部署成功與否） */
 $("verChk").onclick=()=>{
