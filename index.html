@@ -1373,16 +1373,24 @@ function fillSummary(){
   if(st.note){ $("sNoteRow").style.display="flex"; $("sNote").textContent=st.note; }
   else { $("sNoteRow").style.display="none"; }
   $("sPhoto").textContent = st.photo;
+  /* ★ 防呆：進到確認頁時，產生這筆預約的唯一編號；之後不管重試幾次都用同一個 */
+  st.bookingId = "bk_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10);
+  st.submitted = false;   // 這筆有沒有送出過
 }
-$("submit").onclick=()=>{
+/* 防止連點：改用 ontouchstart + onclick 雙保險；一但送出過就完全鎖死按鈕 */
+let submitLock = false;
+function doSubmit(){
+  if(submitLock || st.submitted) return;   // 已經在送 or 已送過 → 直接忽略
+  submitLock = true;
   const btn=$("submit"); btn.disabled=true; btn.textContent="送出中…";
   fetch(SCRIPT_URL,{ method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({ name:st.name, phone:st.phone,
+    body:JSON.stringify({ bookingId:st.bookingId, name:st.name, phone:st.phone,
       service:svcNames() + (st.people>1 ? "（" + st.people + " 位）" : ""),
       people:st.people||1,
       date:st.date, time:st.time, dur:totalDur(), price:totalPrice(),
       note:(st.note ? st.note+"｜" : "")+"作品照："+st.photo, userId:st.userId||"" })
   }).catch(()=>{});
+  st.submitted = true;
   // 清掉這個月的快取，下次切回會重新抓到最新（被約走的時段會消失）
   if(st.date){ const ymk=st.date.substring(0,7); delete monthCache[ymk]; }
   const wd=["日","一","二","三","四","五","六"][new Date(st.date+"T00:00:00").getDay()];
@@ -1390,7 +1398,10 @@ $("submit").onclick=()=>{
   $("gcalBtn").href = buildGcalLink();
   btn.style.display="none"; $("done").style.display="block";
   $("done").scrollIntoView({behavior:"smooth",block:"center"});
-};
+}
+/* 綁兩種事件來源：mobile 快速連點 touchstart 比 click 更早觸發，先在這裡擋下 */
+$("submit").addEventListener("click", doSubmit);
+$("submit").addEventListener("touchstart", function(ev){ ev.preventDefault(); doSubmit(); }, {passive:false});
 
 /* 建立「加入 Google 日曆」連結 */
 function buildGcalLink(){
@@ -1489,8 +1500,8 @@ $("admBack").onclick=()=>hideAdmin();
     const t=setTimeout(()=>{ cleanupV(); $("admVerMsg").className="adm-msg err"; $("admVerMsg").textContent="檢查逾時，請確認網路。"; },10000);
     function cleanupV(){ delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(t); }
     window[cb]=function(res){ cleanupV();
-      if(res && res.version==="v10-adminlock"){
-        $("admVerMsg").className="adm-msg ok"; $("admVerMsg").textContent="✓ 後端已是最新版（一頁式老師模式＋身分驗證 可用）";
+      if(res && res.version==="v11-dedup"){
+        $("admVerMsg").className="adm-msg ok"; $("admVerMsg").textContent="✓ 後端已是最新版（含防呆去重機制）";
       }else{
         $("admVerMsg").className="adm-msg err";
         $("admVerMsg").textContent="✗ 後端仍是舊版 → 請到 Apps Script：部署 → 管理部署作業 → 鉛筆 → 版本選「新版本」→ 部署";
