@@ -390,6 +390,30 @@
   footer{position:relative;z-index:1;padding:34px 28px 48px;text-align:center;color:var(--muted);font-size:11px;letter-spacing:.34em;border-top:1px solid rgba(140,124,106,.12)}
   @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 
+  /* ===== 我的預約 ===== */
+  .mine-card{background:#fff;border:1px solid var(--brand);border-radius:18px;padding:18px 18px 16px;margin:0 4px 16px}
+  .mine-when{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+  .mine-date{font-size:18px;font-weight:700;color:var(--ink)}
+  .mine-wk{font-size:13px;color:var(--brand-deep);letter-spacing:.08em}
+  .mine-time{margin-left:auto;font-size:18px;font-weight:700;color:var(--brand)}
+  .mine-svc{font-size:13.5px;color:var(--ink);line-height:1.7}
+  .mine-meta{font-size:12px;color:var(--muted);margin-top:3px}
+  .mine-btns{display:flex;gap:10px;margin-top:14px}
+  .mine-btn{flex:1;font:inherit;font-size:14px;font-weight:600;padding:12px 6px;border-radius:22px;cursor:pointer;
+    border:1px solid var(--brand);background:#fff;color:var(--brand-deep);letter-spacing:.06em}
+  .mine-btn:active{background:var(--brand-soft)}
+  .mine-btn.danger{border-color:#c9a3a0;color:#9c4a3f}
+  .mine-btn:disabled{opacity:.45;cursor:not-allowed}
+  .mine-lock{margin-top:12px;font-size:12.5px;color:#9c4a3f;background:#f7eeec;border-radius:10px;padding:9px 12px;line-height:1.6}
+  .mine-empty{text-align:center;color:var(--muted);font-size:14px;line-height:1.9;padding:30px 12px}
+  .resch-bar{position:relative;z-index:2;margin:10px 18px 0;padding:12px 14px;border-radius:14px;
+    background:#f3ece2;border:1px solid var(--brand);color:var(--brand-deep);font-size:13.5px;line-height:1.6;
+    display:none;align-items:center;gap:10px}
+  .resch-bar.show{display:flex}
+  .resch-bar .rb-txt{flex:1}
+  .resch-bar button{font:inherit;font-size:12.5px;padding:6px 12px;border-radius:16px;border:1px solid var(--brand);
+    background:#fff;color:var(--brand-deep);cursor:pointer;white-space:nowrap}
+
   /* ===== 老師模式按鈕（只有老師本人會看到）===== */
   .adm-entry{position:absolute;right:52px;top:50%;transform:translateY(-45%);
     background:#fff;border:1px solid var(--brand);color:var(--brand-deep);
@@ -492,6 +516,12 @@
     <button class="adm-entry" id="admEntry" aria-label="老師模式" title="開放時段設定">⚙️</button>
     <button class="tb-close" id="tbClose" aria-label="關閉">✕</button>
   </header>
+
+  <!-- 改期中的提示條 -->
+  <div class="resch-bar" id="reschBar">
+    <span class="rb-txt" id="reschTxt">🔁 正在幫你改期</span>
+    <button id="reschCancel">不改了</button>
+  </div>
 
   <button class="infobar" id="openInfo" style="display:none">🌿 工作室 · 交通資訊</button>
 
@@ -643,9 +673,9 @@
     <button class="cta" id="submit">送出預約</button>
     <div class="done" id="done" style="display:none">
       <div class="tick">✓</div>
-      <h3>預約完成</h3>
+      <h3 id="doneTitle">預約完成</h3>
       <p id="doneDate">　</p>
-      <div class="paybox">💰 新顧客定金 $500（當天結帳全額折抵）<br>👉🏻 可轉帳（請私訊官方帳號詢問帳號）<br>👉🏻 私人 Line Pay（請私訊官方帳號詢問帳號）<br>🔺 請於 24 小時內完成付款，收到款項才算預約成功<br>💛 舊顧客免收定金</div>
+      <div class="paybox" id="payBox">💰 新顧客定金 $500（當天結帳全額折抵）<br>👉🏻 可轉帳（請私訊官方帳號詢問帳號）<br>👉🏻 私人 Line Pay（請私訊官方帳號詢問帳號）<br>🔺 請於 24 小時內完成付款，收到款項才算預約成功<br>💛 舊顧客免收定金</div>
       <div class="notecard">
         <div class="nctitle">♡ 請詳閱以下須知</div>
         <p>‣ 工作室地址：台南市永康區復國一路339-1號（路易莎復國店，這棟大樓）</p>
@@ -657,8 +687,16 @@
       </div>
       <a class="gcal" id="gcalBtn" href="#" target="_blank" rel="noopener">＋ 加入我的 Google 日曆</a>
       <a class="navi" id="naviBtn" href="#" target="_blank" rel="noopener">📍 開啟 Google 導航</a>
-      <p style="margin-top:14px">如需改期或取消，請回覆 LINE 訊息。</p>
+      <p style="margin-top:14px">如需改期或取消，可以到下方「📋 我的預約」自己操作，或回覆 LINE 訊息。</p>
     </div>
+  </div>
+
+  <!-- 6 我的預約 -->
+  <div class="panel" id="p6">
+    <div class="ptitle" data-eb="My Booking">我的預約</div>
+    <div class="psub" id="mineSub">這裡會列出你還沒到的預約，可以自己取消或改期。</div>
+    <button class="refreshbtn" id="mineRefresh">↻ 重新整理</button>
+    <div id="mineList"></div>
   </div>
 
   <!-- 5 工作室・交通資訊（獨立頁） -->
@@ -750,6 +788,7 @@
   <!-- 底部導覽列 -->
   <nav class="tabbar" id="tabbar">
     <button class="tab on" id="tabBook"><span class="ti">🗓</span><span>我要預約</span></button>
+    <button class="tab" id="tabMine"><span class="ti">📋</span><span>我的預約</span></button>
     <button class="tab" id="tabInfo"><span class="ti">🏠</span><span>品牌資訊</span></button>
   </nav>
 </div>
@@ -888,9 +927,12 @@ let viewYM = null;       // 目前顯示的年月
    進度點 d0..d4 依邏輯順序亮。*/
 const STEP_OF_PANEL = { 2:0, 0:1, 1:1, 3:2, 4:3 };
 function show(n){
-  for(let i=0;i<=5;i++){ const el=$("p"+i); if(el) el.classList.toggle("show", i===n); }
+  for(let i=0;i<=6;i++){ const el=$("p"+i); if(el) el.classList.toggle("show", i===n); }
   const stepsBar=document.querySelector(".steps");
-  if(stepsBar) stepsBar.style.display = (n===5) ? "none" : "flex";
+  if(stepsBar) stepsBar.style.display = (n===5 || n===6) ? "none" : "flex";
+  // 改期提示條：只在選日期、選時段、確認頁顯示
+  const rb=$("reschBar");
+  if(rb) rb.classList.toggle("show", !!st.reschedule && (n===0 || n===1 || n===4));
   const infobar=$("openInfo");
   if(infobar) infobar.style.display = "none";
   const step = STEP_OF_PANEL[n];
@@ -1125,7 +1167,11 @@ function openDay(ds, slots){
   show(1);
 }
 $("backToCal").onclick=()=>show(0);
-$("p1next").onclick=()=>show(3);
+$("p1next").onclick=()=>{
+  // 改期：服務和資料都沿用原本的，直接跳到確認頁
+  if(st.reschedule){ fillReschSummary(); show(4); }
+  else show(3);
+};
 
 /* 紋繡：詳細說明改用外部連結，避免頁面過長 */
 function appendBrowInfo(body){
@@ -1367,7 +1413,7 @@ function refreshAddonTotal(){
   $("addonTotal").innerHTML = n>0 ? `已加購 ${n} 項　合計 NT$ ${totalPrice().toLocaleString()}　約 ${totalDur()} 分鐘` : "尚未加購";
   $("addonConfirm").textContent = n>0 ? "加入並繼續" : "繼續";
 }
-function gotoCalendar(){ updateTotal(); show(0); if(!viewYM) initMonth(); else loadMonth(); }
+function gotoCalendar(){ st.reschedule=null; updateTotal(); show(0); if(!viewYM) initMonth(); else loadMonth(); }
 
 renderServices();
 $("p2next").onclick=()=>{ gotoCalendar(); };
@@ -1421,31 +1467,70 @@ function fillSummary(){
   if(st.note){ $("sNoteRow").style.display="flex"; $("sNote").textContent=st.note; }
   else { $("sNoteRow").style.display="none"; }
   $("sPhoto").textContent = st.photo;
+  resetConfirmPanel(false);
+}
+/* 每次進確認頁都重設：新的預約編號、送出按鈕恢復、完成畫面藏起來 */
+function resetConfirmPanel(isResch){
   /* ★ 防呆：進到確認頁時，產生這筆預約的唯一編號；之後不管重試幾次都用同一個 */
   st.bookingId = "bk_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10);
   st.submitted = false;   // 這筆有沒有送出過
+  submitLock = false;
+  const btn=$("submit");
+  btn.style.display=""; btn.disabled=false;
+  btn.textContent = isResch ? "確定改期" : "送出預約";
+  $("done").style.display="none";
+  $("p4").querySelector(".ptitle").textContent = isResch ? "確認改期" : "確認預約";
 }
+/* 改期的確認頁：資料全部沿用原本那筆預約，只換日期時間 */
+function fillReschSummary(){
+  const r=st.reschedule;
+  st.name=r.name; st.phone=r.phone; st.note=r.note;
+  $("sName").textContent=r.name || "—";
+  $("sPhone").textContent=r.phone || "—";
+  $("sSvc").textContent=r.service;
+  const wd=["日","一","二","三","四","五","六"][new Date(st.date+"T00:00:00").getDay()];
+  $("sDate").textContent=st.date+"（週"+wd+"）";
+  $("sTime").textContent=st.time;
+  $("sDur").textContent=(r.dur||120)+" 分鐘";
+  $("sPrice").textContent=(r.price!=="" && r.price!=null) ? "NT$ "+Number(r.price).toLocaleString() : "與原預約相同";
+  $("sNoteRow").style.display="flex"; $("sNote").textContent="原本："+r.date+"（"+r.time+"）→ 改到上面的新時間";
+  $("sPhoto").textContent="沿用原預約";
+  resetConfirmPanel(true);
+}
+/* 目前這筆的服務名稱／時長／金額（一般預約 or 改期） */
+function curSvcText(){ return st.reschedule ? st.reschedule.service : svcNames() + (st.people>1 ? "（" + st.people + " 位）" : ""); }
+function curDur(){ return st.reschedule ? (Number(st.reschedule.dur)||120) : totalDur(); }
 /* 防止連點：改用 ontouchstart + onclick 雙保險；一但送出過就完全鎖死按鈕 */
 let submitLock = false;
 function doSubmit(){
   if(submitLock || st.submitted) return;   // 已經在送 or 已送過 → 直接忽略
   submitLock = true;
   const btn=$("submit"); btn.disabled=true; btn.textContent="送出中…";
+  const r = st.reschedule;
+  const payload = r
+    ? { bookingId:st.bookingId, rescheduleOf:r.key, name:r.name, phone:r.phone,
+        service:r.service, date:st.date, time:st.time, dur:curDur(), price:r.price,
+        note:r.note, userId:st.userId||"" }
+    : { bookingId:st.bookingId, name:st.name, phone:st.phone,
+        service:curSvcText(), people:st.people||1,
+        date:st.date, time:st.time, dur:totalDur(), price:totalPrice(),
+        note:(st.note ? st.note+"｜" : "")+"作品照："+st.photo, userId:st.userId||"" };
   fetch(SCRIPT_URL,{ method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({ bookingId:st.bookingId, name:st.name, phone:st.phone,
-      service:svcNames() + (st.people>1 ? "（" + st.people + " 位）" : ""),
-      people:st.people||1,
-      date:st.date, time:st.time, dur:totalDur(), price:totalPrice(),
-      note:(st.note ? st.note+"｜" : "")+"作品照："+st.photo, userId:st.userId||"" })
+    body:JSON.stringify(payload)
   }).catch(()=>{});
   st.submitted = true;
-  // 清掉這個月的快取，下次切回會重新抓到最新（被約走的時段會消失）
-  if(st.date){ const ymk=st.date.substring(0,7); delete monthCache[ymk]; }
+  // 清掉快取，下次切回會重新抓到最新（被約走的時段會消失、改期釋放的時段會出現）
+  if(st.date){ delete monthCache[st.date.substring(0,7)]; }
+  if(r && r.date){ delete monthCache[r.date.substring(0,7)]; }
+  mineCache = null;
   const wd=["日","一","二","三","四","五","六"][new Date(st.date+"T00:00:00").getDay()];
-  $("doneDate").textContent="預約日期為："+st.date+"（週"+wd+"）"+st.time;
+  $("doneTitle").textContent = r ? "改期完成" : "預約完成";
+  $("doneDate").textContent=(r ? "新的預約時間：" : "預約日期為：")+st.date+"（週"+wd+"）"+st.time;
+  $("payBox").style.display = r ? "none" : "";   // 改期不用再付定金
   $("gcalBtn").href = buildGcalLink();
   btn.style.display="none"; $("done").style.display="block";
   $("done").scrollIntoView({behavior:"smooth",block:"center"});
+  if(r){ st.reschedule=null; $("reschBar").classList.remove("show"); }
 }
 /* 綁兩種事件來源：mobile 快速連點 touchstart 比 click 更早觸發，先在這裡擋下 */
 $("submit").addEventListener("click", doSubmit);
@@ -1455,11 +1540,11 @@ $("submit").addEventListener("touchstart", function(ev){ ev.preventDefault(); do
 function buildGcalLink(){
   const [h,m]=st.time.split(":").map(Number);
   const start=new Date(st.date+"T00:00:00"); start.setHours(h,m,0,0);
-  const end=new Date(start.getTime()+totalDur()*60000);
+  const end=new Date(start.getTime()+curDur()*60000);
   const z=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")
     +"T"+String(d.getHours()).padStart(2,"0")+String(d.getMinutes()).padStart(2,"0")+"00";
-  const title=encodeURIComponent("沐蜜 Moome｜"+svcNames());
-  const det=encodeURIComponent("客人："+st.name+"\n服務："+svcNames()
+  const title=encodeURIComponent("沐蜜 Moome｜"+curSvcText());
+  const det=encodeURIComponent("客人："+st.name+"\n服務："+curSvcText()
     +(st.note?("\n備註："+st.note):"")
     +"\n\n♡ 請準時到，到達後請傳訊息，工作人員會接待您");
   const loc=encodeURIComponent("台南市永康區復國一路339-1號（路易莎復國店這棟大樓）");
@@ -1473,12 +1558,138 @@ $("naviBtn").href = NAVI_URL;
 $("naviBtn2").href = NAVI_URL;
 
 /* 底部導覽列 */
-$("tabBook").onclick=()=>{ show(2); };
+$("tabBook").onclick=()=>{ st.reschedule=null; show(2); };
 $("tabInfo").onclick=()=>{ $("p5").scrollTop=0; show(5); };
+$("tabMine").onclick=()=>{ show(6); loadMine(); };
 function syncTab(n){
-  $("tabBook").classList.toggle("on", n!==5);
+  $("tabBook").classList.toggle("on", n!==5 && n!==6);
+  $("tabMine").classList.toggle("on", n===6);
   $("tabInfo").classList.toggle("on", n===5);
 }
+
+/* ===== 我的預約：查看、取消、改期 ===== */
+let mineCache = null;   // 最近一次抓到的清單
+const WEEK = ["日","一","二","三","四","五","六"];
+
+/* 等 LINE 身分抓到（最多等 4 秒）再做事 */
+function whenUser(cb){
+  if(st.userId) return cb(true);
+  let n=0;
+  const t=setInterval(()=>{ n++;
+    if(st.userId){ clearInterval(t); cb(true); }
+    else if(n>=20){ clearInterval(t); cb(false); }
+  },200);
+}
+
+function loadMine(){
+  const box=$("mineList");
+  box.innerHTML=`<div class="loading">🌿 正在查詢你的預約，請稍候一下下～</div>`;
+  whenUser(ok=>{
+    if(!ok){
+      box.innerHTML=`<div class="mine-empty">需要從 <b>LINE</b> 打開預約頁，<br>才查得到你的預約喔 ♡</div>`;
+      return;
+    }
+    const cb="mineCB_"+Date.now();
+    const timer=setTimeout(()=>{ cleanup(); showMineError(); },15000);
+    function cleanup(){ delete window[cb]; const s=document.getElementById(cb); if(s)s.remove(); clearTimeout(timer); }
+    window[cb]=function(res){ cleanup();
+      if(!res || !res.ok || !Array.isArray(res.bookings)){ showMineError(); return; }
+      mineCache=res;
+      renderMine(res);
+    };
+    const s=document.createElement("script"); s.id=cb;
+    s.src=SCRIPT_URL+"?action=myBookings&userId="+encodeURIComponent(st.userId)+"&_t="+Date.now()+"&callback="+cb;
+    s.onerror=()=>{ cleanup(); showMineError(); };
+    document.body.appendChild(s);
+  });
+}
+function showMineError(){
+  $("mineList").innerHTML=`<div class="mine-empty">🌧 讀取失敗了，可能是網路不穩<br>請按上方「↻ 重新整理」再試一次</div>`;
+}
+$("mineRefresh").onclick=loadMine;
+
+function renderMine(res){
+  const box=$("mineList"); box.innerHTML="";
+  const lim=res.limitHours||24;
+  $("mineSub").textContent=`這裡會列出你還沒到的預約。預約前 ${lim} 小時以前，可以自己取消或改期。`;
+  if(!res.bookings.length){
+    box.innerHTML=`<div class="mine-empty">目前沒有即將到來的預約 ♡<br>想預約的話，點下方「🗓 我要預約」</div>`;
+    return;
+  }
+  res.bookings.forEach(b=>{
+    const d=new Date(b.date+"T00:00:00");
+    const card=document.createElement("div"); card.className="mine-card";
+    const priceTxt=(b.price!=="" && b.price!=null) ? `NT$ ${Number(b.price).toLocaleString()}` : "";
+    card.innerHTML=`
+      <div class="mine-when">
+        <span class="mine-date">${d.getMonth()+1}月${d.getDate()}日</span>
+        <span class="mine-wk">星期${WEEK[d.getDay()]}</span>
+        <span class="mine-time">${b.time}</span>
+      </div>
+      <div class="mine-svc"></div>
+      <div class="mine-meta">約 ${b.dur} 分鐘${priceTxt?"　・　"+priceTxt:""}</div>`;
+    card.querySelector(".mine-svc").textContent=b.service;   // 用 textContent 避免特殊字元出錯
+    if(b.canChange){
+      const row=document.createElement("div"); row.className="mine-btns";
+      const bRes=document.createElement("button"); bRes.className="mine-btn"; bRes.textContent="改期";
+      const bCan=document.createElement("button"); bCan.className="mine-btn danger"; bCan.textContent="取消預約";
+      bRes.onclick=()=>startReschedule(b);
+      bCan.onclick=()=>cancelMine(b, bCan, bRes);
+      row.appendChild(bRes); row.appendChild(bCan); card.appendChild(row);
+    }else{
+      const lock=document.createElement("div"); lock.className="mine-lock";
+      lock.textContent=`⏳ 距離預約已不到 ${lim} 小時，無法在網頁上取消或改期，如有需要請直接傳 LINE 給老師 ♡`;
+      card.appendChild(lock);
+    }
+    box.appendChild(card);
+  });
+}
+
+function cancelMine(b, btn, other){
+  const d=new Date(b.date+"T00:00:00");
+  const ok=confirm(`確定要取消這筆預約嗎？\n\n${d.getMonth()+1}月${d.getDate()}日（週${WEEK[d.getDay()]}）${b.time}\n${b.service}\n\n取消後這個時段會開放給其他客人。`);
+  if(!ok) return;
+  btn.disabled=true; other.disabled=true; btn.textContent="取消中…";
+  const cb="canCB_"+Date.now();
+  const timer=setTimeout(()=>{ cleanup(); fail("連線逾時，請稍後再試一次"); },20000);
+  function cleanup(){ delete window[cb]; const s=document.getElementById(cb); if(s)s.remove(); clearTimeout(timer); }
+  function fail(msg){ alert(msg); btn.disabled=false; other.disabled=false; btn.textContent="取消預約"; }
+  window[cb]=function(res){ cleanup();
+    if(res && res.ok){
+      delete monthCache[b.date.substring(0,7)];
+      alert("已為你取消預約 ✓\nLINE 也會收到一則取消通知。");
+      loadMine();
+    }else if(res && res.error==="too_late"){
+      alert(`距離預約已不到 ${res.limitHours||24} 小時，無法在網頁上取消，請直接傳 LINE 給老師 ♡`);
+      loadMine();
+    }else if(res && res.error==="not_found"){
+      alert("找不到這筆預約，可能已經取消過了。");
+      loadMine();
+    }else{
+      fail("取消失敗了，請稍後再試，或直接傳 LINE 給老師。");
+    }
+  };
+  const s=document.createElement("script"); s.id=cb;
+  s.src=SCRIPT_URL+"?action=cancelBooking&userId="+encodeURIComponent(st.userId||"")
+       +"&bookingId="+encodeURIComponent(b.key)+"&_t="+Date.now()+"&callback="+cb;
+  s.onerror=()=>{ cleanup(); fail("連線失敗，請檢查網路後再試一次"); };
+  document.body.appendChild(s);
+}
+
+/* 改期：記住是哪一筆 → 直接去選新的日期時段（服務、資料都沿用） */
+function startReschedule(b){
+  st.reschedule=b;
+  st.date=null; st.time=null;
+  const d=new Date(b.date+"T00:00:00");
+  $("reschTxt").textContent=`🔁 正在幫「${b.service}」改期（原本 ${d.getMonth()+1}/${d.getDate()} ${b.time}），請選新的日期和時段`;
+  show(0);
+  if(!viewYM) initMonth(); else loadMonth();
+}
+$("reschCancel").onclick=()=>{
+  st.reschedule=null;
+  $("reschBar").classList.remove("show");
+  show(6); loadMine();
+};
 /* 品牌資訊頁開關 */
 $("openInfo").onclick=()=>{ $("p5").scrollTop=0; show(5); };
 $("closeInfo").onclick=()=>show(2);
@@ -1490,7 +1701,7 @@ $("noticeAgree").onclick=()=>{ $("noticeModal").style.display="none"; };
    p9 面板顯示時，隱藏步驟列、底部導覽列、主要面板 */
 function showAdmin(){
   // 隱藏所有一般面板
-  for(let i=0;i<=5;i++){ const el=$("p"+i); if(el) el.classList.remove("show"); }
+  for(let i=0;i<=6;i++){ const el=$("p"+i); if(el) el.classList.remove("show"); }
   // 隱藏步驟列、notice modal、品牌資訊入口
   const stepsBar=document.querySelector(".steps"); if(stepsBar) stepsBar.style.display="none";
   $("openInfo").style.display="none";
@@ -1548,8 +1759,8 @@ $("admBack").onclick=()=>hideAdmin();
     const t=setTimeout(()=>{ cleanupV(); $("admVerMsg").className="adm-msg err"; $("admVerMsg").textContent="檢查逾時，請確認網路。"; },10000);
     function cleanupV(){ delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(t); }
     window[cb]=function(res){ cleanupV();
-      if(res && res.version==="v12-smartflow"){
-        $("admVerMsg").className="adm-msg ok"; $("admVerMsg").textContent="✓ 後端已是最新版（含會員自動填 + 2hr 提醒）";
+      if(res && res.version==="v13-mybookings"){
+        $("admVerMsg").className="adm-msg ok"; $("admVerMsg").textContent="✓ 後端已是最新版（含我的預約、取消、改期）";
       }else{
         $("admVerMsg").className="adm-msg err";
         $("admVerMsg").textContent="✗ 後端仍是舊版 → 請到 Apps Script：部署 → 管理部署作業 → 鉛筆 → 版本選「新版本」→ 部署";
