@@ -911,9 +911,29 @@ liff.init({ liffId: LIFF_ID }).then(()=>{
       if(pf.userId === OWNER_USERID){
         $("admEntry").classList.add("show");
       }
+      /* ★ 老客人自動帶出姓名電話：查會員分頁，有紀錄就填上 */
+      prefillMember(pf.userId);
     }).catch(()=>{});
   }
 }).catch(()=>{});
+
+/* 向後端查這位 LINE 使用者是否已是會員，是的話把姓名、電話填好 */
+function prefillMember(userId){
+  if(!userId) return;
+  const cb="memCB_"+Date.now();
+  const timer=setTimeout(cleanup,5000);
+  function cleanup(){ delete window[cb]; const s=document.getElementById(cb); if(s)s.remove(); clearTimeout(timer); }
+  window[cb]=function(res){ cleanup();
+    if(res && res.found){
+      if(res.name) $("cname").value = res.name;
+      if(res.phone && !$("cphone").value) $("cphone").value = res.phone;
+    }
+  };
+  const sc=document.createElement("script"); sc.id=cb;
+  sc.src=SCRIPT_URL+"?action=getMember&userId="+encodeURIComponent(userId)+"&callback="+cb;
+  sc.onerror=cleanup;
+  document.body.appendChild(sc);
+}
 
 /* 月曆 */
 const today=new Date(); today.setHours(0,0,0,0);
@@ -926,8 +946,8 @@ $("prevMo").onclick=()=>{ const now=new Date(today.getFullYear(),today.getMonth(
   const v=new Date(viewYM.y,viewYM.m-1,1); if(v<now)return; viewYM={y:v.getFullYear(),m:v.getMonth()}; loadMonth(); };
 $("nextMo").onclick=()=>{ const v=new Date(viewYM.y,viewYM.m+1,1); viewYM={y:v.getFullYear(),m:v.getMonth()}; loadMonth(); };
 
-const monthCache = {};   // 快取：ym字串 -> {data, at}，60秒內用快取、之後重抓最新
-const CACHE_TTL = 15000; // 快取有效 15 秒
+const monthCache = {};   // 快取：ym字串 -> {data, at}
+const CACHE_TTL = 3000;  // 快取有效 3 秒（降低撞時段風險）
 function loadMonth(){
   $("moLabel").textContent = viewYM.y+" 年 "+(viewYM.m+1)+" 月";
   const atThisMonth = (viewYM.y===today.getFullYear() && viewYM.m===today.getMonth());
@@ -1022,7 +1042,7 @@ function renderCal(){
       c.className="cell full"; c.innerHTML=`${d}<span class="tagfull">已滿</span>`;
     }else{
       c.className="cell open"; c.innerHTML=`${d}<span class="tagfree">可約</span>`;
-      c.onclick=()=>{ st.date=ds; st.time=null; openDay(ds, slots); };
+      c.onclick=()=>{ st.date=ds; st.time=null; tapDate(ds, slots); };
     }
     if(holiday){ c.classList.add("holiday"); c.title=holiday;
       const tag=document.createElement("span"); tag.className="holi-tag"; tag.textContent=holiday;
@@ -1035,6 +1055,34 @@ $("refreshCal").onclick=()=>{
   for(const k in monthCache) delete monthCache[k];
   loadMonth();
 };
+
+/* 點某一天 → 先切頁 + 顯示讀取中 → 快速向後端拿「這一天」最新時段 → 再進時段頁
+   避免拿到月快取導致剛被約走還顯示可約。4 秒拿不到就用快取退回 */
+function tapDate(ds, cachedSlots){
+  show(1);
+  const d=new Date(ds+"T00:00:00");
+  const wd=["日","一","二","三","四","五","六"][d.getDay()];
+  $("dayTitle").innerHTML = `<span class="dnum">${d.getMonth()+1}月${d.getDate()}日</span><span class="dwk">星期${wd}</span>`;
+  $("availCard").style.display="block"; $("fullNote").style.display="none"; $("fullWrap").style.display="none";
+  $("availLabel").textContent="可預約時段";
+  $("timesAvail").innerHTML=`<div class="loading" style="grid-column:1/-1;padding:14px">⚡ 確認最新時段中…</div>`;
+  $("timesFull").innerHTML="";
+  const cb="freshDay_"+Date.now();
+  const timer=setTimeout(()=>{ cleanup(); openDay(ds, cachedSlots); },4000);
+  function cleanup(){ delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(timer); }
+  window[cb]=function(res){ cleanup();
+    let fresh=cachedSlots;
+    if(res && Array.isArray(res.slots)){
+      fresh=res.slots.filter(t=>/^\d{2}:\d{2}$/.test(t) && ALL_TIMES.indexOf(t)>=0);
+      monthData[ds]=fresh;   // 順便更新本月快取
+    }
+    openDay(ds, fresh);
+  };
+  const s=document.createElement("script"); s.id=cb;
+  s.src=SCRIPT_URL+"?action=getSlots&date="+encodeURIComponent(ds)+"&_t="+Date.now()+"&callback="+cb;
+  s.onerror=()=>{ cleanup(); openDay(ds, cachedSlots); };
+  document.body.appendChild(s);
+}
 
 /* 選某天 → 進時段頁 */
 function openDay(ds, slots){
@@ -1500,8 +1548,8 @@ $("admBack").onclick=()=>hideAdmin();
     const t=setTimeout(()=>{ cleanupV(); $("admVerMsg").className="adm-msg err"; $("admVerMsg").textContent="檢查逾時，請確認網路。"; },10000);
     function cleanupV(){ delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(t); }
     window[cb]=function(res){ cleanupV();
-      if(res && res.version==="v11-dedup"){
-        $("admVerMsg").className="adm-msg ok"; $("admVerMsg").textContent="✓ 後端已是最新版（含防呆去重機制）";
+      if(res && res.version==="v12-smartflow"){
+        $("admVerMsg").className="adm-msg ok"; $("admVerMsg").textContent="✓ 後端已是最新版（含會員自動填 + 2hr 提醒）";
       }else{
         $("admVerMsg").className="adm-msg err";
         $("admVerMsg").textContent="✗ 後端仍是舊版 → 請到 Apps Script：部署 → 管理部署作業 → 鉛筆 → 版本選「新版本」→ 部署";
