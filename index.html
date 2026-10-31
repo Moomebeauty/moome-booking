@@ -135,7 +135,7 @@
   .full-chips{display:flex;flex-wrap:wrap;gap:6px}
   .full-chip{font-size:12px;color:#b3a596;background:#f3eee8;border-radius:8px;padding:4px 9px;letter-spacing:.02em}
   /* 最快可預約卡片 */
-  .fast-card{background:#fff;border:1px solid var(--divider);border-radius:18px;padding:16px 16px 8px;margin:38px 4px 24px}
+  .fast-card{background:#fff;border:1px solid var(--divider);border-radius:18px;padding:16px 16px 0;margin:38px 4px 26px;overflow:hidden}
   .fast-tip{font-size:12.5px;color:var(--muted);line-height:1.9;letter-spacing:.04em;
     padding-bottom:12px;margin-bottom:14px;border-bottom:1px dashed var(--divider)}
   .fast-h{font-size:13.5px;font-weight:700;color:var(--ink);margin:0 0 9px;letter-spacing:.04em}
@@ -149,6 +149,11 @@
   .fast-sep{border-top:1px dashed var(--divider);margin:6px 0 12px}
   .fast-loading{font-size:13px;color:var(--muted);text-align:center;padding:6px 0 12px}
   .fast-none{font-size:12.5px;color:var(--muted);margin:-2px 0 10px}
+  .fast-all{display:block;width:calc(100% + 32px);margin:4px -16px 0;padding:13px 10px 12px;border:none;
+    border-top:1px solid var(--divider);border-radius:0 0 18px 18px;background:var(--brand-soft);
+    font:inherit;font-size:13.5px;font-weight:600;color:var(--brand-deep);letter-spacing:.05em;cursor:pointer}
+  .fast-all:active{background:#ece1d0}
+  .cal-sec{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:.06em;margin:0 4px 14px;scroll-margin-top:12px}
   .slot{padding:14px 0;text-align:center;border:1px solid var(--divider);border-radius:12px;
     background:var(--white);font-size:15px;cursor:pointer;letter-spacing:.04em;
     font-family:"Noto Sans TC",sans-serif;font-weight:600;transition:transform .18s ease,border-color .18s}
@@ -561,7 +566,9 @@
         <div>💡 越早預約，越能選到理想時段 ♡</div>
       </div>
       <div id="fastBody"><div class="fast-loading">🔍 正在幫你找最快可預約的時段…</div></div>
+      <button class="fast-all" id="fastAll">📅 看完整月曆，挑其他日期 ↓</button>
     </div>
+    <div class="cal-sec" id="calSec">📅 所有可預約日期</div>
     <div class="cal-head">
       <button class="navbtn" id="prevMo">‹</button>
       <div class="mo" id="moLabel">—</div>
@@ -1013,6 +1020,10 @@ function ymStr(){ return viewYM.y+"-"+String(viewYM.m+1).padStart(2,"0"); }
 $("prevMo").onclick=()=>{ const now=new Date(today.getFullYear(),today.getMonth(),1);
   const v=new Date(viewYM.y,viewYM.m-1,1); if(v<now)return; viewYM={y:v.getFullYear(),m:v.getMonth()}; loadMonth(); };
 $("nextMo").onclick=()=>{ const v=new Date(viewYM.y,viewYM.m+1,1); viewYM={y:v.getFullYear(),m:v.getMonth()}; loadMonth(); };
+/* 客人自己翻過月份，就不要再自動幫他跳月 */
+let calTouched=false;
+$("prevMo").addEventListener("click", ()=>{ calTouched=true; });
+$("nextMo").addEventListener("click", ()=>{ calTouched=true; });
 
 const monthCache = {};   // 快取：ym字串 -> {data, at}
 const CACHE_TTL = 3000;  // 快取有效 3 秒（降低撞時段風險）
@@ -1145,8 +1156,11 @@ function fetchMonthData(ym){
   });
 }
 let fastSeq=0;
+/* 「看完整月曆」按鈕 → 平滑捲到月曆 */
+$("fastAll").onclick=()=>{ $("calSec").scrollIntoView({behavior:"smooth", block:"start"}); };
 async function loadFastest(){
   const my=++fastSeq;
+  calTouched=false;
   $("fastCard").style.display="block";
   $("fastBody").innerHTML=`<div class="fast-loading">🔍 正在幫你找最快可預約的時段…</div>`;
   const yms=[0,1,2].map(i=>{ const d=new Date(today.getFullYear(), today.getMonth()+i, 1);
@@ -1196,6 +1210,17 @@ async function loadFastest(){
   const sep=document.createElement("div"); sep.className="fast-sep"; body.appendChild(sep);
   addHead("🌿 最近的假日空檔");
   if(holis.length) holis.forEach(addRow); else addNone("近期假日都滿了，平日還有機會喔 ♡");
+
+  // 月曆停在「這個月已經完全沒空檔」的月份時（例如月底），自動跳到最快有空的那個月
+  if(days.length && viewYM && !calTouched){
+    const f=days[0].dObj;
+    const viewIdx=viewYM.y*12+viewYM.m, firstIdx=f.getFullYear()*12+f.getMonth();
+    const curYm=ymStr();
+    if(viewIdx<firstIdx && !days.some(x=>x.ds.startsWith(curYm))){
+      viewYM={y:f.getFullYear(), m:f.getMonth()};
+      loadMonth();
+    }
+  }
 }
 
 /* 點某一天 → 先切頁 + 顯示讀取中 → 快速向後端拿「這一天」最新時段 → 再進時段頁
