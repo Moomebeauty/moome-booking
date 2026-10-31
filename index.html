@@ -134,6 +134,21 @@
   .full-card .sec-full{margin:0 0 10px;color:var(--ink);font-weight:500;font-size:13.5px;letter-spacing:.06em}
   .full-chips{display:flex;flex-wrap:wrap;gap:6px}
   .full-chip{font-size:12px;color:#b3a596;background:#f3eee8;border-radius:8px;padding:4px 9px;letter-spacing:.02em}
+  /* 最快可預約卡片 */
+  .fast-card{background:#fff;border:1px solid var(--divider);border-radius:18px;padding:14px 16px 8px;margin:0 4px 22px}
+  .fast-tip{font-size:12.5px;color:var(--brand-deep);background:var(--brand-soft);border-radius:10px;
+    padding:8px 11px;line-height:1.65;margin-bottom:14px}
+  .fast-h{font-size:13.5px;font-weight:700;color:var(--ink);margin:0 0 9px;letter-spacing:.04em}
+  .fast-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .fast-date{font-size:12.5px;font-weight:600;color:var(--ink);width:80px;flex-shrink:0;cursor:pointer;line-height:1.3}
+  .fast-hol{display:block;font-size:10px;color:#c0584a;font-weight:500}
+  .fast-chip{font:inherit;font-size:12.5px;font-weight:600;padding:6px 8px;border-radius:10px;flex-shrink:0;
+    border:1.5px solid #b9c79a;background:#f6f8f0;color:#4a4038;cursor:pointer}
+  .fast-chip:active{background:#8aa06a;color:#fff;border-color:#8aa06a}
+  .fast-more{font:inherit;font-size:12px;font-weight:600;color:var(--brand);background:var(--brand-soft);border:none;border-radius:10px;cursor:pointer;padding:7px 8px;flex-shrink:0}
+  .fast-sep{border-top:1px dashed var(--divider);margin:6px 0 12px}
+  .fast-loading{font-size:13px;color:var(--muted);text-align:center;padding:6px 0 12px}
+  .fast-none{font-size:12.5px;color:var(--muted);margin:-2px 0 10px}
   .slot{padding:14px 0;text-align:center;border:1px solid var(--divider);border-radius:12px;
     background:var(--white);font-size:15px;cursor:pointer;letter-spacing:.04em;
     font-family:"Noto Sans TC",sans-serif;font-weight:600;transition:transform .18s ease,border-color .18s}
@@ -540,6 +555,11 @@
   <div class="panel show" id="p0">
     <div class="ptitle" data-eb="Date">選擇預約日期</div>
     <div class="psub">亮起來的日子可預約，灰色為已滿約。</div>
+    <!-- 最快可預約 -->
+    <div class="fast-card" id="fastCard">
+      <div class="fast-tip">💡 熱門時段很快就會被約走，越早預約，越容易選到理想時段 ♡</div>
+      <div id="fastBody"><div class="fast-loading">🔍 正在幫你找最快可預約的時段…</div></div>
+    </div>
     <div class="cal-head">
       <button class="navbtn" id="prevMo">‹</button>
       <div class="mo" id="moLabel">—</div>
@@ -1099,12 +1119,87 @@ function renderCal(){
 
 $("refreshCal").onclick=()=>{
   for(const k in monthCache) delete monthCache[k];
-  loadMonth();
+  loadMonth(); loadFastest();
 };
 
+/* ===== 最快可預約：往後看 3 個月，找出最快的空檔＋最近的假日空檔 ===== */
+function fetchMonthData(ym){
+  return new Promise(resolve=>{
+    const c=monthCache[ym];
+    if(c && Date.now()-c.at < CACHE_TTL) return resolve(c);
+    const cb="fastCB_"+ym.replace("-","")+"_"+Date.now();
+    const timer=setTimeout(()=>{ cleanup(); resolve(null); },18000);
+    function cleanup(){ delete window[cb]; const s=document.getElementById(cb); if(s)s.remove(); clearTimeout(timer); }
+    window[cb]=function(res){ cleanup();
+      if(res && typeof res.month==="object" && res.month!==null){
+        const v={data:res.month, stat:res.status||{}, at:Date.now()};
+        monthCache[ym]=v; resolve(v);
+      }else resolve(null);
+    };
+    const s=document.createElement("script"); s.id=cb;
+    s.src=SCRIPT_URL+"?action=getMonth&ym="+encodeURIComponent(ym)+"&_t="+Date.now()+"&callback="+cb;
+    s.onerror=()=>{ cleanup(); resolve(null); };
+    document.body.appendChild(s);
+  });
+}
+let fastSeq=0;
+async function loadFastest(){
+  const my=++fastSeq;
+  $("fastCard").style.display="block";
+  $("fastBody").innerHTML=`<div class="fast-loading">🔍 正在幫你找最快可預約的時段…</div>`;
+  const yms=[0,1,2].map(i=>{ const d=new Date(today.getFullYear(), today.getMonth()+i, 1);
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); });
+  const results=await Promise.all(yms.map(fetchMonthData));
+  if(my!==fastSeq) return;                                   // 期間又重抓了，用新的那次
+  if(results.every(r=>!r)){ $("fastCard").style.display="none"; return; }   // 全部失敗就先不顯示
+  // 整理出「明天以後、有空檔」的每一天
+  const days=[];
+  results.forEach(r=>{ if(!r) return;
+    Object.keys(r.data).forEach(ds=>{
+      const dObj=new Date(ds+"T00:00:00");
+      if(isNaN(dObj) || dObj<=today) return;
+      if(r.stat && r.stat[ds]) return;                         // 休假／進修
+      const sl=(r.data[ds]||[]).filter(t=>ALL_TIMES.indexOf(t)>=0).sort();
+      if(sl.length) days.push({ ds, dObj, slots:sl });
+    });
+  });
+  days.sort((a,b)=> a.ds<b.ds ? -1 : 1);
+  const isOff = x => x.dObj.getDay()===0 || x.dObj.getDay()===6 || !!HOLIDAYS[x.ds];
+  const holis = days.filter(isOff).slice(0,3);
+
+  const body=$("fastBody"); body.innerHTML="";
+  const addHead = txt => { const h=document.createElement("div"); h.className="fast-h"; h.textContent=txt; body.appendChild(h); };
+  const addNone = txt => { const n=document.createElement("div"); n.className="fast-none"; n.textContent=txt; body.appendChild(n); };
+  function addRow(x){
+    const row=document.createElement("div"); row.className="fast-row";
+    const lab=document.createElement("div"); lab.className="fast-date";
+    lab.textContent=`${x.dObj.getMonth()+1}/${x.dObj.getDate()}（${WEEK[x.dObj.getDay()]}）`;
+    if(HOLIDAYS[x.ds]){ const h=document.createElement("span"); h.className="fast-hol"; h.textContent=HOLIDAYS[x.ds]; lab.appendChild(h); }
+    lab.onclick=()=>{ st.date=x.ds; st.time=null; tapDate(x.ds, x.slots); };
+    row.appendChild(lab);
+    x.slots.slice(0,3).forEach(t=>{
+      const c=document.createElement("button"); c.className="fast-chip"; c.textContent=t;
+      c.onclick=()=>{ st.date=x.ds; st.time=null; tapDate(x.ds, x.slots, t); };   // 點了直接幫你選好這個時段
+      row.appendChild(c);
+    });
+    if(x.slots.length>3){
+      const m=document.createElement("button"); m.className="fast-more"; m.textContent=`+${x.slots.length-3}`; m.title="看全部時段";
+      m.onclick=()=>{ st.date=x.ds; st.time=null; tapDate(x.ds, x.slots); };
+      row.appendChild(m);
+    }
+    body.appendChild(row);
+  }
+  addHead("⚡ 最快可預約");
+  if(days.length) addRow(days[0]); else addNone("近 3 個月的時段都滿了，歡迎私訊老師詢問 ♡");
+  const sep=document.createElement("div"); sep.className="fast-sep"; body.appendChild(sep);
+  addHead("🌿 最近的假日空檔");
+  if(holis.length) holis.forEach(addRow); else addNone("近期假日都滿了，平日還有機會喔 ♡");
+}
+
 /* 點某一天 → 先切頁 + 顯示讀取中 → 快速向後端拿「這一天」最新時段 → 再進時段頁
-   避免拿到月快取導致剛被約走還顯示可約。4 秒拿不到就用快取退回 */
-function tapDate(ds, cachedSlots){
+   避免拿到月快取導致剛被約走還顯示可約。4 秒拿不到就用快取退回
+   pre：從「最快可預約」點進來的話，順便幫客人選好那個時段 */
+function tapDate(ds, cachedSlots, pre){
   show(1);
   const d=new Date(ds+"T00:00:00");
   const wd=["日","一","二","三","四","五","六"][d.getDay()];
@@ -1114,7 +1209,7 @@ function tapDate(ds, cachedSlots){
   $("timesAvail").innerHTML=`<div class="loading" style="grid-column:1/-1;padding:14px">⚡ 確認最新時段中…</div>`;
   $("timesFull").innerHTML="";
   const cb="freshDay_"+Date.now();
-  const timer=setTimeout(()=>{ cleanup(); openDay(ds, cachedSlots); },4000);
+  const timer=setTimeout(()=>{ cleanup(); openDay(ds, cachedSlots, pre); },4000);
   function cleanup(){ delete window[cb]; const el=document.getElementById(cb); if(el)el.remove(); clearTimeout(timer); }
   window[cb]=function(res){ cleanup();
     let fresh=cachedSlots;
@@ -1122,16 +1217,16 @@ function tapDate(ds, cachedSlots){
       fresh=res.slots.filter(t=>/^\d{2}:\d{2}$/.test(t) && ALL_TIMES.indexOf(t)>=0);
       monthData[ds]=fresh;   // 順便更新本月快取
     }
-    openDay(ds, fresh);
+    openDay(ds, fresh, pre);
   };
   const s=document.createElement("script"); s.id=cb;
   s.src=SCRIPT_URL+"?action=getSlots&date="+encodeURIComponent(ds)+"&_t="+Date.now()+"&callback="+cb;
-  s.onerror=()=>{ cleanup(); openDay(ds, cachedSlots); };
+  s.onerror=()=>{ cleanup(); openDay(ds, cachedSlots, pre); };
   document.body.appendChild(s);
 }
 
 /* 選某天 → 進時段頁 */
-function openDay(ds, slots){
+function openDay(ds, slots, pre){
   const d=new Date(ds+"T00:00:00");
   const wd=["日","一","二","三","四","五","六"][d.getDay()];
   $("dayTitle").innerHTML = `<span class="dnum">${d.getMonth()+1}月${d.getDate()}日</span><span class="dwk">星期${wd}</span>`;
@@ -1169,6 +1264,11 @@ function openDay(ds, slots){
     });
   }
   $("p1next").disabled=true;
+  // 從「最快可預約」點進來的：如果那個時段還在，直接幫客人選好
+  if(pre && openSlots.indexOf(pre)>=0){
+    const el=[...avail.children].find(x=>x.textContent===pre);
+    if(el){ el.classList.add("sel"); st.time=pre; $("p1next").disabled=false; }
+  }
   show(1);
 }
 $("backToCal").onclick=()=>show(0);
@@ -1418,7 +1518,7 @@ function refreshAddonTotal(){
   $("addonTotal").innerHTML = n>0 ? `已加購 ${n} 項　合計 NT$ ${totalPrice().toLocaleString()}　約 ${totalDur()} 分鐘` : "尚未加購";
   $("addonConfirm").textContent = n>0 ? "加入並繼續" : "繼續";
 }
-function gotoCalendar(){ st.reschedule=null; updateTotal(); show(0); if(!viewYM) initMonth(); else loadMonth(); }
+function gotoCalendar(){ st.reschedule=null; updateTotal(); show(0); if(!viewYM) initMonth(); else loadMonth(); loadFastest(); }
 
 renderServices();
 $("p2next").onclick=()=>{ gotoCalendar(); };
@@ -1689,6 +1789,7 @@ function startReschedule(b){
   $("reschTxt").textContent=`🔁 正在幫「${b.service}」改期（原本 ${d.getMonth()+1}/${d.getDate()} ${b.time}），請選新的日期和時段`;
   show(0);
   if(!viewYM) initMonth(); else loadMonth();
+  loadFastest();
 }
 $("reschCancel").onclick=()=>{
   st.reschedule=null;
