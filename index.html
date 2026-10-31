@@ -125,11 +125,15 @@
   .avail-card .slot:hover{border-color:#8aa06a;box-shadow:0 4px 14px rgba(138,160,106,.2)}
   .avail-card .slot.sel{background:#8aa06a;color:#fff;border-color:#8aa06a}
   .full-note{text-align:center;background:#eef0e6;border:1px solid #d3d8c2;border-radius:16px;padding:20px;color:#6f7d56;font-size:14px;margin-bottom:8px}
-  .sec-full{margin-top:22px!important;color:var(--muted);font-weight:400;font-size:12.5px}
-  .times-full{grid-template-columns:repeat(4,1fr);gap:7px;opacity:.6}
-  .times-full .slot.off{padding:7px 0;background:#efe9e2;border-color:#e6ddd2}
-  .times-full .slot.off .t{font-size:12.5px}
-  .times-full .slot.off .booked{font-size:10px;margin-top:1px}
+  /* 「僅剩 N 個」小標籤 */
+  .avail-title{display:flex;align-items:center}
+  .few-badge{margin-left:auto;font-size:11px;font-weight:700;color:#fff;background:#b5605f;
+    padding:2px 10px;border-radius:10px;letter-spacing:.05em}
+  /* 時段已額滿：白色小卡＋淡色整點小標籤 */
+  .full-card{margin-top:16px;background:#fff;border:1px solid var(--divider);border-radius:16px;padding:14px 16px 16px}
+  .full-card .sec-full{margin:0 0 10px;color:var(--ink);font-weight:500;font-size:13.5px;letter-spacing:.06em}
+  .full-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .full-chip{font-size:12px;color:#b3a596;background:#f3eee8;border-radius:8px;padding:4px 9px;letter-spacing:.02em}
   .slot{padding:14px 0;text-align:center;border:1px solid var(--divider);border-radius:12px;
     background:var(--white);font-size:15px;cursor:pointer;letter-spacing:.04em;
     font-family:"Noto Sans TC",sans-serif;font-weight:600;transition:transform .18s ease,border-color .18s}
@@ -561,9 +565,9 @@
       <div class="times" id="timesAvail"></div>
     </div>
     <div class="full-note" id="fullNote" style="display:none">本日已約滿，請改選其他日期 ♡</div>
-    <div id="fullWrap">
-      <div class="sec-label sec-full">時段已額滿</div>
-      <div class="times times-full" id="timesFull"></div>
+    <div class="full-card" id="fullWrap">
+      <div class="sec-full">時段已額滿</div>
+      <div class="full-chips" id="timesFull"></div>
     </div>
     <button class="backbtn" id="backToCal">‹ 上一步・重新選擇日期</button>
     <button class="cta" id="p1next" disabled>下一步</button>
@@ -1143,7 +1147,8 @@ function openDay(ds, slots){
   }else{
     $("availCard").style.display="block";
     $("fullNote").style.display="none";
-    $("availLabel").textContent="可預約時段";
+    // 剩 3 個以內，右邊加「僅剩 N 個」紅色小標籤
+    $("availLabel").innerHTML = "可預約時段" + (openSlots.length<=3 ? `<span class="few-badge">僅剩 ${openSlots.length} 個</span>` : "");
     avail.style.display="grid";
     openSlots.forEach(t=>{
       const b=document.createElement("div"); b.className="slot"; b.textContent=t;
@@ -1152,15 +1157,15 @@ function openDay(ds, slots){
     });
   }
 
-  // 已額滿 / 未開放（放下面，縮小淡化）
-  if(fullSlots.length===0){
+  // 時段已額滿：只列「整點」，用淡色小標籤（半點照樣可以預約，只是這裡不列出來）
+  const fullHours = fullSlots.filter(t=>t.endsWith(":00"));
+  if(fullHours.length===0){
     $("fullWrap").style.display="none";
   }else{
     $("fullWrap").style.display="block";
-    fullSlots.forEach(t=>{
-      const b=document.createElement("div"); b.className="slot off";
-      b.innerHTML=`<span class="t">${t}</span><span class="booked">已約</span>`;
-      full.appendChild(b);
+    fullHours.forEach(t=>{
+      const c=document.createElement("span"); c.className="full-chip"; c.textContent=t;
+      full.appendChild(c);
     });
   }
   $("p1next").disabled=true;
